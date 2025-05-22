@@ -1,0 +1,9 @@
+# Ignore KiCad generated files and caches
+*.bak
+*.cache
+*.kicad_sch-bak
+*.kicad_pcb-bak
+*.kicad_pro-bak
+# Python bytecode
+__pycache__/
+*.py[cod]
