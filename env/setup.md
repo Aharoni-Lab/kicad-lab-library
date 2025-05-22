@@ -17,7 +17,7 @@ This guide helps you configure your KiCad environment to use our shared lab libr
 
 2. **Set Environment Variable**
    
-   Add this to your system environment variables or shell profile:
+   Add the following environment variable to your system. Use the actual path where you cloned the repository, replacing 'path\to\kicad-lab-library':
    
    Windows (PowerShell):
    ```powershell
