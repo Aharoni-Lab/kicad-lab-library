@@ -21,4 +21,4 @@ Refer to the project root for the full tree. Key folders:
 ## Getting Started
 1. **Clone** the repo:
    ```bash
-   git clone https://github.com/<org>/kicad-lab-library.git
+   git clone https://github.com/Aharoni-Lab/kicad-lab-library.git
