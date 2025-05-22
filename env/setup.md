@@ -3,8 +3,9 @@
 This guide helps you configure your KiCad environment to use our shared lab library.
 
 ## Prerequisites
-- KiCad 9.0 or later
+- KiCad 8.0 or later (version 9.0 recommended)
 - Git
+- Python 3.6 or later
 
 ## Setup Steps
 
@@ -28,43 +29,97 @@ This guide helps you configure your KiCad environment to use our shared lab libr
    echo 'export KICAD_LAB_LIBS=/path/to/kicad-lab-library' >> ~/.bashrc
    ```
 
-3. **Configure KiCad Global Libraries**
+3. **Configure KiCad Libraries**
 
-   Open KiCad and go to Preferences → Manage Symbol Libraries:
+   Run the setup script to add our lab libraries to your KiCad configuration:
    
-   Add a new library:
-   - Name: `Lab_Symbols`
-   - Path: `${KICAD_LAB_LIBS}/symbols/lab_symbols.kicad_sym`
-   - Type: `KiCad`
+   Windows (PowerShell):
+   ```powershell
+   python scripts/setup_libraries.py
+   ```
    
-   Then go to Preferences → Manage Footprint Libraries:
-   
-   Add a new library:
-   - Name: `Lab_Footprints`
-   - Path: `${KICAD_LAB_LIBS}/footprints/lab_footprints.pretty`
-   - Type: `KiCad`
+   Linux/macOS:
+   ```bash
+   python3 scripts/setup_libraries.py
+   ```
+
+   This script will:
+   - Automatically detect your KiCad version
+   - Create backups of your existing library configuration files
+   - Add our lab libraries to your existing configuration
+   - Not overwrite any of your existing libraries
+   - Support KiCad 8.0 and later versions
 
 4. **Verify Setup**
    - Open KiCad
    - Create a new project
    - Open the schematic editor
-   - Try placing a component from the Lab_Symbols library
+   - Try placing components from different Lab libraries
    - Open the PCB editor
-   - Try placing a footprint from the Lab_Footprints library
+   - Try placing footprints from different Lab libraries
 
 ## Troubleshooting
 
 If components or footprints aren't showing up:
 1. Verify the `KICAD_LAB_LIBS` environment variable is set correctly
-2. Check that the paths in KiCad's library tables use `${KICAD_LAB_LIBS}` syntax
+2. Check that the library configuration files were updated correctly
 3. Ensure you have the latest version of the library pulled from git
+4. Verify that the library files exist in the correct subdirectories
+5. Try restarting KiCad after making these changes
+6. Check the console output of `setup_libraries.py` for any warnings or errors
 
 ## Contributing
 
 When adding new components:
 1. Follow the KLC guidelines in `docs/KLC_GUIDELINES.md`
-2. Run the validation script locally before committing:
+2. Place components in the appropriate category and subcategory directories
+3. Follow the naming conventions defined in `config/library_structure.yml`
+4. Run the validation script locally before committing:
    ```bash
    python scripts/validate_libraries.py
    ```
-3. Create a pull request for review 
+5. Create a pull request for review
+
+## Library Structure
+
+The library is organized into categories and subcategories:
+
+### Passive Components
+- `passive/resistors/` - Resistors (prefix: `R_`)
+- `passive/capacitors/` - Capacitors (prefix: `C_`)
+- `passive/inductors/` - Inductors (prefix: `L_`)
+
+### Active Components
+- `active/sensors/`
+  - `cmos_image/` - CMOS image sensors (prefix: `U_CMOS_`)
+  - `environmental/` - Environmental sensors (prefix: `U_ENV_`)
+- `active/ics/`
+  - `microcontrollers/` - MCUs (prefix: `U_MCU_`)
+  - `memory/` - Memory ICs (prefix: `U_MEM_`)
+  - `interface/` - Interface ICs (prefix: `U_IF_`)
+- `active/discrete/`
+  - `transistors/` - Transistors (prefix: `Q_`)
+  - `diodes/` - Diodes (prefix: `D_`)
+
+### Connectors
+- `connectors/board/` - Board connectors (prefix: `J_BOARD_`)
+- `connectors/wire/` - Wire connectors (prefix: `J_WIRE_`)
+- `connectors/rf/` - RF connectors (prefix: `J_RF_`)
+
+### Mechanical
+- `mechanical/mounting/` - Mounting hardware (prefixes: `H_`, `M_`)
+- `mechanical/enclosure/` - Enclosure parts (prefix: `E_`)
+
+### Power
+- `power/regulators/` - Voltage regulators (prefix: `U_REG_`)
+- `power/converters/` - DC-DC converters (prefix: `U_CONV_`)
+- `power/protection/` - Protection circuits (prefix: `U_PROT_`)
+
+### Miscellaneous
+- `misc/misc/` - Other components (no prefix)
+
+Each subcategory has its own:
+- Symbol library (`.kicad_sym`)
+- Footprint library (`.pretty` directory)
+- 3D models directory
+- Datasheets directory 
