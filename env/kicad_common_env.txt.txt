@@ -1,0 +1,2 @@
+# Add this to your shell profile or KiCad advanced preferences
+export KICAD_LAB_LIBS=~/path/to/kicad-lab-library

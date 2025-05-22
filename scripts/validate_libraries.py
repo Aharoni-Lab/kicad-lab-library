@@ -1,0 +1,520 @@
+#!/usr/bin/env python3
+"""
+Validation script for CI: checks naming, duplicates, and file existence.
+"""
+import os
+import sys
+import json
+import glob
+import re
+import yaml
+from pathlib import Path
+from typing import Dict, List, Set, Tuple
+
+LAB_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CONFIG_FILE = os.path.join(LAB_ROOT, 'config', 'library_structure.yml')
+
+def load_config() -> Dict:
+    """Load the library structure configuration."""
+    try:
+        with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
+    except Exception as e:
+        print(f"Error loading configuration: {str(e)}")
+        sys.exit(1)
+
+# Load configuration
+CONFIG = load_config()
+CATEGORIES = CONFIG['categories']
+REQUIRED_SYMBOL_FIELDS = set(CONFIG['validation']['required_symbol_fields'])
+REQUIRED_FOOTPRINT_FIELDS = set(CONFIG['validation']['required_footprint_fields'])
+MAX_3D_MODEL_SIZE = CONFIG['validation']['max_3d_model_size_mb'] * 1024 * 1024
+
+def validate_directory_structure() -> Tuple[bool, List[str]]:
+    """Validate that the actual directory structure matches the configuration."""
+    errors = []
+    required_dirs = set()
+    
+    # Build the set of required directories from the configuration
+    for category in CATEGORIES:
+        # Add main category directories
+        for lib_type in ['symbols', 'footprints', '3dmodels']:
+            required_dirs.add(os.path.join(LAB_ROOT, lib_type, category))
+        
+        # Add subcategory directories
+        for subcategory in CATEGORIES[category]['subcategories']:
+            for lib_type in ['symbols', 'footprints', '3dmodels']:
+                required_dirs.add(os.path.join(LAB_ROOT, lib_type, category, subcategory))
+            
+            # Add nested subcategory directories if they exist
+            if 'subcategories' in CATEGORIES[category]['subcategories'][subcategory]:
+                for subsubcategory in CATEGORIES[category]['subcategories'][subcategory]['subcategories']:
+                    for lib_type in ['symbols', 'footprints', '3dmodels']:
+                        required_dirs.add(os.path.join(LAB_ROOT, lib_type, category, subcategory, subsubcategory))
+    
+    # Check for missing directories
+    for required_dir in required_dirs:
+        if not os.path.exists(required_dir):
+            errors.append(f"Missing required directory: {os.path.relpath(required_dir, LAB_ROOT)}")
+    
+    # Check for unexpected directories
+    for lib_type in ['symbols', 'footprints', '3dmodels']:
+        lib_root = os.path.join(LAB_ROOT, lib_type)
+        if not os.path.exists(lib_root):
+            errors.append(f"Missing library root directory: {lib_type}/")
+            continue
+        
+        # Check each category directory
+        for category in os.listdir(lib_root):
+            category_path = os.path.join(lib_root, category)
+            if not os.path.isdir(category_path):
+                continue
+            
+            if category not in CATEGORIES:
+                errors.append(f"Unexpected category directory: {lib_type}/{category}/")
+                continue
+            
+            # Check subcategories
+            for subcategory in os.listdir(category_path):
+                subcategory_path = os.path.join(category_path, subcategory)
+                if not os.path.isdir(subcategory_path):
+                    continue
+                
+                if subcategory not in CATEGORIES[category]['subcategories']:
+                    errors.append(f"Unexpected subcategory directory: {lib_type}/{category}/{subcategory}/")
+                    continue
+                
+                # Check nested subcategories
+                if 'subcategories' in CATEGORIES[category]['subcategories'][subcategory]:
+                    for subsubcategory in os.listdir(subcategory_path):
+                        subsubcategory_path = os.path.join(subcategory_path, subsubcategory)
+                        if not os.path.isdir(subsubcategory_path):
+                            continue
+                        
+                        if subsubcategory not in CATEGORIES[category]['subcategories'][subcategory]['subcategories']:
+                            errors.append(f"Unexpected nested subcategory directory: {lib_type}/{category}/{subcategory}/{subsubcategory}/")
+    
+    return len(errors) == 0, errors
+
+def get_component_category(name: str) -> Tuple[str, str, str]:
+    """Determine the category and subcategory of a component based on its name.
+    Returns (category, subcategory, subsubcategory)"""
+    for category, cat_info in CATEGORIES.items():
+        for subcategory, subcat_info in cat_info['subcategories'].items():
+            # Check for nested subcategories
+            if 'subcategories' in subcat_info:
+                for subsubcategory, subsubcat_info in subcat_info['subcategories'].items():
+                    if any(name.startswith(prefix) for prefix in subsubcat_info['prefixes']):
+                        return category, subcategory, subsubcategory
+            # Check regular subcategories
+            elif any(name.startswith(prefix) for prefix in subcat_info['prefixes']):
+                return category, subcategory, None
+    return 'misc', 'misc', None
+
+def get_component_path(category: str, subcategory: str, subsubcategory: str = None) -> str:
+    """Get the full path for a component based on its categories."""
+    path = [category]
+    if subcategory:
+        path.append(subcategory)
+    if subsubcategory:
+        path.append(subsubcategory)
+    return os.path.join(*path)
+
+def parse_kicad_sym(content: str) -> List[Dict]:
+    """Parse KiCad symbol file and extract symbol definitions."""
+    symbols = []
+    current_symbol = None
+    
+    for line in content.split('\n'):
+        line = line.strip()
+        
+        if line.startswith('(symbol '):
+            if current_symbol:
+                symbols.append(current_symbol)
+            current_symbol = {'name': line.split('"')[1], 'fields': {}, 'pins': []}
+        elif line.startswith('(property '):
+            if current_symbol:
+                parts = line.split('"')
+                if len(parts) >= 4:
+                    field_name = parts[1]
+                    field_value = parts[3]
+                    current_symbol['fields'][field_name] = field_value
+        elif line.startswith('(pin '):
+            if current_symbol:
+                parts = line.split('"')
+                if len(parts) >= 4:
+                    pin = {
+                        'number': parts[1],
+                        'name': parts[3],
+                        'type': parts[5] if len(parts) > 5 else 'unknown'
+                    }
+                    current_symbol['pins'].append(pin)
+    
+    if current_symbol:
+        symbols.append(current_symbol)
+    
+    return symbols
+
+def check_symbols() -> Tuple[bool, List[str]]:
+    """Validate symbol library files."""
+    errors = []
+    
+    # Check each category directory
+    for category, cat_info in CATEGORIES.items():
+        for subcategory, subcat_info in cat_info['subcategories'].items():
+            # Handle nested subcategories
+            if 'subcategories' in subcat_info:
+                for subsubcategory, subsubcat_info in subcat_info['subcategories'].items():
+                    symbol_dir = os.path.join(LAB_ROOT, 'symbols', get_component_path(category, subcategory, subsubcategory))
+                    if not os.path.exists(symbol_dir):
+                        continue
+                    
+                    # Find all .kicad_sym files
+                    sym_files = glob.glob(os.path.join(symbol_dir, "*.kicad_sym"))
+                    if not sym_files:
+                        continue
+                    
+                    for sym_file in sym_files:
+                        try:
+                            with open(sym_file, 'r', encoding='utf-8') as f:
+                                content = f.read()
+                            
+                            # Basic validation
+                            if not content.strip():
+                                errors.append(f"Empty symbol file: {sym_file}")
+                                continue
+                            
+                            if "(kicad_symbol_lib" not in content:
+                                errors.append(f"Invalid symbol file format: {sym_file}")
+                                continue
+                            
+                            # Parse and validate symbols
+                            symbols = parse_kicad_sym(content)
+                            if not symbols:
+                                errors.append(f"No symbols found in file: {sym_file}")
+                                continue
+                            
+                            # Check each symbol
+                            symbol_names = set()
+                            for symbol in symbols:
+                                # Check category
+                                expected_cat, expected_subcat, expected_subsubcat = get_component_category(symbol['name'])
+                                expected_path = get_component_path(expected_cat, expected_subcat, expected_subsubcat)
+                                actual_path = get_component_path(category, subcategory, subsubcategory)
+                                if expected_path != actual_path:
+                                    errors.append(f"Symbol {symbol['name']} should be in {expected_path}/ not {actual_path}/")
+                                
+                                # Check for duplicates
+                                if symbol['name'] in symbol_names:
+                                    errors.append(f"Duplicate symbol name: {symbol['name']}")
+                                symbol_names.add(symbol['name'])
+                                
+                                # Check required fields
+                                missing_fields = REQUIRED_SYMBOL_FIELDS - set(symbol['fields'].keys())
+                                if missing_fields:
+                                    errors.append(f"Symbol {symbol['name']} missing required fields: {', '.join(missing_fields)}")
+                                
+                                # Check pins
+                                if not symbol['pins']:
+                                    errors.append(f"Symbol {symbol['name']} has no pins")
+                                else:
+                                    pin_numbers = set()
+                                    for pin in symbol['pins']:
+                                        if pin['number'] in pin_numbers:
+                                            errors.append(f"Symbol {symbol['name']} has duplicate pin number: {pin['number']}")
+                                        pin_numbers.add(pin['number'])
+                        
+                        except Exception as e:
+                            errors.append(f"Error processing {sym_file}: {str(e)}")
+            else:
+                # Handle regular subcategories
+                symbol_dir = os.path.join(LAB_ROOT, 'symbols', get_component_path(category, subcategory))
+                if not os.path.exists(symbol_dir):
+                    continue
+                
+                # Find all .kicad_sym files
+                sym_files = glob.glob(os.path.join(symbol_dir, "*.kicad_sym"))
+                if not sym_files:
+                    continue
+                
+                for sym_file in sym_files:
+                    try:
+                        with open(sym_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        
+                        # Basic validation
+                        if not content.strip():
+                            errors.append(f"Empty symbol file: {sym_file}")
+                            continue
+                        
+                        if "(kicad_symbol_lib" not in content:
+                            errors.append(f"Invalid symbol file format: {sym_file}")
+                            continue
+                        
+                        # Parse and validate symbols
+                        symbols = parse_kicad_sym(content)
+                        if not symbols:
+                            errors.append(f"No symbols found in file: {sym_file}")
+                            continue
+                        
+                        # Check each symbol
+                        symbol_names = set()
+                        for symbol in symbols:
+                            # Check category
+                            expected_cat, expected_subcat, _ = get_component_category(symbol['name'])
+                            expected_path = get_component_path(expected_cat, expected_subcat)
+                            actual_path = get_component_path(category, subcategory)
+                            if expected_path != actual_path:
+                                errors.append(f"Symbol {symbol['name']} should be in {expected_path}/ not {actual_path}/")
+                            
+                            # Check for duplicates
+                            if symbol['name'] in symbol_names:
+                                errors.append(f"Duplicate symbol name: {symbol['name']}")
+                            symbol_names.add(symbol['name'])
+                            
+                            # Check required fields
+                            missing_fields = REQUIRED_SYMBOL_FIELDS - set(symbol['fields'].keys())
+                            if missing_fields:
+                                errors.append(f"Symbol {symbol['name']} missing required fields: {', '.join(missing_fields)}")
+                            
+                            # Check pins
+                            if not symbol['pins']:
+                                errors.append(f"Symbol {symbol['name']} has no pins")
+                            else:
+                                pin_numbers = set()
+                                for pin in symbol['pins']:
+                                    if pin['number'] in pin_numbers:
+                                        errors.append(f"Symbol {symbol['name']} has duplicate pin number: {pin['number']}")
+                                    pin_numbers.add(pin['number'])
+                    
+                    except Exception as e:
+                        errors.append(f"Error processing {sym_file}: {str(e)}")
+    
+    return len(errors) == 0, errors
+
+def parse_kicad_mod(content: str) -> Dict:
+    """Parse KiCad footprint file and extract footprint definition."""
+    footprint = {'name': '', 'fields': {}, 'models': []}
+    
+    # Extract name
+    name_match = re.search(r'\(module "([^"]+)"', content)
+    if name_match:
+        footprint['name'] = name_match.group(1)
+    
+    # Extract fields
+    for line in content.split('\n'):
+        if line.strip().startswith('(fp_text value '):
+            footprint['fields']['Value'] = line.split('"')[1]
+        elif line.strip().startswith('(fp_text datasheet '):
+            footprint['fields']['Datasheet'] = line.split('"')[1]
+        elif line.strip().startswith('(fp_text description '):
+            footprint['fields']['Description'] = line.split('"')[1]
+        elif line.strip().startswith('(model '):
+            model_path = line.split('"')[1]
+            footprint['models'].append(model_path)
+    
+    return footprint
+
+def check_footprints() -> Tuple[bool, List[str]]:
+    """Validate footprint libraries."""
+    errors = []
+    
+    # Check each category directory
+    for category, cat_info in CATEGORIES.items():
+        for subcategory, subcat_info in cat_info['subcategories'].items():
+            # Handle nested subcategories
+            if 'subcategories' in subcat_info:
+                for subsubcategory, subsubcat_info in subcat_info['subcategories'].items():
+                    footprint_dir = os.path.join(LAB_ROOT, 'footprints', get_component_path(category, subcategory, subsubcategory))
+                    if not os.path.exists(footprint_dir):
+                        continue
+                    
+                    # Find all .kicad_mod files
+                    mod_files = glob.glob(os.path.join(footprint_dir, "*.kicad_mod"))
+                    if not mod_files:
+                        continue
+                    
+                    # Check each footprint
+                    footprint_names = set()
+                    for mod_file in mod_files:
+                        try:
+                            with open(mod_file, 'r', encoding='utf-8') as f:
+                                content = f.read()
+                            footprint = parse_kicad_mod(content)
+                            
+                            # Check category
+                            expected_cat, expected_subcat, expected_subsubcat = get_component_category(footprint['name'])
+                            expected_path = get_component_path(expected_cat, expected_subcat, expected_subsubcat)
+                            actual_path = get_component_path(category, subcategory, subsubcategory)
+                            if expected_path != actual_path:
+                                errors.append(f"Footprint {footprint['name']} should be in {expected_path}/ not {actual_path}/")
+                            
+                            # Check for duplicates
+                            if footprint['name'] in footprint_names:
+                                errors.append(f"Duplicate footprint name: {footprint['name']}")
+                            footprint_names.add(footprint['name'])
+                            
+                            # Check required fields
+                            missing_fields = REQUIRED_FOOTPRINT_FIELDS - set(footprint['fields'].keys())
+                            if missing_fields:
+                                errors.append(f"Footprint {footprint['name']} missing required fields: {', '.join(missing_fields)}")
+                            
+                            # Check 3D models
+                            for model in footprint['models']:
+                                model_path = os.path.join(LAB_ROOT, '3dmodels', expected_path, model)
+                                if not os.path.exists(model_path):
+                                    errors.append(f"Footprint {footprint['name']} references missing 3D model: {model}")
+                        
+                        except Exception as e:
+                            errors.append(f"Error processing {mod_file}: {str(e)}")
+            else:
+                # Handle regular subcategories
+                footprint_dir = os.path.join(LAB_ROOT, 'footprints', get_component_path(category, subcategory))
+                if not os.path.exists(footprint_dir):
+                    continue
+                
+                # Find all .kicad_mod files
+                mod_files = glob.glob(os.path.join(footprint_dir, "*.kicad_mod"))
+                if not mod_files:
+                    continue
+                
+                # Check each footprint
+                footprint_names = set()
+                for mod_file in mod_files:
+                    try:
+                        with open(mod_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        footprint = parse_kicad_mod(content)
+                        
+                        # Check category
+                        expected_cat, expected_subcat, _ = get_component_category(footprint['name'])
+                        expected_path = get_component_path(expected_cat, expected_subcat)
+                        actual_path = get_component_path(category, subcategory)
+                        if expected_path != actual_path:
+                            errors.append(f"Footprint {footprint['name']} should be in {expected_path}/ not {actual_path}/")
+                        
+                        # Check for duplicates
+                        if footprint['name'] in footprint_names:
+                            errors.append(f"Duplicate footprint name: {footprint['name']}")
+                        footprint_names.add(footprint['name'])
+                        
+                        # Check required fields
+                        missing_fields = REQUIRED_FOOTPRINT_FIELDS - set(footprint['fields'].keys())
+                        if missing_fields:
+                            errors.append(f"Footprint {footprint['name']} missing required fields: {', '.join(missing_fields)}")
+                        
+                        # Check 3D models
+                        for model in footprint['models']:
+                            model_path = os.path.join(LAB_ROOT, '3dmodels', expected_path, model)
+                            if not os.path.exists(model_path):
+                                errors.append(f"Footprint {footprint['name']} references missing 3D model: {model}")
+                    
+                    except Exception as e:
+                        errors.append(f"Error processing {mod_file}: {str(e)}")
+    
+    return len(errors) == 0, errors
+
+def check_3d_models() -> Tuple[bool, List[str]]:
+    """Validate 3D model files."""
+    errors = []
+    
+    # Check each category directory
+    for category, cat_info in CATEGORIES.items():
+        for subcategory, subcat_info in cat_info['subcategories'].items():
+            # Handle nested subcategories
+            if 'subcategories' in subcat_info:
+                for subsubcategory, subsubcat_info in subcat_info['subcategories'].items():
+                    model_dir = os.path.join(LAB_ROOT, '3dmodels', get_component_path(category, subcategory, subsubcategory))
+                    if not os.path.exists(model_dir):
+                        continue
+                    
+                    # Check for STEP and WRL files
+                    step_files = glob.glob(os.path.join(model_dir, "*.step"))
+                    wrl_files = glob.glob(os.path.join(model_dir, "*.wrl"))
+                    
+                    # Check file sizes and names
+                    for file in step_files + wrl_files:
+                        try:
+                            # Check file size
+                            size = os.path.getsize(file)
+                            if size == 0:
+                                errors.append(f"Empty 3D model file: {file}")
+                            elif size > MAX_3D_MODEL_SIZE:
+                                errors.append(f"Large 3D model file (>{CONFIG['validation']['max_3d_model_size_mb']}MB): {file}")
+                            
+                            # Check if file is in correct category
+                            filename = os.path.basename(file)
+                            expected_cat, expected_subcat, expected_subsubcat = get_component_category(filename)
+                            expected_path = get_component_path(expected_cat, expected_subcat, expected_subsubcat)
+                            actual_path = get_component_path(category, subcategory, subsubcategory)
+                            if expected_path != actual_path:
+                                errors.append(f"3D model {filename} should be in {expected_path}/ not {actual_path}/")
+                        
+                        except Exception as e:
+                            errors.append(f"Error checking {file}: {str(e)}")
+            else:
+                # Handle regular subcategories
+                model_dir = os.path.join(LAB_ROOT, '3dmodels', get_component_path(category, subcategory))
+                if not os.path.exists(model_dir):
+                    continue
+                
+                # Check for STEP and WRL files
+                step_files = glob.glob(os.path.join(model_dir, "*.step"))
+                wrl_files = glob.glob(os.path.join(model_dir, "*.wrl"))
+                
+                # Check file sizes and names
+                for file in step_files + wrl_files:
+                    try:
+                        # Check file size
+                        size = os.path.getsize(file)
+                        if size == 0:
+                            errors.append(f"Empty 3D model file: {file}")
+                        elif size > MAX_3D_MODEL_SIZE:
+                            errors.append(f"Large 3D model file (>{CONFIG['validation']['max_3d_model_size_mb']}MB): {file}")
+                        
+                        # Check if file is in correct category
+                        filename = os.path.basename(file)
+                        expected_cat, expected_subcat, _ = get_component_category(filename)
+                        expected_path = get_component_path(expected_cat, expected_subcat)
+                        actual_path = get_component_path(category, subcategory)
+                        if expected_path != actual_path:
+                            errors.append(f"3D model {filename} should be in {expected_path}/ not {actual_path}/")
+                    
+                    except Exception as e:
+                        errors.append(f"Error checking {file}: {str(e)}")
+    
+    return len(errors) == 0, errors
+
+def main():
+    """Run all validation checks."""
+    print("Running KiCad library validation...")
+    
+    checks = [
+        ("Directory Structure", validate_directory_structure),
+        ("Symbols", check_symbols),
+        ("Footprints", check_footprints),
+        ("3D Models", check_3d_models)
+    ]
+    
+    all_passed = True
+    for name, check_func in checks:
+        print(f"\nChecking {name}...")
+        passed, errors = check_func()
+        if not passed:
+            print(f"❌ {name} validation failed:")
+            for error in errors:
+                print(f"  - {error}")
+            all_passed = False
+        else:
+            print(f"✓ {name} validation passed")
+    
+    if not all_passed:
+        print("\nValidation failed. Please fix the issues above.")
+        sys.exit(1)
+    else:
+        print("\nAll validations passed!")
+        sys.exit(0)
+
+if __name__ == '__main__':
+    main()
+    

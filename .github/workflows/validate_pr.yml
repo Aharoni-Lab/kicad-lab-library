@@ -1,0 +1,54 @@
+name: Validate Pull Request
+
+on:
+  pull_request:
+    paths:
+      - 'symbols/**'
+      - 'footprints/**'
+      - '3dmodels/**'
+      - 'config/**'
+      - 'scripts/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Run validation script
+        run: python scripts/validate_libraries.py
+        
+      - name: Check PR template
+        run: |
+          if [ -f .github/PULL_REQUEST_TEMPLATE.md ]; then
+            if ! grep -q "Component Information" "$GITHUB_EVENT_PATH"; then
+              echo "❌ PR description does not follow the template"
+              echo "Please use the PR template when creating pull requests"
+              exit 1
+            fi
+          fi
+          
+      - name: Check file structure
+        run: |
+          # Check if files are in correct directories
+          for file in $(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}); do
+            if [[ $file == symbols/* ]] || [[ $file == footprints/* ]] || [[ $file == 3dmodels/* ]]; then
+              # Extract category from file path
+              category=$(echo $file | cut -d'/' -f2)
+              if ! grep -q "$category:" config/library_structure.yml; then
+                echo "❌ File $file is in an invalid category: $category"
+                echo "Please check config/library_structure.yml for valid categories"
+                exit 1
+              fi
+            fi
+          done 

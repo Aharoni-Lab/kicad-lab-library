@@ -1,0 +1,110 @@
+# KiCad Lab Library Structure Configuration
+# This file defines the allowed categories, subcategories, and their naming conventions
+
+categories:
+  passive:
+    description: "Passive components"
+    subcategories:
+      resistors:
+        description: "Resistors"
+        prefixes: ["R_"]
+      capacitors:
+        description: "Capacitors"
+        prefixes: ["C_"]
+      inductors:
+        description: "Inductors"
+        prefixes: ["L_"]
+
+  active:
+    description: "Active components"
+    subcategories:
+      sensors:
+        description: "Sensors and transducers"
+        subcategories:
+          cmos_image:
+            description: "CMOS image sensors"
+            prefixes: ["U_CMOS_"]
+          environmental:
+            description: "Environmental sensors"
+            prefixes: ["U_ENV_"]
+      ics:
+        description: "Integrated circuits"
+        subcategories:
+          microcontrollers:
+            description: "Microcontrollers and processors"
+            prefixes: ["U_MCU_"]
+          memory:
+            description: "Memory ICs"
+            prefixes: ["U_MEM_"]
+          interface:
+            description: "Interface ICs"
+            prefixes: ["U_IF_"]
+      discrete:
+        description: "Discrete semiconductor components"
+        subcategories:
+          transistors:
+            description: "Transistors"
+            prefixes: ["Q_"]
+          diodes:
+            description: "Diodes"
+            prefixes: ["D_"]
+
+  connectors:
+    description: "Connectors and interfaces"
+    subcategories:
+      board:
+        description: "Board-to-board connectors"
+        prefixes: ["J_BOARD_"]
+      wire:
+        description: "Wire-to-board connectors"
+        prefixes: ["J_WIRE_"]
+      rf:
+        description: "RF connectors"
+        prefixes: ["J_RF_"]
+
+  mechanical:
+    description: "Mechanical components"
+    subcategories:
+      mounting:
+        description: "Mounting hardware"
+        prefixes: ["H_", "M_"]
+      enclosure:
+        description: "Enclosure parts"
+        prefixes: ["E_"]
+
+  power:
+    description: "Power components"
+    subcategories:
+      regulators:
+        description: "Voltage regulators"
+        prefixes: ["U_REG_"]
+      converters:
+        description: "DC-DC converters"
+        prefixes: ["U_CONV_"]
+      protection:
+        description: "Protection circuits"
+        prefixes: ["U_PROT_"]
+
+  misc:
+    description: "Miscellaneous components"
+    subcategories:
+      misc:
+        description: "Other components"
+        prefixes: []
+
+# Validation rules
+validation:
+  required_symbol_fields:
+    - "Value"
+    - "Footprint"
+    - "Datasheet"
+    - "Description"
+    - "Keywords"
+  
+  required_footprint_fields:
+    - "Value"
+    - "Datasheet"
+    - "Description"
+    - "Keywords"
+  
+  max_3d_model_size_mb: 10  # Maximum size for 3D model files in megabytes 
