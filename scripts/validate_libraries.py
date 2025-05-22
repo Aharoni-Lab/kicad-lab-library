@@ -155,6 +155,26 @@ def parse_kicad_sym(content: str) -> List[Dict]:
     
     return symbols
 
+def validate_component_fields(fields: Dict, component_type: str, name: str) -> List[str]:
+    """Validate component fields and their values."""
+    errors = []
+    
+    # Check required fields
+    required_fields = REQUIRED_SYMBOL_FIELDS if component_type == 'symbol' else REQUIRED_FOOTPRINT_FIELDS
+    missing_fields = required_fields - set(fields.keys())
+    if missing_fields:
+        errors.append(f"{component_type.title()} {name} missing required fields: {', '.join(missing_fields)}")
+    
+    # Check Validated field
+    if 'Validated' in fields:
+        validated_value = fields['Validated'].lower()
+        if validated_value not in ['yes', 'no']:
+            errors.append(f"{component_type.title()} {name} has invalid 'Validated' value: {fields['Validated']}. Must be 'Yes' or 'No'")
+    else:
+        errors.append(f"{component_type.title()} {name} missing 'Validated' field")
+    
+    return errors
+
 def check_symbols() -> Tuple[bool, List[str]]:
     """Validate symbol library files."""
     errors = []
@@ -209,10 +229,8 @@ def check_symbols() -> Tuple[bool, List[str]]:
                                     errors.append(f"Duplicate symbol name: {symbol['name']}")
                                 symbol_names.add(symbol['name'])
                                 
-                                # Check required fields
-                                missing_fields = REQUIRED_SYMBOL_FIELDS - set(symbol['fields'].keys())
-                                if missing_fields:
-                                    errors.append(f"Symbol {symbol['name']} missing required fields: {', '.join(missing_fields)}")
+                                # Check fields
+                                errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name']))
                                 
                                 # Check pins
                                 if not symbol['pins']:
@@ -272,10 +290,8 @@ def check_symbols() -> Tuple[bool, List[str]]:
                                 errors.append(f"Duplicate symbol name: {symbol['name']}")
                             symbol_names.add(symbol['name'])
                             
-                            # Check required fields
-                            missing_fields = REQUIRED_SYMBOL_FIELDS - set(symbol['fields'].keys())
-                            if missing_fields:
-                                errors.append(f"Symbol {symbol['name']} missing required fields: {', '.join(missing_fields)}")
+                            # Check fields
+                            errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name']))
                             
                             # Check pins
                             if not symbol['pins']:
@@ -354,10 +370,8 @@ def check_footprints() -> Tuple[bool, List[str]]:
                                 errors.append(f"Duplicate footprint name: {footprint['name']}")
                             footprint_names.add(footprint['name'])
                             
-                            # Check required fields
-                            missing_fields = REQUIRED_FOOTPRINT_FIELDS - set(footprint['fields'].keys())
-                            if missing_fields:
-                                errors.append(f"Footprint {footprint['name']} missing required fields: {', '.join(missing_fields)}")
+                            # Check fields
+                            errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name']))
                             
                             # Check 3D models
                             for model in footprint['models']:
@@ -398,10 +412,8 @@ def check_footprints() -> Tuple[bool, List[str]]:
                             errors.append(f"Duplicate footprint name: {footprint['name']}")
                         footprint_names.add(footprint['name'])
                         
-                        # Check required fields
-                        missing_fields = REQUIRED_FOOTPRINT_FIELDS - set(footprint['fields'].keys())
-                        if missing_fields:
-                            errors.append(f"Footprint {footprint['name']} missing required fields: {', '.join(missing_fields)}")
+                        # Check fields
+                        errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name']))
                         
                         # Check 3D models
                         for model in footprint['models']:

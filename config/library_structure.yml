@@ -100,11 +100,30 @@ validation:
     - "Datasheet"
     - "Description"
     - "Keywords"
+    - "Validated"
   
   required_footprint_fields:
     - "Value"
     - "Datasheet"
     - "Description"
     - "Keywords"
+    - "Validated"
   
-  max_3d_model_size_mb: 10  # Maximum size for 3D model files in megabytes 
+  max_3d_model_size_mb: 10  # Maximum size for 3D model files in megabytes
+
+# Datasheet storage configuration
+datasheets:
+  root_dir: "datasheets"  # Root directory for all datasheets
+  max_size_mb: 20  # Maximum size for individual datasheet files
+  allowed_formats:  # Allowed file formats for datasheets
+    - "pdf"
+    - "txt"
+    - "html"
+  structure:  # Directory structure mirrors the component categories
+    - "passive"
+    - "active"
+    - "connectors"
+    - "mechanical"
+    - "power"
+    - "misc"
+  naming_convention: "{manufacturer}_{part_number}_{revision}.{format}"  # Example: TexasInstruments_TPS7A4700_RevA.pdf 
