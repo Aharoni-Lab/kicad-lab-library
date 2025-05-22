@@ -4,6 +4,17 @@
 *.kicad_sch-bak
 *.kicad_pcb-bak
 *.kicad_pro-bak
+*.kicad_sym-bak
+
 # Python bytecode
 __pycache__/
 *.py[cod]
+
+# Temporary render files
+renders/
+temp_render/
+
+# Environment
+env/
+venv/
+.env

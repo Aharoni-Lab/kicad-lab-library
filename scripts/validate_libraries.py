@@ -155,6 +155,43 @@ def parse_kicad_sym(content: str) -> List[Dict]:
     
     return symbols
 
+def validate_datasheet_reference(fields: Dict, component_type: str, name: str) -> List[str]:
+    """Validate datasheet references and file existence."""
+    errors = []
+    
+    if 'Datasheet' not in fields:
+        errors.append(f"{component_type.title()} {name} missing 'Datasheet' field")
+        return errors
+    
+    datasheet_ref = fields['Datasheet']
+    
+    # Check if it's a URL
+    if datasheet_ref.startswith(('http://', 'https://')):
+        # URL validation could be added here if needed
+        pass
+    else:
+        # Check if it's a local file
+        expected_cat, expected_subcat, expected_subsubcat = get_component_category(name)
+        expected_path = get_component_path(expected_cat, expected_subcat, expected_subsubcat)
+        datasheet_path = os.path.join(LAB_ROOT, 'datasheets', expected_path, datasheet_ref)
+        
+        if not os.path.exists(datasheet_path):
+            errors.append(f"{component_type.title()} {name} references non-existent datasheet: {datasheet_ref}")
+        else:
+            # Check file size
+            size = os.path.getsize(datasheet_path)
+            if size == 0:
+                errors.append(f"Empty datasheet file: {datasheet_ref}")
+            elif size > CONFIG['datasheets']['max_size_mb'] * 1024 * 1024:
+                errors.append(f"Large datasheet file (>{CONFIG['datasheets']['max_size_mb']}MB): {datasheet_ref}")
+            
+            # Check file format
+            ext = os.path.splitext(datasheet_ref)[1].lower().lstrip('.')
+            if ext not in CONFIG['datasheets']['allowed_formats']:
+                errors.append(f"Invalid datasheet format: {datasheet_ref}. Allowed formats: {', '.join(CONFIG['datasheets']['allowed_formats'])}")
+    
+    return errors
+
 def validate_component_fields(fields: Dict, component_type: str, name: str) -> List[str]:
     """Validate component fields and their values."""
     errors = []
@@ -172,6 +209,9 @@ def validate_component_fields(fields: Dict, component_type: str, name: str) -> L
             errors.append(f"{component_type.title()} {name} has invalid 'Validated' value: {fields['Validated']}. Must be 'Yes' or 'No'")
     else:
         errors.append(f"{component_type.title()} {name} missing 'Validated' field")
+    
+    # Check datasheet reference
+    errors.extend(validate_datasheet_reference(fields, component_type, name))
     
     return errors
 
@@ -497,6 +537,79 @@ def check_3d_models() -> Tuple[bool, List[str]]:
     
     return len(errors) == 0, errors
 
+def check_datasheets() -> Tuple[bool, List[str]]:
+    """Validate datasheet files and references."""
+    errors = []
+    
+    # Check each category directory
+    for category, cat_info in CATEGORIES.items():
+        for subcategory, subcat_info in cat_info['subcategories'].items():
+            # Handle nested subcategories
+            if 'subcategories' in subcat_info:
+                for subsubcategory, subsubcat_info in subcat_info['subcategories'].items():
+                    datasheet_dir = os.path.join(LAB_ROOT, 'datasheets', get_component_path(category, subcategory, subsubcategory))
+                    if not os.path.exists(datasheet_dir):
+                        continue
+                    
+                    # Check each datasheet file
+                    for file in os.listdir(datasheet_dir):
+                        file_path = os.path.join(datasheet_dir, file)
+                        if not os.path.isfile(file_path):
+                            continue
+                        
+                        try:
+                            # Check file size
+                            size = os.path.getsize(file_path)
+                            if size == 0:
+                                errors.append(f"Empty datasheet file: {file}")
+                            elif size > CONFIG['datasheets']['max_size_mb'] * 1024 * 1024:
+                                errors.append(f"Large datasheet file (>{CONFIG['datasheets']['max_size_mb']}MB): {file}")
+                            
+                            # Check file format
+                            ext = os.path.splitext(file)[1].lower().lstrip('.')
+                            if ext not in CONFIG['datasheets']['allowed_formats']:
+                                errors.append(f"Invalid datasheet format: {file}. Allowed formats: {', '.join(CONFIG['datasheets']['allowed_formats'])}")
+                            
+                            # Check naming convention
+                            if not re.match(r'^[A-Za-z0-9]+_[A-Za-z0-9]+_[A-Za-z0-9]+\.[a-z]+$', file):
+                                errors.append(f"Datasheet {file} does not follow naming convention: {CONFIG['datasheets']['naming_convention']}")
+                        
+                        except Exception as e:
+                            errors.append(f"Error checking {file}: {str(e)}")
+            else:
+                # Handle regular subcategories
+                datasheet_dir = os.path.join(LAB_ROOT, 'datasheets', get_component_path(category, subcategory))
+                if not os.path.exists(datasheet_dir):
+                    continue
+                
+                # Check each datasheet file
+                for file in os.listdir(datasheet_dir):
+                    file_path = os.path.join(datasheet_dir, file)
+                    if not os.path.isfile(file_path):
+                        continue
+                    
+                    try:
+                        # Check file size
+                        size = os.path.getsize(file_path)
+                        if size == 0:
+                            errors.append(f"Empty datasheet file: {file}")
+                        elif size > CONFIG['datasheets']['max_size_mb'] * 1024 * 1024:
+                            errors.append(f"Large datasheet file (>{CONFIG['datasheets']['max_size_mb']}MB): {file}")
+                        
+                        # Check file format
+                        ext = os.path.splitext(file)[1].lower().lstrip('.')
+                        if ext not in CONFIG['datasheets']['allowed_formats']:
+                            errors.append(f"Invalid datasheet format: {file}. Allowed formats: {', '.join(CONFIG['datasheets']['allowed_formats'])}")
+                        
+                        # Check naming convention
+                        if not re.match(r'^[A-Za-z0-9]+_[A-Za-z0-9]+_[A-Za-z0-9]+\.[a-z]+$', file):
+                            errors.append(f"Datasheet {file} does not follow naming convention: {CONFIG['datasheets']['naming_convention']}")
+                    
+                    except Exception as e:
+                        errors.append(f"Error checking {file}: {str(e)}")
+    
+    return len(errors) == 0, errors
+
 def main():
     """Run all validation checks."""
     print("Running KiCad library validation...")
@@ -505,7 +618,8 @@ def main():
         ("Directory Structure", validate_directory_structure),
         ("Symbols", check_symbols),
         ("Footprints", check_footprints),
-        ("3D Models", check_3d_models)
+        ("3D Models", check_3d_models),
+        ("Datasheets", check_datasheets)
     ]
     
     all_passed = True

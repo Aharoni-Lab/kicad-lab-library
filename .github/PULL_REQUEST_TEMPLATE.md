@@ -13,6 +13,20 @@
 - `symbols/active/sensors/cmos_image/OV2640.kicad_sym`
 - `footprints/active/sensors/cmos_image/OV2640_CSP.kicad_mod`
 - `3dmodels/active/sensors/cmos_image/OV2640_CSP.wrl`
+- `datasheets/active/sensors/cmos_image/OmniVision_OV2640-A71A_RevA.pdf`
+
+## Component Renders
+<!-- Note: Renders will be automatically generated and added to this PR -->
+<!-- You can add additional screenshots below if needed -->
+
+## Datasheet Information
+- [ ] Datasheet is included in the repository
+- [ ] Datasheet follows naming convention: `{manufacturer}_{part_number}_{revision}.{format}`
+- [ ] Datasheet is placed in the correct category directory
+- [ ] Datasheet file size is under 20MB
+- [ ] Datasheet is in an allowed format (PDF, TXT, HTML)
+- [ ] Datasheet link is provided in component fields
+- [ ] Datasheet is properly referenced in symbol and footprint
 
 ## Validation
 <!-- Check all that apply -->
@@ -65,6 +79,7 @@
 - [ ] I have updated the documentation if necessary
 - [ ] My changes are compatible with KiCad 9.0
 - [ ] Validation status is correctly set
+- [ ] Datasheet is properly included and referenced
 
 ## Screenshots
 <!-- Add screenshots of the component in KiCad if applicable -->
