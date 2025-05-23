@@ -29,28 +29,41 @@ This guide helps you configure your KiCad environment to use our shared lab libr
    echo 'export KICAD_LAB_LIBS=/path/to/kicad-lab-library' >> ~/.bashrc
    ```
 
-3. **Configure KiCad Libraries**
+3. **Find Your KiCad Version**
 
-   Run the setup script to add our lab libraries to your KiCad configuration:
+   You need to provide your KiCad version as an argument to the setup script. This ensures the script updates the correct configuration directory.
+
+   - **In KiCad:**
+     - Open KiCad.
+     - Go to `Help` > `About KiCad`.
+     - Look for the version number (e.g., `9.0.0` or `8.0.1`).
+     - Use the major and minor version (e.g., `9.0` or `8.0`).
+   - **On Disk:**
+     - On Windows, you can also check the folder names in `C:\Users\<your-username>\AppData\Roaming\kicad\` (e.g., `8.0`, `9.0`).
+     - On Linux/macOS, check `~/.config/kicad/` or `~/Library/Preferences/kicad/` for versioned folders.
+
+4. **Configure KiCad Libraries**
+
+   Run the setup script with your KiCad version as an argument:
    
    Windows (PowerShell):
    ```powershell
-   python scripts/setup_libraries.py
+   python scripts/setup_libraries.py 9.0
    ```
    
    Linux/macOS:
    ```bash
-   python3 scripts/setup_libraries.py
+   python3 scripts/setup_libraries.py 9.0
    ```
+   Replace `9.0` with your actual KiCad version (e.g., `8.0`, `9.0`).
 
    This script will:
-   - Automatically detect your KiCad version
    - Create backups of your existing library configuration files
    - Add our lab libraries to your existing configuration
    - Not overwrite any of your existing libraries
    - Support KiCad 8.0 and later versions
 
-4. **Verify Setup**
+5. **Verify Setup**
    - Open KiCad
    - Create a new project
    - Open the schematic editor

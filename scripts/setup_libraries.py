@@ -82,7 +82,7 @@ def backup_file(file_path):
         file_path.rename(backup_path)
 
 def append_libraries(config_file, entries):
-    """Append library entries to the configuration file."""
+    """Append library entries to the configuration file, only if not already present."""
     if not config_file.exists():
         print(f"Creating new configuration file: {config_file}")
         with open(config_file, "w") as f:
@@ -91,24 +91,30 @@ def append_libraries(config_file, entries):
             f.write("\n)")
         return
 
-    # Read existing content
+    # If the file exists, read its content and make a backup
     with open(config_file, "r") as f:
         content = f.read()
+    backup_file(config_file)
 
-    # Check if our libraries are already added
-    if "Lab_Passive_Resistors" in content:
+    # Check if our libraries are already added (look for any Lab_ entry)
+    already_present = False
+    for line in entries.splitlines():
+        lib_name = line.split("(name ")[1].split(")")[0] if "(name " in line else None
+        if lib_name and lib_name in content:
+            already_present = True
+            break
+    if already_present:
         print(f"Lab libraries already exist in {config_file}")
         return
 
-    # Remove the closing parenthesis
-    content = content.rstrip().rstrip(")")
-    
-    # Add our libraries
+    # Insert entries before the final closing parenthesis
+    idx = content.rfind(")")
+    if idx == -1:
+        print(f"Malformed library table file: {config_file}. Aborting append.")
+        return
+    new_content = content[:idx].rstrip() + "\n" + entries + "\n)" + content[idx+1:]
     with open(config_file, "w") as f:
-        f.write(content)
-        f.write("\n")
-        f.write(entries)
-        f.write("\n)")
+        f.write(new_content)
 
 def main():
     """Main function to set up the library configuration."""
@@ -128,12 +134,10 @@ def main():
 
     # Set up symbol libraries
     sym_lib_table = config_dir / "sym-lib-table"
-    backup_file(sym_lib_table)
     append_libraries(sym_lib_table, sym_entries)
 
     # Set up footprint libraries
     fp_lib_table = config_dir / "fp-lib-table"
-    backup_file(fp_lib_table)
     append_libraries(fp_lib_table, fp_entries)
 
     print("\nLibrary configuration completed successfully!")
