@@ -49,17 +49,14 @@ def is_component_file(file_path: str) -> bool:
         print(f"  Skipping: File is in root directory")
         return False
         
-    # Skip files that are just library containers (e.g., capacitors.kicad_sym)
-    if os.path.basename(file_path).endswith(".kicad_sym"):
-        # Check if the file is a library container by looking at its contents
-        try:
-            with open(file_path, 'r') as f:
-                content = f.read()
-                if "(kicad_symbol_lib" in content:
-                    print(f"  Skipping: File is a library container")
-                    return False
-        except Exception as e:
-            print(f"  Warning: Could not read file to check if it's a library: {e}")
+    # For .kicad_sym files, we want to process them if they're in a subdirectory
+    if file_path.endswith(".kicad_sym"):
+        # Check if the file is in a subdirectory (e.g., symbols/passive/capacitors/)
+        if len(os.path.dirname(file_path).split(os.sep)) > 1:
+            print(f"  Processing: Symbol library file in subdirectory")
+            return True
+        print(f"  Skipping: Symbol library file in root directory")
+        return False
     
     print(f"  Processing: File appears to be a component")
     return True
