@@ -104,10 +104,10 @@ def get_component_category(name: str) -> Tuple[str, str, str]:
             # Check for nested subcategories
             if 'subcategories' in subcat_info:
                 for subsubcategory, subsubcat_info in subcat_info['subcategories'].items():
-                    if any(name.startswith(prefix) for prefix in subsubcat_info['prefixes']):
+                    if any(name.startswith(prefix) for prefix in subsubcat_info.get('reference_prefixes', [])):
                         return category, subcategory, subsubcategory
             # Check regular subcategories
-            elif any(name.startswith(prefix) for prefix in subcat_info['prefixes']):
+            elif any(name.startswith(prefix) for prefix in subcat_info.get('reference_prefixes', [])):
                 return category, subcategory, None
     return 'misc', 'misc', None
 
