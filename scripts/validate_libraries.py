@@ -718,29 +718,17 @@ def main():
     for name, check_func in checks:
         print(f"\nChecking {name}...")
         passed, errors = check_func()
-        if not passed:
-            print(f"❌ {name} validation failed:")
-            # Group errors by component if possible
-            grouped = {}
-            for error in errors:
-                # Try to extract component name
-                match = re.match(r'(Symbol|Footprint) ([^ ]*) (.*)', error)
-                if match:
-                    comp_type, comp_name, msg = match.groups()
-                    key = f"{comp_type} {comp_name}".strip()
-                    grouped.setdefault(key, []).append(msg)
-                else:
-                    grouped.setdefault('Other', []).append(error)
-            for comp, msgs in grouped.items():
-                print(f"  - {comp}:")
-                for msg in msgs:
-                    # Remove redundant component name from the message if present
-                    cleaned_msg = re.sub(r'^\s*-+\s*(Symbol|Footprint) [^:]+:?\s*', '- ', msg)
-                    print(f"      {cleaned_msg}")
+        # Only print grouped errors for Directory Structure, 3D Models, Datasheets
+        if name not in ["Symbols", "Footprints"]:
+            if not passed:
+                print(f"❌ {name} validation failed:")
+                for error in errors:
+                    print(f"  - {error}")
+                all_passed = False
+            else:
+                print(f"✓ {name} validation passed")
+        if not passed and name in ["Symbols", "Footprints"]:
             all_passed = False
-        else:
-            print(f"✓ {name} validation passed")
-    
     if not all_passed:
         print("\nValidation failed. Please fix the issues above.")
         sys.exit(1)
