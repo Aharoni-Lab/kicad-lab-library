@@ -41,9 +41,9 @@ jobs:
           python scripts/generate_renders.py
       
       - name: Upload renders
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: component-renders
+          name: renders
           path: renders/
           if-no-files-found: error
       
