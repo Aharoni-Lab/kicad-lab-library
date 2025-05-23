@@ -275,6 +275,8 @@ def validate_component_fields(fields: Dict, component_type: str, name: str, cate
     # Only check datasheet for symbols
     if component_type == 'symbol':
         errors.extend(validate_datasheet_reference(fields, component_type, name))
+    if not errors:
+        print(f"✓ Symbol {name}: All required fields are present")
     return errors
 
 def parse_kicad_mod(content: str) -> Dict:
@@ -404,12 +406,11 @@ def check_symbols() -> Tuple[bool, List[str]]:
                                             fp = parse_kicad_mod(fpf.read())
                                         symbol_pins = set(pin['number'] for pin in symbol['pins'])
                                         footprint_pads = fp.get('pads', set())
-                                        print(f"[DEBUG] Symbol: {symbol['name']}")
-                                        print(f"[DEBUG]   Symbol pins: {sorted(symbol_pins)}")
-                                        print(f"[DEBUG]   Footprint file: {fp_file}")
-                                        print(f"[DEBUG]   Footprint pads: {sorted(footprint_pads)}")
                                         if symbol_pins != footprint_pads:
                                             errors.append(f"Symbol {symbol['name']}:\n    - Pin numbers {sorted(symbol_pins)} do not match footprint pads {sorted(footprint_pads)} (footprint: {fp_file})")
+                                        else:
+                                            n = len(symbol_pins)
+                                            print(f"✓ Symbol {symbol['name']}: All {n} symbol pins match {n} footprint pads")
                                     elif not fp_file:
                                         errors.append(f"Symbol {symbol['name']}:\n    - Footprint '{symbol['fields']['Footprint']}' not found for pin check")
                         except Exception as e:
@@ -471,12 +472,11 @@ def check_symbols() -> Tuple[bool, List[str]]:
                                         fp = parse_kicad_mod(fpf.read())
                                     symbol_pins = set(pin['number'] for pin in symbol['pins'])
                                     footprint_pads = fp.get('pads', set())
-                                    print(f"[DEBUG] Symbol: {symbol['name']}")
-                                    print(f"[DEBUG]   Symbol pins: {sorted(symbol_pins)}")
-                                    print(f"[DEBUG]   Footprint file: {fp_file}")
-                                    print(f"[DEBUG]   Footprint pads: {sorted(footprint_pads)}")
                                     if symbol_pins != footprint_pads:
                                         errors.append(f"Symbol {symbol['name']}:\n    - Pin numbers {sorted(symbol_pins)} do not match footprint pads {sorted(footprint_pads)} (footprint: {fp_file})")
+                                    else:
+                                        n = len(symbol_pins)
+                                        print(f"✓ Symbol {symbol['name']}: All {n} symbol pins match {n} footprint pads")
                                 elif not fp_file:
                                     errors.append(f"Symbol {symbol['name']}:\n    - Footprint '{symbol['fields']['Footprint']}' not found for pin check")
                     except Exception as e:
