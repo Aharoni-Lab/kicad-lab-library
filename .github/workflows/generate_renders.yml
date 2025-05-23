@@ -26,6 +26,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y kicad
       
+      - name: Check KiCad CLI
+        run: |
+          which kicad-cli || echo "kicad-cli not found"
+          kicad-cli --version || echo "kicad-cli not working"
+      
       - name: Get modified files
         id: modified-files
         run: |
@@ -36,14 +41,19 @@ jobs:
           cat modified_files.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
       
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
       - name: Generate renders
         run: |
           python scripts/generate_renders.py
       
       - name: Upload renders
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: component-renders
+          name: renders
           path: renders/
           if-no-files-found: error
       

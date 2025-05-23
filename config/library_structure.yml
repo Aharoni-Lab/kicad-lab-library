@@ -7,13 +7,13 @@ categories:
     subcategories:
       resistors:
         description: "Resistors"
-        prefixes: ["R_"]
+        reference_prefixes: ["R"]
       capacitors:
         description: "Capacitors"
-        prefixes: ["C_"]
+        reference_prefixes: ["C"]
       inductors:
         description: "Inductors"
-        prefixes: ["L_"]
+        reference_prefixes: ["L"]
 
   active:
     description: "Active components"
@@ -23,74 +23,74 @@ categories:
         subcategories:
           cmos_image:
             description: "CMOS image sensors"
-            prefixes: ["U_CMOS_"]
+            reference_prefixes: ["U_CMOS"]
           environmental:
             description: "Environmental sensors"
-            prefixes: ["U_ENV_"]
+            reference_prefixes: ["U_ENV"]
       ics:
         description: "Integrated circuits"
         subcategories:
           microcontrollers:
             description: "Microcontrollers and processors"
-            prefixes: ["U_MCU_"]
+            reference_prefixes: ["U_MCU"]
           memory:
             description: "Memory ICs"
-            prefixes: ["U_MEM_"]
+            reference_prefixes: ["U_MEM"]
           interface:
             description: "Interface ICs"
-            prefixes: ["U_IF_"]
+            reference_prefixes: ["U_IF"]
       discrete:
         description: "Discrete semiconductor components"
         subcategories:
           transistors:
             description: "Transistors"
-            prefixes: ["Q_"]
+            reference_prefixes: ["Q"]
           diodes:
             description: "Diodes"
-            prefixes: ["D_"]
+            reference_prefixes: ["D"]
 
   connectors:
     description: "Connectors and interfaces"
     subcategories:
       board:
         description: "Board-to-board connectors"
-        prefixes: ["J_BOARD_"]
+        reference_prefixes: ["J_BOARD"]
       wire:
         description: "Wire-to-board connectors"
-        prefixes: ["J_WIRE_"]
+        reference_prefixes: ["J_WIRE"]
       rf:
         description: "RF connectors"
-        prefixes: ["J_RF_"]
+        reference_prefixes: ["J_RF"]
 
   mechanical:
     description: "Mechanical components"
     subcategories:
       mounting:
         description: "Mounting hardware"
-        prefixes: ["H_", "M_"]
+        reference_prefixes: ["H", "M"]
       enclosure:
         description: "Enclosure parts"
-        prefixes: ["E_"]
+        reference_prefixes: ["E"]
 
   power:
     description: "Power components"
     subcategories:
       regulators:
         description: "Voltage regulators"
-        prefixes: ["U_REG_"]
+        reference_prefixes: ["U_REG"]
       converters:
         description: "DC-DC converters"
-        prefixes: ["U_CONV_"]
+        reference_prefixes: ["U_CONV"]
       protection:
         description: "Protection circuits"
-        prefixes: ["U_PROT_"]
+        reference_prefixes: ["U_PROT"]
 
   misc:
     description: "Miscellaneous components"
     subcategories:
       misc:
         description: "Other components"
-        prefixes: []
+        reference_prefixes: []
 
 # Validation rules
 validation:

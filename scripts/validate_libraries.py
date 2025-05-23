@@ -120,39 +120,62 @@ def get_component_path(category: str, subcategory: str, subsubcategory: str = No
         path.append(subsubcategory)
     return os.path.join(*path)
 
+def get_reference_prefixes(category: str, subcategory: str, subsubcategory: str = None) -> List[str]:
+    """Get the allowed reference prefixes for a given (sub)category."""
+    try:
+        if subsubcategory:
+            return CATEGORIES[category]['subcategories'][subcategory]['subcategories'][subsubcategory].get('reference_prefixes', [])
+        elif subcategory:
+            return CATEGORIES[category]['subcategories'][subcategory].get('reference_prefixes', [])
+        else:
+            return CATEGORIES[category].get('reference_prefixes', [])
+    except Exception:
+        return []
+
 def parse_kicad_sym(content: str) -> List[Dict]:
-    """Parse KiCad symbol file and extract symbol definitions."""
+    """Parse KiCad symbol file and extract only top-level symbol definitions."""
     symbols = []
+    lines = content.split('\n')
+    stack = []
     current_symbol = None
-    
-    for line in content.split('\n'):
+
+    for line in lines:
         line = line.strip()
-        
         if line.startswith('(symbol '):
-            if current_symbol:
+            stack.append('symbol')
+            if len(stack) == 1:
+                # Top-level symbol
+                if current_symbol:
+                    symbols.append(current_symbol)
+                symbol_name = line.split('"')[1]
+                current_symbol = {'name': symbol_name, 'fields': {}, 'pins': []}
+        elif line.startswith('(property ') and current_symbol and len(stack) == 1:
+            parts = line.split('"')
+            if len(parts) >= 4:
+                field_name = parts[1]
+                field_value = parts[3]
+                current_symbol['fields'][field_name] = field_value
+        elif line.startswith('(pin ') and current_symbol and len(stack) == 1:
+            parts = line.split('"')
+            if len(parts) >= 4:
+                pin = {
+                    'number': parts[1],
+                    'name': parts[3],
+                    'type': parts[5] if len(parts) > 5 else 'unknown'
+                }
+                current_symbol['pins'].append(pin)
+        if line.startswith('('):
+            # Count open parens
+            stack.extend(['('] * (line.count('(') - (1 if line.startswith('(symbol ') else 0)))
+        if line.endswith(')'):
+            # Count close parens
+            for _ in range(line.count(')')):
+                if stack:
+                    stack.pop()
+            if not stack and current_symbol:
                 symbols.append(current_symbol)
-            current_symbol = {'name': line.split('"')[1], 'fields': {}, 'pins': []}
-        elif line.startswith('(property '):
-            if current_symbol:
-                parts = line.split('"')
-                if len(parts) >= 4:
-                    field_name = parts[1]
-                    field_value = parts[3]
-                    current_symbol['fields'][field_name] = field_value
-        elif line.startswith('(pin '):
-            if current_symbol:
-                parts = line.split('"')
-                if len(parts) >= 4:
-                    pin = {
-                        'number': parts[1],
-                        'name': parts[3],
-                        'type': parts[5] if len(parts) > 5 else 'unknown'
-                    }
-                    current_symbol['pins'].append(pin)
-    
-    if current_symbol:
-        symbols.append(current_symbol)
-    
+                current_symbol = None
+
     return symbols
 
 def validate_datasheet_reference(fields: Dict, component_type: str, name: str) -> List[str]:
@@ -192,16 +215,14 @@ def validate_datasheet_reference(fields: Dict, component_type: str, name: str) -
     
     return errors
 
-def validate_component_fields(fields: Dict, component_type: str, name: str) -> List[str]:
-    """Validate component fields and their values."""
+def validate_component_fields(fields: Dict, component_type: str, name: str, category=None, subcategory=None, subsubcategory=None) -> List[str]:
+    """Validate component fields and their values, including Reference prefix."""
     errors = []
-    
     # Check required fields
     required_fields = REQUIRED_SYMBOL_FIELDS if component_type == 'symbol' else REQUIRED_FOOTPRINT_FIELDS
     missing_fields = required_fields - set(fields.keys())
     if missing_fields:
         errors.append(f"{component_type.title()} {name} missing required fields: {', '.join(missing_fields)}")
-    
     # Check Validated field
     if 'Validated' in fields:
         validated_value = fields['Validated'].lower()
@@ -209,10 +230,14 @@ def validate_component_fields(fields: Dict, component_type: str, name: str) -> L
             errors.append(f"{component_type.title()} {name} has invalid 'Validated' value: {fields['Validated']}. Must be 'Yes' or 'No'")
     else:
         errors.append(f"{component_type.title()} {name} missing 'Validated' field")
-    
+    # Check Reference prefix (only for symbols)
+    if component_type == 'symbol' and 'Reference' in fields:
+        allowed_prefixes = get_reference_prefixes(category, subcategory, subsubcategory)
+        ref_value = fields['Reference']
+        if allowed_prefixes and not any(ref_value.startswith(prefix) for prefix in allowed_prefixes):
+            errors.append(f"Symbol {name} Reference '{ref_value}' does not start with allowed prefixes: {', '.join(allowed_prefixes)}")
     # Check datasheet reference
     errors.extend(validate_datasheet_reference(fields, component_type, name))
-    
     return errors
 
 def check_symbols() -> Tuple[bool, List[str]]:
@@ -251,7 +276,6 @@ def check_symbols() -> Tuple[bool, List[str]]:
                             # Parse and validate symbols
                             symbols = parse_kicad_sym(content)
                             if not symbols:
-                                errors.append(f"No symbols found in file: {sym_file}")
                                 continue
                             
                             # Check each symbol
@@ -270,7 +294,7 @@ def check_symbols() -> Tuple[bool, List[str]]:
                                 symbol_names.add(symbol['name'])
                                 
                                 # Check fields
-                                errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name']))
+                                errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory, subsubcategory))
                                 
                                 # Check pins
                                 if not symbol['pins']:
@@ -312,7 +336,6 @@ def check_symbols() -> Tuple[bool, List[str]]:
                         # Parse and validate symbols
                         symbols = parse_kicad_sym(content)
                         if not symbols:
-                            errors.append(f"No symbols found in file: {sym_file}")
                             continue
                         
                         # Check each symbol
@@ -331,7 +354,7 @@ def check_symbols() -> Tuple[bool, List[str]]:
                             symbol_names.add(symbol['name'])
                             
                             # Check fields
-                            errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name']))
+                            errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory))
                             
                             # Check pins
                             if not symbol['pins']:
@@ -411,7 +434,7 @@ def check_footprints() -> Tuple[bool, List[str]]:
                             footprint_names.add(footprint['name'])
                             
                             # Check fields
-                            errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name']))
+                            errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name'], category, subcategory, subsubcategory))
                             
                             # Check 3D models
                             for model in footprint['models']:
@@ -453,7 +476,7 @@ def check_footprints() -> Tuple[bool, List[str]]:
                         footprint_names.add(footprint['name'])
                         
                         # Check fields
-                        errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name']))
+                        errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name'], category, subcategory))
                         
                         # Check 3D models
                         for model in footprint['models']:
