@@ -8,6 +8,7 @@ import sys
 import glob
 import subprocess
 import cairosvg
+import shutil
 from pathlib import Path
 from typing import List, Tuple, Dict
 
@@ -60,7 +61,7 @@ def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dic
         "default": {
             "svg": os.path.join(output_dir, f"{symbol_name}_symbol.svg"),
             "png": os.path.join(output_dir, f"{symbol_name}_symbol.png"),
-            "options": []  # Color view, no extra options
+            "options": []
         },
         "bw": {
             "svg": os.path.join(output_dir, f"{symbol_name}_symbol_bw.svg"),
@@ -70,24 +71,31 @@ def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dic
         "large": {
             "svg": os.path.join(output_dir, f"{symbol_name}_symbol_large.svg"),
             "png": os.path.join(output_dir, f"{symbol_name}_symbol_large.png"),
-            "options": []  # No page size control in CLI, use default
+            "options": []
         }
     }
     for view_name, view_config in views.items():
+        # Use a unique output directory for each view
+        view_outdir = os.path.join(output_dir, f"{symbol_name}_{view_name}_svgdir")
+        os.makedirs(view_outdir, exist_ok=True)
         success, output = run_kicad_cli([
             "kicad-cli", "sch", "export", "svg",
-            "--output", view_config["svg"],
+            "--output", view_outdir,
             *view_config["options"],
             sch_file
         ])
-        if success:
+        temp_svg = os.path.join(view_outdir, "temp.svg")
+        if success and os.path.exists(temp_svg):
             try:
+                shutil.move(temp_svg, view_config["svg"])
                 cairosvg.svg2png(url=view_config["svg"], write_to=view_config["png"])
                 outputs[view_name] = view_config["png"]
             except Exception as e:
                 print(f"Failed to convert SVG to PNG for {view_name}: {e}")
         else:
             print(f"Failed to generate {view_name} symbol render: {output}")
+        # Clean up the view output directory
+        shutil.rmtree(view_outdir, ignore_errors=True)
     # Clean up temporary files
     os.remove(sch_file)
     os.rmdir(temp_dir)
