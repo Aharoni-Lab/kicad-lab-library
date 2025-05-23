@@ -112,14 +112,20 @@ def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dic
         
         for view_name, view_config in views.items():
             print(f"\nGenerating {view_name} view...")
+            # Create a unique output directory for this view
+            svg_dir = os.path.join(output_dir, f"{symbol_name}_{view_name}_svgdir")
+            os.makedirs(svg_dir, exist_ok=True)
             # Export SVG using kicad-cli
             success, output = run_kicad_cli([
                 "kicad-cli", "sch", "export", "svg",
-                "--output", view_config["svg_output"],
+                "--output", svg_dir,
                 *view_config["options"],
                 sch_file
             ])
-            if success:
+            temp_svg = os.path.join(svg_dir, "temp.svg")
+            if success and os.path.exists(temp_svg):
+                # Move/rename the SVG to the desired location
+                shutil.move(temp_svg, view_config["svg_output"])
                 print(f"Converting SVG to PNG for {view_name} view...")
                 try:
                     cairosvg.svg2png(url=view_config["svg_output"], write_to=view_config["png_output"])
@@ -130,6 +136,9 @@ def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dic
                     print(f"Failed to convert SVG to PNG: {e}")
             else:
                 print(f"Failed to generate {view_name} symbol render: {output}")
+            # Clean up the temporary SVG directory
+            if os.path.exists(svg_dir):
+                shutil.rmtree(svg_dir)
         
         return len(outputs) > 0, outputs
     finally:
