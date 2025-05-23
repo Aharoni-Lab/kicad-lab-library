@@ -99,26 +99,35 @@ def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dic
         # Generate different views of the symbol
         views = {
             "default": {
-                "output": os.path.join(output_dir, f"{symbol_name}_symbol.png"),
+                "svg_output": os.path.join(output_dir, f"{symbol_name}_symbol.svg"),
+                "png_output": os.path.join(output_dir, f"{symbol_name}_symbol.png"),
                 "options": ["--page-size-mode", "1", "--black-and-white", "false"]
             },
             "bw": {
-                "output": os.path.join(output_dir, f"{symbol_name}_symbol_bw.png"),
+                "svg_output": os.path.join(output_dir, f"{symbol_name}_symbol_bw.svg"),
+                "png_output": os.path.join(output_dir, f"{symbol_name}_symbol_bw.png"),
                 "options": ["--page-size-mode", "1", "--black-and-white", "true"]
             }
         }
         
         for view_name, view_config in views.items():
             print(f"\nGenerating {view_name} view...")
+            # Export SVG using kicad-cli
             success, output = run_kicad_cli([
-                "kicad-cli", "sch", "export", "png",
-                "--output", view_config["output"],
+                "kicad-cli", "sch", "export", "svg",
+                "--output", view_config["svg_output"],
                 *view_config["options"],
                 sch_file
             ])
             if success:
-                print(f"Successfully generated {view_name} view")
-                outputs[view_name] = view_config["output"]
+                print(f"Converting SVG to PNG for {view_name} view...")
+                try:
+                    cairosvg.svg2png(url=view_config["svg_output"], write_to=view_config["png_output"])
+                    optimize_png(view_config["png_output"])
+                    outputs[view_name] = view_config["png_output"]
+                    print(f"Successfully generated {view_name} view")
+                except Exception as e:
+                    print(f"Failed to convert SVG to PNG: {e}")
             else:
                 print(f"Failed to generate {view_name} symbol render: {output}")
         
