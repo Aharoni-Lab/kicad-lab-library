@@ -11,6 +11,7 @@ import cairosvg
 import shutil
 from pathlib import Path
 from typing import List, Tuple, Dict
+from PIL import Image
 
 LAB_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -27,15 +28,43 @@ def run_kicad_cli(command: List[str]) -> Tuple[bool, str]:
         print("STDERR:", e.stderr)
         return False, f"Error: {e.stderr}"
 
+def optimize_png(png_path: str) -> None:
+    """Optimize PNG file size using PIL."""
+    try:
+        original_size = os.path.getsize(png_path)
+        img = Image.open(png_path)
+        img.save(png_path, optimize=True, quality=85)
+        new_size = os.path.getsize(png_path)
+        print(f"Optimized {os.path.basename(png_path)}: {original_size/1024:.1f}KB -> {new_size/1024:.1f}KB")
+    except Exception as e:
+        print(f"Warning: Failed to optimize PNG {png_path}: {e}")
+
+def is_component_file(file_path: str) -> bool:
+    """Check if a file is a component file (not a library file)."""
+    # Skip library files (they end with .kicad_sym but are not component files)
+    if file_path.endswith(".kicad_sym"):
+        return False
+    # Skip files in the root directories
+    if os.path.dirname(file_path) in ["symbols", "footprints", "3dmodels"]:
+        return False
+    return True
+
 def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dict[str, str]]:
     """Generate renders of a symbol using KiCad's command-line tools (SVG) and convert to PNG."""
+    if not is_component_file(symbol_file):
+        print(f"Skipping library file: {symbol_file}")
+        return False, {}
+        
+    print(f"\nGenerating renders for symbol: {symbol_file}")
     symbol_name = os.path.splitext(os.path.basename(symbol_file))[0]
     outputs = {}
     temp_dir = os.path.join(LAB_ROOT, "temp_render")
     os.makedirs(temp_dir, exist_ok=True)
-    sch_file = os.path.join(temp_dir, "temp.kicad_sch")
-    with open(sch_file, "w") as f:
-        f.write(f"""(kicad_sch (version 20211123) (generator eeschema)
+    
+    try:
+        sch_file = os.path.join(temp_dir, "temp.kicad_sch")
+        with open(sch_file, "w") as f:
+            f.write(f"""(kicad_sch (version 20211123) (generator eeschema)
   (paper "A4")
   (lib_symbols
     (symbol "{symbol_name}" (pin_numbers hide) (pin_names (offset 0.254))
@@ -57,52 +86,60 @@ def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dic
     (effects (font (size 1.27 1.27)) (justify left))
   )
 )""")
-    views = {
-        "default": {
-            "svg": os.path.join(output_dir, f"{symbol_name}_symbol.svg"),
-            "png": os.path.join(output_dir, f"{symbol_name}_symbol.png"),
-            "options": []
-        },
-        "bw": {
-            "svg": os.path.join(output_dir, f"{symbol_name}_symbol_bw.svg"),
-            "png": os.path.join(output_dir, f"{symbol_name}_symbol_bw.png"),
-            "options": ["--black-and-white"]
-        },
-        "large": {
-            "svg": os.path.join(output_dir, f"{symbol_name}_symbol_large.svg"),
-            "png": os.path.join(output_dir, f"{symbol_name}_symbol_large.png"),
-            "options": []
+        views = {
+            "default": {
+                "svg": os.path.join(output_dir, f"{symbol_name}_symbol.svg"),
+                "png": os.path.join(output_dir, f"{symbol_name}_symbol.png"),
+                "options": []
+            },
+            "bw": {
+                "svg": os.path.join(output_dir, f"{symbol_name}_symbol_bw.svg"),
+                "png": os.path.join(output_dir, f"{symbol_name}_symbol_bw.png"),
+                "options": ["--black-and-white"]
+            }
         }
-    }
-    for view_name, view_config in views.items():
-        # Use a unique output directory for each view
-        view_outdir = os.path.join(output_dir, f"{symbol_name}_{view_name}_svgdir")
-        os.makedirs(view_outdir, exist_ok=True)
-        success, output = run_kicad_cli([
-            "kicad-cli", "sch", "export", "svg",
-            "--output", view_outdir,
-            *view_config["options"],
-            sch_file
-        ])
-        temp_svg = os.path.join(view_outdir, "temp.svg")
-        if success and os.path.exists(temp_svg):
-            try:
-                shutil.move(temp_svg, view_config["svg"])
-                cairosvg.svg2png(url=view_config["svg"], write_to=view_config["png"])
-                outputs[view_name] = view_config["png"]
-            except Exception as e:
-                print(f"Failed to convert SVG to PNG for {view_name}: {e}")
-        else:
-            print(f"Failed to generate {view_name} symbol render: {output}")
-        # Clean up the view output directory
-        shutil.rmtree(view_outdir, ignore_errors=True)
-    # Clean up temporary files
-    os.remove(sch_file)
-    os.rmdir(temp_dir)
-    return len(outputs) > 0, outputs
+        for view_name, view_config in views.items():
+            print(f"\nGenerating {view_name} view...")
+            # Use a unique output directory for each view
+            view_outdir = os.path.join(output_dir, f"{symbol_name}_{view_name}_svgdir")
+            os.makedirs(view_outdir, exist_ok=True)
+            success, output = run_kicad_cli([
+                "kicad-cli", "sch", "export", "svg",
+                "--output", view_outdir,
+                *view_config["options"],
+                sch_file
+            ])
+            temp_svg = os.path.join(view_outdir, "temp.svg")
+            if success and os.path.exists(temp_svg):
+                try:
+                    print(f"Moving SVG to {view_config['svg']}")
+                    shutil.move(temp_svg, view_config["svg"])
+                    print(f"Converting SVG to PNG: {view_config['png']}")
+                    cairosvg.svg2png(url=view_config["svg"], write_to=view_config["png"])
+                    optimize_png(view_config["png"])
+                    outputs[view_name] = view_config["png"]
+                    print(f"Successfully generated {view_name} view")
+                except Exception as e:
+                    print(f"Failed to convert SVG to PNG for {view_name}: {e}")
+            else:
+                print(f"Failed to generate {view_name} symbol render: {output}")
+            # Clean up the view output directory
+            shutil.rmtree(view_outdir, ignore_errors=True)
+        return len(outputs) > 0, outputs
+    finally:
+        # Clean up temporary files
+        if os.path.exists(sch_file):
+            os.remove(sch_file)
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
 
 def generate_footprint_render(footprint_file: str, output_dir: str) -> Tuple[bool, Dict[str, str]]:
     """Generate renders of a footprint using KiCad's command-line tools."""
+    if not is_component_file(footprint_file):
+        print(f"Skipping library file: {footprint_file}")
+        return False, {}
+        
+    print(f"\nGenerating renders for footprint: {footprint_file}")
     footprint_name = os.path.splitext(os.path.basename(footprint_file))[0]
     outputs = {}
     
@@ -115,18 +152,11 @@ def generate_footprint_render(footprint_file: str, output_dir: str) -> Tuple[boo
         "bottom": {
             "output": os.path.join(output_dir, f"{footprint_name}_bottom.png"),
             "options": ["--page-size-mode", "1", "--black-and-white", "false", "--layers", "B.Cu,B.SilkS,B.Mask"]
-        },
-        "all_layers": {
-            "output": os.path.join(output_dir, f"{footprint_name}_all.png"),
-            "options": ["--page-size-mode", "1", "--black-and-white", "false", "--layers", "*.Cu,*.SilkS,*.Mask"]
-        },
-        "large": {
-            "output": os.path.join(output_dir, f"{footprint_name}_large.png"),
-            "options": ["--page-size-mode", "2", "--black-and-white", "false", "--layers", "*.Cu,*.SilkS,*.Mask"]
         }
     }
     
     for view_name, view_config in views.items():
+        print(f"\nGenerating {view_name} view...")
         success, output = run_kicad_cli([
             "kicad-cli", "pcb", "export", "png",
             "--output", view_config["output"],
@@ -134,7 +164,10 @@ def generate_footprint_render(footprint_file: str, output_dir: str) -> Tuple[boo
             footprint_file
         ])
         if success:
+            print(f"Optimizing {view_name} view...")
+            optimize_png(view_config["output"])
             outputs[view_name] = view_config["output"]
+            print(f"Successfully generated {view_name} view")
         else:
             print(f"Failed to generate {view_name} footprint render: {output}")
     
@@ -142,6 +175,11 @@ def generate_footprint_render(footprint_file: str, output_dir: str) -> Tuple[boo
 
 def generate_3d_render(model_file: str, output_dir: str) -> Tuple[bool, Dict[str, str]]:
     """Generate renders of a 3D model using KiCad's command-line tools."""
+    if not is_component_file(model_file):
+        print(f"Skipping library file: {model_file}")
+        return False, {}
+        
+    print(f"\nGenerating renders for 3D model: {model_file}")
     model_name = os.path.splitext(os.path.basename(model_file))[0]
     outputs = {}
     
@@ -149,9 +187,10 @@ def generate_3d_render(model_file: str, output_dir: str) -> Tuple[bool, Dict[str
     temp_dir = os.path.join(LAB_ROOT, "temp_render")
     os.makedirs(temp_dir, exist_ok=True)
     
-    pcb_file = os.path.join(temp_dir, "temp.kicad_pcb")
-    with open(pcb_file, "w") as f:
-        f.write(f"""(kicad_pcb (version 20211123) (generator pcbnew)
+    try:
+        pcb_file = os.path.join(temp_dir, "temp.kicad_pcb")
+        with open(pcb_file, "w") as f:
+            f.write(f"""(kicad_pcb (version 20211123) (generator pcbnew)
   (paper "A4")
   (setup
     (last_trace_width 0.25)
@@ -200,44 +239,38 @@ def generate_3d_render(model_file: str, output_dir: str) -> Tuple[bool, Dict[str
     )
   )
 )""")
-    
-    # Generate different views of the 3D model
-    views = {
-        "front": {
-            "output": os.path.join(output_dir, f"{model_name}_3d_front.png"),
-            "options": ["--page-size-mode", "1", "--view", "front"]
-        },
-        "top": {
-            "output": os.path.join(output_dir, f"{model_name}_3d_top.png"),
-            "options": ["--page-size-mode", "1", "--view", "top"]
-        },
-        "iso": {
-            "output": os.path.join(output_dir, f"{model_name}_3d_iso.png"),
-            "options": ["--page-size-mode", "1", "--view", "iso"]
-        },
-        "large": {
-            "output": os.path.join(output_dir, f"{model_name}_3d_large.png"),
-            "options": ["--page-size-mode", "2", "--view", "iso"]  # Use A3 for larger view
+        
+        # Generate different views of the 3D model
+        views = {
+            "iso": {
+                "output": os.path.join(output_dir, f"{model_name}_3d_iso.png"),
+                "options": ["--page-size-mode", "1", "--view", "iso"]
+            }
         }
-    }
-    
-    for view_name, view_config in views.items():
-        success, output = run_kicad_cli([
-            "kicad-cli", "pcb", "export", "3d",
-            "--output", view_config["output"],
-            *view_config["options"],
-            pcb_file
-        ])
-        if success:
-            outputs[view_name] = view_config["output"]
-        else:
-            print(f"Failed to generate {view_name} 3D render: {output}")
-    
-    # Clean up temporary files
-    os.remove(pcb_file)
-    os.rmdir(temp_dir)
-    
-    return len(outputs) > 0, outputs
+        
+        for view_name, view_config in views.items():
+            print(f"\nGenerating {view_name} view...")
+            success, output = run_kicad_cli([
+                "kicad-cli", "pcb", "export", "3d",
+                "--output", view_config["output"],
+                *view_config["options"],
+                pcb_file
+            ])
+            if success:
+                print(f"Optimizing {view_name} view...")
+                optimize_png(view_config["output"])
+                outputs[view_name] = view_config["output"]
+                print(f"Successfully generated {view_name} view")
+            else:
+                print(f"Failed to generate {view_name} 3D render: {output}")
+        
+        return len(outputs) > 0, outputs
+    finally:
+        # Clean up temporary files
+        if os.path.exists(pcb_file):
+            os.remove(pcb_file)
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
 
 def main():
     """Generate renders for all modified components."""
@@ -247,42 +280,42 @@ def main():
         print("No modified files found")
         sys.exit(0)
     
+    print(f"\nProcessing {len(modified_files)} modified files:")
+    for file in modified_files:
+        print(f"- {file}")
+    
     # Create output directory for renders
     output_dir = os.path.join(LAB_ROOT, "renders")
     os.makedirs(output_dir, exist_ok=True)
+    print(f"\nOutput directory: {output_dir}")
     
     # Process each modified file
     all_renders = {}
     for file in modified_files:
         if file.endswith(".kicad_sym"):
-            print(f"Generating renders for symbol: {file}")
             success, outputs = generate_symbol_render(file, output_dir)
             if success:
                 all_renders[file] = outputs
-            else:
-                print(f"Failed to generate symbol renders: {outputs}")
         elif file.endswith(".kicad_mod"):
-            print(f"Generating renders for footprint: {file}")
             success, outputs = generate_footprint_render(file, output_dir)
             if success:
                 all_renders[file] = outputs
-            else:
-                print(f"Failed to generate footprint renders: {outputs}")
         elif file.endswith((".wrl", ".step")):
-            print(f"Generating renders for 3D model: {file}")
             success, outputs = generate_3d_render(file, output_dir)
             if success:
                 all_renders[file] = outputs
-            else:
-                print(f"Failed to generate 3D model renders: {outputs}")
     
     # Create a summary of generated renders
     if all_renders:
-        print("\nGenerated renders:")
+        print("\nGenerated renders summary:")
+        total_size = 0
         for file, outputs in all_renders.items():
             print(f"\n{os.path.basename(file)}:")
             for view_name, output_file in outputs.items():
-                print(f"  - {view_name}: {os.path.basename(output_file)}")
+                size = os.path.getsize(output_file)
+                total_size += size
+                print(f"  - {view_name}: {os.path.basename(output_file)} ({size/1024:.1f}KB)")
+        print(f"\nTotal size of generated renders: {total_size/1024:.1f}KB")
     else:
         print("\nNo renders were generated")
 
