@@ -34,25 +34,25 @@ def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dic
     os.makedirs(temp_dir, exist_ok=True)
     sch_file = os.path.join(temp_dir, "temp.kicad_sch")
     with open(sch_file, "w") as f:
-        f.write("""(kicad_sch (version 20211123) (generator eeschema)
+        f.write(f"""(kicad_sch (version 20211123) (generator eeschema)
   (paper "A4")
   (lib_symbols
-    (symbol \"${symbol_name}\" (pin_numbers hide) (pin_names (offset 0.254))
+    (symbol "{symbol_name}" (pin_numbers hide) (pin_names (offset 0.254))
       (in_bom yes) (on_board yes)
-      (property \"Reference\" \"${symbol_name}\" (id 0) (at 0 0 0)
+      (property "Reference" "{symbol_name}" (id 0) (at 0 0 0)
         (effects (font (size 1.27 1.27)) (justify left))
       )
-      (property \"Value\" \"${symbol_name}\" (id 1) (at 0 2.54 0)
+      (property "Value" "{symbol_name}" (id 1) (at 0 2.54 0)
         (effects (font (size 1.27 1.27)) (justify left))
       )
-      (property \"Footprint\" \"\" (id 2) (at 0 5.08 0)
+      (property "Footprint" "" (id 2) (at 0 5.08 0)
         (effects (font (size 1.27 1.27)) (justify left))
       )
     )
   )
   (junction (at 0 0) (diameter 0) (color 0 0 0 0))
   (wire (pts (xy 0 0) (xy 0 0)) (stroke (width 0) (type default)))
-  (label \"${symbol_name}\" (at 0 0 0) (fields_autoplaced)
+  (label "{symbol_name}" (at 0 0 0) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify left))
   )
 )""")
@@ -60,17 +60,17 @@ def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dic
         "default": {
             "svg": os.path.join(output_dir, f"{symbol_name}_symbol.svg"),
             "png": os.path.join(output_dir, f"{symbol_name}_symbol.png"),
-            "options": ["--page-size-mode", "1", "--black-and-white", "false"]
+            "options": []  # Color view, no extra options
         },
         "bw": {
             "svg": os.path.join(output_dir, f"{symbol_name}_symbol_bw.svg"),
             "png": os.path.join(output_dir, f"{symbol_name}_symbol_bw.png"),
-            "options": ["--page-size-mode", "1", "--black-and-white", "true"]
+            "options": ["--black-and-white"]
         },
         "large": {
             "svg": os.path.join(output_dir, f"{symbol_name}_symbol_large.svg"),
             "png": os.path.join(output_dir, f"{symbol_name}_symbol_large.png"),
-            "options": ["--page-size-mode", "2", "--black-and-white", "false"]
+            "options": []  # No page size control in CLI, use default
         }
     }
     for view_name, view_config in views.items():
