@@ -53,6 +53,24 @@ def test_parse_kicad_sym():
 				(hide yes)
 			)
 		)
+		(property "Validated" "No"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Keywords" "cap"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(symbol "TestSymbol_0_1"
 			(rectangle
 				(start -3.81 8.89)
@@ -223,7 +241,7 @@ def test_parse_kicad_sym_multiline_pins():
 				(hide yes)
 			)
 		)
-		(property "ki_keywords" "cap"
+		(property "Keywords" "cap"
 			(at 0 0 0)
 			(effects
 				(font

@@ -133,18 +133,22 @@ def get_reference_prefixes(category: str, subcategory: str, subsubcategory: str 
         return []
 
 def extract_pins_from_block(block: str) -> list:
-    """Extract all pins from a symbol block, including multi-line pins."""
+    """Extract all pins from a symbol block, including multi-line pins and nested parentheses."""
     pins = []
     lines = block.split('\n')
     in_pin = False
     pin_lines = []
+    paren_depth = 0
     for line in lines:
-        if line.lstrip().startswith('(pin '):
+        stripped = line.lstrip()
+        if stripped.startswith('(pin '):
             in_pin = True
             pin_lines = [line]
+            paren_depth = stripped.count('(') - stripped.count(')')
         elif in_pin:
             pin_lines.append(line)
-            if line.strip().endswith(')'):
+            paren_depth += line.count('(') - line.count(')')
+            if paren_depth <= 0:
                 # End of pin block
                 pin_block = '\n'.join(pin_lines)
                 import re
@@ -157,6 +161,8 @@ def extract_pins_from_block(block: str) -> list:
                 }
                 pins.append(pin)
                 in_pin = False
+                pin_lines = []
+                paren_depth = 0
     return pins
 
 def parse_kicad_sym(content: str) -> list:
