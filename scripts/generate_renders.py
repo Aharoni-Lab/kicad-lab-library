@@ -101,12 +101,12 @@ def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dic
             "default": {
                 "svg_output": os.path.join(output_dir, f"{symbol_name}_symbol.svg"),
                 "png_output": os.path.join(output_dir, f"{symbol_name}_symbol.png"),
-                "options": ["--page-size-mode", "1", "--black-and-white", "false"]
+                "options": []
             },
             "bw": {
                 "svg_output": os.path.join(output_dir, f"{symbol_name}_symbol_bw.svg"),
                 "png_output": os.path.join(output_dir, f"{symbol_name}_symbol_bw.png"),
-                "options": ["--page-size-mode", "1", "--black-and-white", "true"]
+                "options": ["--black-and-white"]
             }
         }
         
