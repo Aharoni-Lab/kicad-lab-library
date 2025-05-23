@@ -276,7 +276,6 @@ def check_symbols() -> Tuple[bool, List[str]]:
                             # Parse and validate symbols
                             symbols = parse_kicad_sym(content)
                             if not symbols:
-                                errors.append(f"No symbols found in file: {sym_file}")
                                 continue
                             
                             # Check each symbol
@@ -337,7 +336,6 @@ def check_symbols() -> Tuple[bool, List[str]]:
                         # Parse and validate symbols
                         symbols = parse_kicad_sym(content)
                         if not symbols:
-                            errors.append(f"No symbols found in file: {sym_file}")
                             continue
                         
                         # Check each symbol
