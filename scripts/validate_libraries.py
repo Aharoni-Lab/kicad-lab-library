@@ -132,8 +132,24 @@ def get_reference_prefixes(category: str, subcategory: str, subsubcategory: str 
     except Exception:
         return []
 
+def extract_pins_from_block(block: str) -> list:
+    """Recursively extract all pins from a symbol block (including nested sub-symbols)."""
+    pins = []
+    # Find all (pin ...) blocks
+    for pin_match in re.finditer(r'\(pin [^\)]*\)', block):
+        pin_line = pin_match.group(0)
+        parts = pin_line.split('"')
+        if len(parts) >= 4:
+            pin = {
+                'number': parts[1],
+                'name': parts[3],
+                'type': parts[5] if len(parts) > 5 else 'unknown'
+            }
+            pins.append(pin)
+    return pins
+
 def parse_kicad_sym(content: str) -> list:
-    """Parse KiCad symbol file and extract only top-level symbol definitions, collecting pins from nested sub-symbols."""
+    """Parse KiCad symbol file and extract only top-level symbol definitions, collecting pins from all nested sub-symbols."""
     symbols = []
     lines = content.split('\n')
     current_symbol = None
@@ -166,20 +182,9 @@ def parse_kicad_sym(content: str) -> list:
             # Track parentheses to know when the top-level symbol block ends
             symbol_depth += line_stripped.count('(') - line_stripped.count(')')
             if symbol_depth == 0:
-                # Collect pins from all nested sub-symbols in block_lines
-                pins = []
+                # Collect pins from all nested sub-symbols in block_lines (recursively)
                 block = '\n'.join(block_lines)
-                for pin_match in re.finditer(r'\(pin [^\)]*\)', block):
-                    pin_line = pin_match.group(0)
-                    parts = pin_line.split('"')
-                    if len(parts) >= 4:
-                        pin = {
-                            'number': parts[1],
-                            'name': parts[3],
-                            'type': parts[5] if len(parts) > 5 else 'unknown'
-                        }
-                        pins.append(pin)
-                current_symbol['pins'] = pins
+                current_symbol['pins'] = extract_pins_from_block(block)
                 symbols.append(current_symbol)
                 current_symbol = None
                 in_top_symbol = False

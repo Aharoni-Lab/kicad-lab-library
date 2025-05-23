@@ -2,18 +2,23 @@ name: Validate Libraries
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'scripts/**'
       - 'config/**'
+      - 'symbols/**'
+      - 'footprints/**'
+      - '3dmodels/**'
       - '.github/workflows/validate.yml'
   pull_request:
     paths:
       - 'scripts/**'
       - 'config/**'
-      - '.github/workflows/validate.yml'
       - 'symbols/**'
       - 'footprints/**'
       - '3dmodels/**'
+      - '.github/workflows/validate.yml'
 
 jobs:
   test:
