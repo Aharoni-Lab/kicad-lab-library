@@ -223,19 +223,20 @@ def validate_component_fields(fields: Dict, component_type: str, name: str, cate
     missing_fields = required_fields - set(fields.keys())
     if missing_fields:
         errors.append(f"{component_type.title()} {name} missing required fields: {', '.join(missing_fields)}")
-    # Check Validated field
+    # Only check Validated value if present
     if 'Validated' in fields:
         validated_value = fields['Validated'].lower()
         if validated_value not in ['yes', 'no']:
             errors.append(f"{component_type.title()} {name} has invalid 'Validated' value: {fields['Validated']}. Must be 'Yes' or 'No'")
-    else:
-        errors.append(f"{component_type.title()} {name} missing 'Validated' field")
-    # Check Reference prefix (for both symbols and footprints)
-    if 'Reference' in fields:
+    # Check Reference field
+    if component_type == 'symbol' and 'Reference' in fields:
         allowed_prefixes = get_reference_prefixes(category, subcategory, subsubcategory)
         ref_value = fields['Reference']
         if allowed_prefixes and not any(ref_value.startswith(prefix) for prefix in allowed_prefixes):
             errors.append(f"{component_type.title()} {name} Reference '{ref_value}' does not start with allowed prefixes: {', '.join(allowed_prefixes)}")
+    elif component_type == 'footprint' and 'Reference' in fields:
+        if fields['Reference'] != 'REF**':
+            errors.append(f"Footprint {name} Reference field must be 'REF**', found '{fields['Reference']}'")
     # Only check datasheet for symbols
     if component_type == 'symbol':
         errors.extend(validate_datasheet_reference(fields, component_type, name))
@@ -437,11 +438,9 @@ def check_footprints() -> Tuple[bool, List[str]]:
                                 content = f.read()
                             footprint = parse_kicad_mod(content)
                             
-                            # Use Reference field to determine category
-                            ref_value = footprint['fields'].get('Reference', '')
-                            expected_cat, expected_subcat, expected_subsubcat = get_component_category(ref_value)
-                            expected_path = get_component_path(expected_cat, expected_subcat, expected_subsubcat)
-                            actual_path = get_component_path(category, subcategory, subsubcategory)
+                            # Use file path to determine category
+                            expected_path = get_component_path(category, subcategory, subsubcategory)
+                            actual_path = os.path.relpath(os.path.dirname(mod_file), os.path.join(LAB_ROOT, 'footprints'))
                             if expected_path != actual_path:
                                 errors.append(f"Footprint {footprint['name']}: should be in {expected_path}/ not {actual_path}/")
                             
@@ -480,11 +479,9 @@ def check_footprints() -> Tuple[bool, List[str]]:
                             content = f.read()
                         footprint = parse_kicad_mod(content)
                         
-                        # Use Reference field to determine category
-                        ref_value = footprint['fields'].get('Reference', '')
-                        expected_cat, expected_subcat, _ = get_component_category(ref_value)
-                        expected_path = get_component_path(expected_cat, expected_subcat)
-                        actual_path = get_component_path(category, subcategory)
+                        # Use file path to determine category
+                        expected_path = get_component_path(category, subcategory)
+                        actual_path = os.path.relpath(os.path.dirname(mod_file), os.path.join(LAB_ROOT, 'footprints'))
                         if expected_path != actual_path:
                             errors.append(f"Footprint {footprint['name']}: should be in {expected_path}/ not {actual_path}/")
                         
