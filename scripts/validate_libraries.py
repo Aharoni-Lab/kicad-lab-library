@@ -133,12 +133,13 @@ def get_reference_prefixes(category: str, subcategory: str, subsubcategory: str 
         return []
 
 def parse_kicad_sym(content: str) -> list:
-    """Parse KiCad symbol file and extract only top-level symbol definitions."""
+    """Parse KiCad symbol file and extract only top-level symbol definitions, collecting pins from nested sub-symbols."""
     symbols = []
     lines = content.split('\n')
     current_symbol = None
     symbol_depth = 0
     in_top_symbol = False
+    block_lines = []
 
     for line in lines:
         line_stripped = line.lstrip()
@@ -149,32 +150,40 @@ def parse_kicad_sym(content: str) -> list:
                 current_symbol = {'name': symbol_name, 'fields': {}, 'pins': []}
                 in_top_symbol = True
                 symbol_depth = 1
+                block_lines = [line]
             else:
                 # Nested symbol (sub-symbol), just increase depth
                 symbol_depth += 1
+                block_lines.append(line)
         elif in_top_symbol:
+            block_lines.append(line)
             if line_stripped.startswith('(property '):
                 parts = line_stripped.split('"')
                 if len(parts) >= 4:
                     field_name = parts[1]
                     field_value = parts[3]
                     current_symbol['fields'][field_name] = field_value
-            elif line_stripped.startswith('(pin '):
-                parts = line_stripped.split('"')
-                if len(parts) >= 4:
-                    pin = {
-                        'number': parts[1],
-                        'name': parts[3],
-                        'type': parts[5] if len(parts) > 5 else 'unknown'
-                    }
-                    current_symbol['pins'].append(pin)
             # Track parentheses to know when the top-level symbol block ends
             symbol_depth += line_stripped.count('(') - line_stripped.count(')')
             if symbol_depth == 0:
+                # Collect pins from all nested sub-symbols in block_lines
+                pins = []
+                block = '\n'.join(block_lines)
+                for pin_match in re.finditer(r'\(pin [^\)]*\)', block):
+                    pin_line = pin_match.group(0)
+                    parts = pin_line.split('"')
+                    if len(parts) >= 4:
+                        pin = {
+                            'number': parts[1],
+                            'name': parts[3],
+                            'type': parts[5] if len(parts) > 5 else 'unknown'
+                        }
+                        pins.append(pin)
+                current_symbol['pins'] = pins
                 symbols.append(current_symbol)
                 current_symbol = None
                 in_top_symbol = False
-
+                block_lines = []
     return symbols
 
 def validate_datasheet_reference(fields: Dict, component_type: str, name: str) -> List[str]:
@@ -219,7 +228,12 @@ def validate_component_fields(fields: Dict, component_type: str, name: str, cate
     errors = []
     # Check required fields
     required_fields = REQUIRED_SYMBOL_FIELDS if component_type == 'symbol' else REQUIRED_FOOTPRINT_FIELDS
-    missing_fields = required_fields - set(fields.keys())
+    missing_fields = set(required_fields)
+    # Special handling for keywords field in symbols
+    if component_type == 'symbol':
+        if 'Keywords' in missing_fields and ('Keywords' in fields or 'ki_keywords' in fields):
+            missing_fields.remove('Keywords')
+    missing_fields -= set(fields.keys())
     if missing_fields:
         errors.append(f"{component_type.title()} {name} missing required fields: {', '.join(missing_fields)}")
     # Only check Validated value if present
@@ -290,12 +304,21 @@ def check_symbols() -> Tuple[bool, List[str]]:
     errors = []
     warnings = []
     
-    # Helper to find footprint file by name
-    def find_footprint_file(footprint_name: str) -> str:
-        for root, dirs, files in os.walk(os.path.join(LAB_ROOT, 'footprints')):
-            for file in files:
-                if file.endswith('.kicad_mod') and file[:-10] == footprint_name:
-                    return os.path.join(root, file)
+    # Helper to find footprint file using library prefix
+    def find_footprint_file_by_libprefix(footprint_field: str) -> str:
+        # Example: Lab_Passive_Capacitors:Test_cap
+        if ':' not in footprint_field:
+            return None
+        lib_prefix, fp_name = footprint_field.split(':', 1)
+        # Map lib_prefix to subdirectory
+        # e.g., Lab_Passive_Capacitors -> footprints/passive/capacitors/
+        if lib_prefix.startswith('Lab_'):
+            parts = lib_prefix[4:].split('_')
+            subdir = '/'.join([p.lower() for p in parts])
+            fp_path = f'footprints/{subdir}/{fp_name}.kicad_mod'
+            abs_fp_path = os.path.join(LAB_ROOT, fp_path)
+            if os.path.exists(abs_fp_path):
+                return abs_fp_path
         return None
 
     # Check each category directory
@@ -353,7 +376,7 @@ def check_symbols() -> Tuple[bool, List[str]]:
                                     warnings.append(f"⚠️ Symbol {symbol['name']} has no pins (file: {sym_file})")
                                 # Check pin/footprint pad match if Footprint field is set
                                 if 'Footprint' in symbol['fields'] and symbol['fields']['Footprint']:
-                                    fp_file = find_footprint_file(symbol['fields']['Footprint'])
+                                    fp_file = find_footprint_file_by_libprefix(symbol['fields']['Footprint'])
                                     if fp_file and symbol['pins']:
                                         with open(fp_file, 'r', encoding='utf-8') as fpf:
                                             fp = parse_kicad_mod(fpf.read())
@@ -416,7 +439,7 @@ def check_symbols() -> Tuple[bool, List[str]]:
                                 warnings.append(f"⚠️ Symbol {symbol['name']} has no pins (file: {sym_file})")
                             # Check pin/footprint pad match if Footprint field is set
                             if 'Footprint' in symbol['fields'] and symbol['fields']['Footprint']:
-                                fp_file = find_footprint_file(symbol['fields']['Footprint'])
+                                fp_file = find_footprint_file_by_libprefix(symbol['fields']['Footprint'])
                                 if fp_file and symbol['pins']:
                                     with open(fp_file, 'r', encoding='utf-8') as fpf:
                                         fp = parse_kicad_mod(fpf.read())
