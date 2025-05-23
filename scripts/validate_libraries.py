@@ -275,8 +275,6 @@ def validate_component_fields(fields: Dict, component_type: str, name: str, cate
     # Only check datasheet for symbols
     if component_type == 'symbol':
         errors.extend(validate_datasheet_reference(fields, component_type, name))
-    if not errors:
-        print(f"✓ Symbol {name}: All required fields are present")
     return errors
 
 def parse_kicad_mod(content: str) -> Dict:
