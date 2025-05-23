@@ -104,10 +104,10 @@ def get_component_category(name: str) -> Tuple[str, str, str]:
             # Check for nested subcategories
             if 'subcategories' in subcat_info:
                 for subsubcategory, subsubcat_info in subcat_info['subcategories'].items():
-                    if any(name.startswith(prefix) for prefix in subsubcat_info['prefixes']):
+                    if any(name.startswith(prefix) for prefix in subsubcat_info.get('reference_prefixes', [])):
                         return category, subcategory, subsubcategory
             # Check regular subcategories
-            elif any(name.startswith(prefix) for prefix in subcat_info['prefixes']):
+            elif any(name.startswith(prefix) for prefix in subcat_info.get('reference_prefixes', [])):
                 return category, subcategory, None
     return 'misc', 'misc', None
 
@@ -132,50 +132,80 @@ def get_reference_prefixes(category: str, subcategory: str, subsubcategory: str 
     except Exception:
         return []
 
-def parse_kicad_sym(content: str) -> List[Dict]:
-    """Parse KiCad symbol file and extract only top-level symbol definitions."""
+def extract_pins_from_block(block: str) -> list:
+    """Extract all pins from a symbol block, including multi-line pins and nested parentheses."""
+    pins = []
+    lines = block.split('\n')
+    in_pin = False
+    pin_lines = []
+    paren_depth = 0
+    for line in lines:
+        stripped = line.lstrip()
+        if stripped.startswith('(pin '):
+            in_pin = True
+            pin_lines = [line]
+            paren_depth = stripped.count('(') - stripped.count(')')
+        elif in_pin:
+            pin_lines.append(line)
+            paren_depth += line.count('(') - line.count(')')
+            if paren_depth <= 0:
+                # End of pin block
+                pin_block = '\n'.join(pin_lines)
+                import re
+                number_match = re.search(r'\(number\s+"([^"]+)"', pin_block)
+                name_match = re.search(r'\(name\s+"([^"]+)"', pin_block)
+                pin = {
+                    'number': number_match.group(1) if number_match else '',
+                    'name': name_match.group(1) if name_match else '',
+                    'type': 'unknown'
+                }
+                pins.append(pin)
+                in_pin = False
+                pin_lines = []
+                paren_depth = 0
+    return pins
+
+def parse_kicad_sym(content: str) -> list:
+    """Parse KiCad symbol file and extract only top-level symbol definitions, collecting pins from all nested sub-symbols."""
     symbols = []
     lines = content.split('\n')
-    stack = []
     current_symbol = None
+    symbol_depth = 0
+    in_top_symbol = False
+    block_lines = []
 
     for line in lines:
-        line = line.strip()
-        if line.startswith('(symbol '):
-            stack.append('symbol')
-            if len(stack) == 1:
-                # Top-level symbol
-                if current_symbol:
-                    symbols.append(current_symbol)
-                symbol_name = line.split('"')[1]
+        line_stripped = line.lstrip()
+        if line_stripped.startswith('(symbol '):
+            if not in_top_symbol:
+                # Start of a top-level symbol
+                symbol_name = line_stripped.split('"')[1]
                 current_symbol = {'name': symbol_name, 'fields': {}, 'pins': []}
-        elif line.startswith('(property ') and current_symbol and len(stack) == 1:
-            parts = line.split('"')
-            if len(parts) >= 4:
-                field_name = parts[1]
-                field_value = parts[3]
-                current_symbol['fields'][field_name] = field_value
-        elif line.startswith('(pin ') and current_symbol and len(stack) == 1:
-            parts = line.split('"')
-            if len(parts) >= 4:
-                pin = {
-                    'number': parts[1],
-                    'name': parts[3],
-                    'type': parts[5] if len(parts) > 5 else 'unknown'
-                }
-                current_symbol['pins'].append(pin)
-        if line.startswith('('):
-            # Count open parens
-            stack.extend(['('] * (line.count('(') - (1 if line.startswith('(symbol ') else 0)))
-        if line.endswith(')'):
-            # Count close parens
-            for _ in range(line.count(')')):
-                if stack:
-                    stack.pop()
-            if not stack and current_symbol:
+                in_top_symbol = True
+                symbol_depth = 1
+                block_lines = [line]
+            else:
+                # Nested symbol (sub-symbol), just increase depth
+                symbol_depth += 1
+                block_lines.append(line)
+        elif in_top_symbol:
+            block_lines.append(line)
+            if line_stripped.startswith('(property '):
+                parts = line_stripped.split('"')
+                if len(parts) >= 4:
+                    field_name = parts[1]
+                    field_value = parts[3]
+                    current_symbol['fields'][field_name] = field_value
+            # Track parentheses to know when the top-level symbol block ends
+            symbol_depth += line_stripped.count('(') - line_stripped.count(')')
+            if symbol_depth == 0:
+                # Collect pins from all nested sub-symbols in block_lines (recursively)
+                block = '\n'.join(block_lines)
+                current_symbol['pins'] = extract_pins_from_block(block)
                 symbols.append(current_symbol)
                 current_symbol = None
-
+                in_top_symbol = False
+                block_lines = []
     return symbols
 
 def validate_datasheet_reference(fields: Dict, component_type: str, name: str) -> List[str]:
@@ -220,31 +250,171 @@ def validate_component_fields(fields: Dict, component_type: str, name: str, cate
     errors = []
     # Check required fields
     required_fields = REQUIRED_SYMBOL_FIELDS if component_type == 'symbol' else REQUIRED_FOOTPRINT_FIELDS
-    missing_fields = required_fields - set(fields.keys())
+    missing_fields = set(required_fields)
+    # Special handling for keywords field in symbols
+    if component_type == 'symbol':
+        if 'Keywords' in missing_fields and ('Keywords' in fields or 'ki_keywords' in fields):
+            missing_fields.remove('Keywords')
+    missing_fields -= set(fields.keys())
     if missing_fields:
         errors.append(f"{component_type.title()} {name} missing required fields: {', '.join(missing_fields)}")
-    # Check Validated field
+    # Only check Validated value if present
     if 'Validated' in fields:
         validated_value = fields['Validated'].lower()
         if validated_value not in ['yes', 'no']:
             errors.append(f"{component_type.title()} {name} has invalid 'Validated' value: {fields['Validated']}. Must be 'Yes' or 'No'")
-    else:
-        errors.append(f"{component_type.title()} {name} missing 'Validated' field")
-    # Check Reference prefix (only for symbols)
+    # Check Reference field
     if component_type == 'symbol' and 'Reference' in fields:
         allowed_prefixes = get_reference_prefixes(category, subcategory, subsubcategory)
         ref_value = fields['Reference']
         if allowed_prefixes and not any(ref_value.startswith(prefix) for prefix in allowed_prefixes):
-            errors.append(f"Symbol {name} Reference '{ref_value}' does not start with allowed prefixes: {', '.join(allowed_prefixes)}")
-    # Check datasheet reference
-    errors.extend(validate_datasheet_reference(fields, component_type, name))
+            errors.append(f"{component_type.title()} {name} Reference '{ref_value}' does not start with allowed prefixes: {', '.join(allowed_prefixes)}")
+    elif component_type == 'footprint' and 'Reference' in fields:
+        if fields['Reference'] != 'REF**':
+            errors.append(f"Footprint {name} Reference field must be 'REF**', found '{fields['Reference']}'")
+    # Only check datasheet for symbols
+    if component_type == 'symbol':
+        errors.extend(validate_datasheet_reference(fields, component_type, name))
     return errors
+
+def parse_kicad_mod(content: str) -> Dict:
+    """Parse KiCad footprint file and extract footprint definition and pad numbers."""
+    footprint = {'name': '', 'fields': {}, 'models': [], 'pads': set()}
+    tags_value = None
+
+    # Extract name (should match (footprint "NAME")
+    name_match = re.search(r'\(footprint\s+"([^"]+)"', content)
+    if name_match:
+        footprint['name'] = name_match.group(1)
+
+    # Extract fields from (property ...) lines and tags
+    for line in content.split('\n'):
+        line = line.strip()
+        if line.startswith('(property "Reference"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Reference'] = parts[3]
+        elif line.startswith('(property "Value"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Value'] = parts[3]
+        elif line.startswith('(property "Description"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Description'] = parts[3]
+        elif line.startswith('(property "Keywords"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Keywords'] = parts[3]
+        elif line.startswith('(property "Validated"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Validated'] = parts[3]
+        elif line.startswith('(model '):
+            model_path = line.split('"')[1]
+            footprint['models'].append(model_path)
+        elif line.startswith('(pad '):
+            # (pad "1" smd ...)
+            pad_parts = line.split('"')
+            if len(pad_parts) > 1:
+                pad_number = pad_parts[1]
+                footprint['pads'].add(pad_number)
+        elif line.startswith('(tags '):
+            # (tags "kword1 kword2")
+            tag_match = re.match(r'\(tags\s+"([^"]*)"', line)
+            if tag_match:
+                tags_value = tag_match.group(1)
+    # If no property Keywords, use tags as Keywords
+    if 'Keywords' not in footprint['fields'] and tags_value is not None:
+        footprint['fields']['Keywords'] = tags_value
+    return footprint
+
+def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_footprint_file_by_libprefix):
+    errors = []
+    warnings = []
+    results = {}  # symbol_name -> {'success': [..], 'fail': [..]}
+    try:
+        with open(sym_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        # Basic validation
+        if not content.strip():
+            errors.append(f"Empty symbol file: {sym_file}")
+            return errors, warnings
+        if "(kicad_symbol_lib" not in content:
+            errors.append(f"Invalid symbol file format: {sym_file}")
+            return errors, warnings
+        # Parse and validate symbols
+        symbols = parse_kicad_sym(content)
+        if not symbols:
+            return errors, warnings
+        # Check each symbol
+        symbol_names = set()
+        for symbol in symbols:
+            # Check for duplicates
+            if symbol['name'] in symbol_names:
+                errors.append(f"Duplicate symbol name: {symbol['name']}")
+            symbol_names.add(symbol['name'])
+            # Check fields and reference prefix
+            errs = validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory, subsubcategory)
+            if not errs:
+                results.setdefault(symbol['name'], {'success': [], 'fail': []})
+                results[symbol['name']]['success'].append("All required fields are present")
+            else:
+                results.setdefault(symbol['name'], {'success': [], 'fail': []})
+                for e in errs:
+                    # Remove redundant symbol name from error message
+                    cleaned = re.sub(r'^Symbol [^:]+:?\\s*-?\\s*', '', e)
+                    results[symbol['name']]['fail'].append(cleaned)
+            # If reference prefix error, add details
+            if 'Reference' in symbol['fields']:
+                allowed_prefixes = get_reference_prefixes(category, subcategory, subsubcategory)
+                ref_value = symbol['fields']['Reference']
+                if allowed_prefixes and not any(ref_value.startswith(prefix) for prefix in allowed_prefixes):
+                    results[symbol['name']]['fail'].append(f"Reference field '{ref_value}' does not match allowed prefixes: {allowed_prefixes}")
+            # Check pins (warning only)
+            if not symbol['pins']:
+                warnings.append(f"⚠️ Symbol {symbol['name']} has no pins (file: {sym_file})")
+            # Check pin/footprint pad match if Footprint field is set
+            if 'Footprint' in symbol['fields'] and symbol['fields']['Footprint']:
+                fp_file = find_footprint_file_by_libprefix(symbol['fields']['Footprint'])
+                if fp_file and symbol['pins']:
+                    with open(fp_file, 'r', encoding='utf-8') as fpf:
+                        fp = parse_kicad_mod(fpf.read())
+                    symbol_pins = set(pin['number'] for pin in symbol['pins'])
+                    footprint_pads = fp.get('pads', set())
+                    if symbol_pins != footprint_pads:
+                        results.setdefault(symbol['name'], {'success': [], 'fail': []})
+                        results[symbol['name']]['fail'].append(f"Pin numbers {sorted(symbol_pins)} do not match footprint pads {sorted(footprint_pads)}")
+                    else:
+                        n = len(symbol_pins)
+                        results.setdefault(symbol['name'], {'success': [], 'fail': []})
+                        results[symbol['name']]['success'].append(f"All {n} symbol pins match {n} footprint pads")
+                elif not fp_file:
+                    results.setdefault(symbol['name'], {'success': [], 'fail': []})
+                    results[symbol['name']]['fail'].append(f"Footprint '{symbol['fields']['Footprint']}' not found for pin check")
+    except Exception as e:
+        errors.append(f"Error processing {sym_file}: {str(e)}")
+    # Store results globally for check_symbols to print
+    validate_symbol_file.global_results = results
+    return errors, warnings
 
 def check_symbols() -> Tuple[bool, List[str]]:
     """Validate symbol library files."""
     errors = []
-    
-    # Check each category directory
+    warnings = []
+    results = {}  # symbol_name -> {'success': [..], 'fail': [..]}
+    def find_footprint_file_by_libprefix(footprint_field: str) -> str:
+        if ':' not in footprint_field:
+            return None
+        lib_prefix, fp_name = footprint_field.split(':', 1)
+        if lib_prefix.startswith('Lab_'):
+            parts = lib_prefix[4:].split('_')
+            subdir = '/'.join([p.lower() for p in parts])
+            fp_path = f'footprints/{subdir}/{fp_name}.kicad_mod'
+            abs_fp_path = os.path.join(LAB_ROOT, fp_path)
+            if os.path.exists(abs_fp_path):
+                return abs_fp_path
+        return None
     for category, cat_info in CATEGORIES.items():
         for subcategory, subcat_info in cat_info['subcategories'].items():
             # Handle nested subcategories
@@ -253,152 +423,99 @@ def check_symbols() -> Tuple[bool, List[str]]:
                     symbol_dir = os.path.join(LAB_ROOT, 'symbols', get_component_path(category, subcategory, subsubcategory))
                     if not os.path.exists(symbol_dir):
                         continue
-                    
-                    # Find all .kicad_sym files
                     sym_files = glob.glob(os.path.join(symbol_dir, "*.kicad_sym"))
                     if not sym_files:
                         continue
-                    
                     for sym_file in sym_files:
-                        try:
-                            with open(sym_file, 'r', encoding='utf-8') as f:
-                                content = f.read()
-                            
-                            # Basic validation
-                            if not content.strip():
-                                errors.append(f"Empty symbol file: {sym_file}")
-                                continue
-                            
-                            if "(kicad_symbol_lib" not in content:
-                                errors.append(f"Invalid symbol file format: {sym_file}")
-                                continue
-                            
-                            # Parse and validate symbols
-                            symbols = parse_kicad_sym(content)
-                            if not symbols:
-                                continue
-                            
-                            # Check each symbol
-                            symbol_names = set()
-                            for symbol in symbols:
-                                # Check category
-                                expected_cat, expected_subcat, expected_subsubcat = get_component_category(symbol['name'])
-                                expected_path = get_component_path(expected_cat, expected_subcat, expected_subsubcat)
-                                actual_path = get_component_path(category, subcategory, subsubcategory)
-                                if expected_path != actual_path:
-                                    errors.append(f"Symbol {symbol['name']} should be in {expected_path}/ not {actual_path}/")
-                                
-                                # Check for duplicates
-                                if symbol['name'] in symbol_names:
-                                    errors.append(f"Duplicate symbol name: {symbol['name']}")
-                                symbol_names.add(symbol['name'])
-                                
-                                # Check fields
-                                errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory, subsubcategory))
-                                
-                                # Check pins
-                                if not symbol['pins']:
-                                    errors.append(f"Symbol {symbol['name']} has no pins")
-                                else:
-                                    pin_numbers = set()
-                                    for pin in symbol['pins']:
-                                        if pin['number'] in pin_numbers:
-                                            errors.append(f"Symbol {symbol['name']} has duplicate pin number: {pin['number']}")
-                                        pin_numbers.add(pin['number'])
-                        
-                        except Exception as e:
-                            errors.append(f"Error processing {sym_file}: {str(e)}")
+                        file_errors, file_warnings = validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_footprint_file_by_libprefix)
+                        errors.extend(file_errors)
+                        warnings.extend(file_warnings)
+                        # Collect successes and fails
+                        if hasattr(validate_symbol_file, 'global_results'):
+                            for symbol_name, res in validate_symbol_file.global_results.items():
+                                results.setdefault(symbol_name, {'success': [], 'fail': []})
+                                results[symbol_name]['success'].extend(res.get('success', []))
+                                results[symbol_name]['fail'].extend(res.get('fail', []))
+                            validate_symbol_file.global_results = {}
             else:
-                # Handle regular subcategories
                 symbol_dir = os.path.join(LAB_ROOT, 'symbols', get_component_path(category, subcategory))
                 if not os.path.exists(symbol_dir):
                     continue
-                
-                # Find all .kicad_sym files
                 sym_files = glob.glob(os.path.join(symbol_dir, "*.kicad_sym"))
                 if not sym_files:
                     continue
-                
                 for sym_file in sym_files:
-                    try:
-                        with open(sym_file, 'r', encoding='utf-8') as f:
-                            content = f.read()
-                        
-                        # Basic validation
-                        if not content.strip():
-                            errors.append(f"Empty symbol file: {sym_file}")
-                            continue
-                        
-                        if "(kicad_symbol_lib" not in content:
-                            errors.append(f"Invalid symbol file format: {sym_file}")
-                            continue
-                        
-                        # Parse and validate symbols
-                        symbols = parse_kicad_sym(content)
-                        if not symbols:
-                            continue
-                        
-                        # Check each symbol
-                        symbol_names = set()
-                        for symbol in symbols:
-                            # Check category
-                            expected_cat, expected_subcat, _ = get_component_category(symbol['name'])
-                            expected_path = get_component_path(expected_cat, expected_subcat)
-                            actual_path = get_component_path(category, subcategory)
-                            if expected_path != actual_path:
-                                errors.append(f"Symbol {symbol['name']} should be in {expected_path}/ not {actual_path}/")
-                            
-                            # Check for duplicates
-                            if symbol['name'] in symbol_names:
-                                errors.append(f"Duplicate symbol name: {symbol['name']}")
-                            symbol_names.add(symbol['name'])
-                            
-                            # Check fields
-                            errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory))
-                            
-                            # Check pins
-                            if not symbol['pins']:
-                                errors.append(f"Symbol {symbol['name']} has no pins")
-                            else:
-                                pin_numbers = set()
-                                for pin in symbol['pins']:
-                                    if pin['number'] in pin_numbers:
-                                        errors.append(f"Symbol {symbol['name']} has duplicate pin number: {pin['number']}")
-                                    pin_numbers.add(pin['number'])
-                    
-                    except Exception as e:
-                        errors.append(f"Error processing {sym_file}: {str(e)}")
-    
-    return len(errors) == 0, errors
+                    file_errors, file_warnings = validate_symbol_file(sym_file, category, subcategory, None, find_footprint_file_by_libprefix)
+                    errors.extend(file_errors)
+                    warnings.extend(file_warnings)
+                    if hasattr(validate_symbol_file, 'global_results'):
+                        for symbol_name, res in validate_symbol_file.global_results.items():
+                            results.setdefault(symbol_name, {'success': [], 'fail': []})
+                            results[symbol_name]['success'].extend(res.get('success', []))
+                            results[symbol_name]['fail'].extend(res.get('fail', []))
+                        validate_symbol_file.global_results = {}
+    # Print grouped results
+    print("\nSymbol Validation:")
+    for symbol, res in results.items():
+        print(f"  {symbol}:")
+        for msg in res['success']:
+            print(f"    ✓ {msg}")
+        for msg in res['fail']:
+            print(f"    ❌ {msg}")
+    # Determine pass/fail from grouped results
+    any_fail = any(res['fail'] for res in results.values())
+    if not any_fail:
+        print("✓ Symbols validation passed")
+    else:
+        print("❌ Symbols validation failed")
+    if warnings:
+        print("\nWarnings:")
+        for w in warnings:
+            print(w)
+    # Return errors for CI exit code
+    return not any_fail, errors
 
-def parse_kicad_mod(content: str) -> Dict:
-    """Parse KiCad footprint file and extract footprint definition."""
-    footprint = {'name': '', 'fields': {}, 'models': []}
-    
-    # Extract name
-    name_match = re.search(r'\(module "([^"]+)"', content)
-    if name_match:
-        footprint['name'] = name_match.group(1)
-    
-    # Extract fields
-    for line in content.split('\n'):
-        if line.strip().startswith('(fp_text value '):
-            footprint['fields']['Value'] = line.split('"')[1]
-        elif line.strip().startswith('(fp_text datasheet '):
-            footprint['fields']['Datasheet'] = line.split('"')[1]
-        elif line.strip().startswith('(fp_text description '):
-            footprint['fields']['Description'] = line.split('"')[1]
-        elif line.strip().startswith('(model '):
-            model_path = line.split('"')[1]
-            footprint['models'].append(model_path)
-    
-    return footprint
+def validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path):
+    errors = []
+    results = {}  # footprint_name -> {'success': [..], 'fail': [..]}
+    try:
+        with open(mod_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        footprint = parse_kicad_mod(content)
+        # Use file path to determine category
+        actual_path = os.path.relpath(os.path.dirname(mod_file), os.path.join(LAB_ROOT, 'footprints'))
+        if expected_path != actual_path:
+            results.setdefault(footprint['name'], {'success': [], 'fail': []})
+            results[footprint['name']]['fail'].append(f"should be in {expected_path}/ not {actual_path}/")
+        else:
+            results.setdefault(footprint['name'], {'success': [], 'fail': []})
+            results[footprint['name']]['success'].append(f"Footprint is in correct directory: {expected_path}/")
+        # Check for duplicates (handled in main loop)
+        # Check fields
+        field_errs = validate_component_fields(footprint['fields'], 'footprint', footprint['name'], category, subcategory, subsubcategory)
+        if not field_errs:
+            results[footprint['name']]['success'].append("All required fields are present")
+        else:
+            for e in field_errs:
+                cleaned = re.sub(r'^Footprint [^:]+:?\\s*-?\\s*', '', e)
+                results[footprint['name']]['fail'].append(cleaned)
+        # Check 3D models
+        for model in footprint['models']:
+            model_path = os.path.join(LAB_ROOT, '3dmodels', expected_path, model)
+            if not os.path.exists(model_path):
+                results[footprint['name']]['fail'].append(f"references missing 3D model: {model}")
+            else:
+                results[footprint['name']]['success'].append(f"3D model '{model}' found")
+    except Exception as e:
+        errors.append(f"Footprint error processing {mod_file}: {str(e)}")
+    # Store results globally for check_footprints to print
+    validate_footprint_file.global_results = results
+    return errors
 
 def check_footprints() -> Tuple[bool, List[str]]:
     """Validate footprint libraries."""
     errors = []
-    
-    # Check each category directory
+    results = {}  # footprint_name -> {'success': [..], 'fail': [..]}
     for category, cat_info in CATEGORIES.items():
         for subcategory, subcat_info in cat_info['subcategories'].items():
             # Handle nested subcategories
@@ -407,87 +524,70 @@ def check_footprints() -> Tuple[bool, List[str]]:
                     footprint_dir = os.path.join(LAB_ROOT, 'footprints', get_component_path(category, subcategory, subsubcategory))
                     if not os.path.exists(footprint_dir):
                         continue
-                    
-                    # Find all .kicad_mod files
                     mod_files = glob.glob(os.path.join(footprint_dir, "*.kicad_mod"))
                     if not mod_files:
                         continue
-                    
-                    # Check each footprint
                     footprint_names = set()
+                    expected_path = get_component_path(category, subcategory, subsubcategory)
                     for mod_file in mod_files:
-                        try:
-                            with open(mod_file, 'r', encoding='utf-8') as f:
-                                content = f.read()
-                            footprint = parse_kicad_mod(content)
-                            
-                            # Check category
-                            expected_cat, expected_subcat, expected_subsubcat = get_component_category(footprint['name'])
-                            expected_path = get_component_path(expected_cat, expected_subcat, expected_subsubcat)
-                            actual_path = get_component_path(category, subcategory, subsubcategory)
-                            if expected_path != actual_path:
-                                errors.append(f"Footprint {footprint['name']} should be in {expected_path}/ not {actual_path}/")
-                            
-                            # Check for duplicates
-                            if footprint['name'] in footprint_names:
-                                errors.append(f"Duplicate footprint name: {footprint['name']}")
-                            footprint_names.add(footprint['name'])
-                            
-                            # Check fields
-                            errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name'], category, subcategory, subsubcategory))
-                            
-                            # Check 3D models
-                            for model in footprint['models']:
-                                model_path = os.path.join(LAB_ROOT, '3dmodels', expected_path, model)
-                                if not os.path.exists(model_path):
-                                    errors.append(f"Footprint {footprint['name']} references missing 3D model: {model}")
-                        
-                        except Exception as e:
-                            errors.append(f"Error processing {mod_file}: {str(e)}")
-            else:
-                # Handle regular subcategories
-                footprint_dir = os.path.join(LAB_ROOT, 'footprints', get_component_path(category, subcategory))
-                if not os.path.exists(footprint_dir):
-                    continue
-                
-                # Find all .kicad_mod files
-                mod_files = glob.glob(os.path.join(footprint_dir, "*.kicad_mod"))
-                if not mod_files:
-                    continue
-                
-                # Check each footprint
-                footprint_names = set()
-                for mod_file in mod_files:
-                    try:
+                        file_errors = validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path)
+                        # Collect results from global_results (set below)
+                        if hasattr(validate_footprint_file, 'global_results'):
+                            for fp_name, res in validate_footprint_file.global_results.items():
+                                results.setdefault(fp_name, {'success': [], 'fail': []})
+                                results[fp_name]['success'].extend(res.get('success', []))
+                                results[fp_name]['fail'].extend(res.get('fail', []))
+                            validate_footprint_file.global_results = {}
+                        # Check for duplicates
                         with open(mod_file, 'r', encoding='utf-8') as f:
                             content = f.read()
                         footprint = parse_kicad_mod(content)
-                        
-                        # Check category
-                        expected_cat, expected_subcat, _ = get_component_category(footprint['name'])
-                        expected_path = get_component_path(expected_cat, expected_subcat)
-                        actual_path = get_component_path(category, subcategory)
-                        if expected_path != actual_path:
-                            errors.append(f"Footprint {footprint['name']} should be in {expected_path}/ not {actual_path}/")
-                        
-                        # Check for duplicates
                         if footprint['name'] in footprint_names:
-                            errors.append(f"Duplicate footprint name: {footprint['name']}")
+                            results.setdefault(footprint['name'], {'success': [], 'fail': []})
+                            results[footprint['name']]['fail'].append("duplicate footprint name")
                         footprint_names.add(footprint['name'])
-                        
-                        # Check fields
-                        errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name'], category, subcategory))
-                        
-                        # Check 3D models
-                        for model in footprint['models']:
-                            model_path = os.path.join(LAB_ROOT, '3dmodels', expected_path, model)
-                            if not os.path.exists(model_path):
-                                errors.append(f"Footprint {footprint['name']} references missing 3D model: {model}")
-                    
-                    except Exception as e:
-                        errors.append(f"Error processing {mod_file}: {str(e)}")
-    
-    return len(errors) == 0, errors
+                        errors.extend(file_errors)
+            else:
+                footprint_dir = os.path.join(LAB_ROOT, 'footprints', get_component_path(category, subcategory))
+                if not os.path.exists(footprint_dir):
+                    continue
+                mod_files = glob.glob(os.path.join(footprint_dir, "*.kicad_mod"))
+                if not mod_files:
+                    continue
+                footprint_names = set()
+                expected_path = get_component_path(category, subcategory)
+                for mod_file in mod_files:
+                    file_errors = validate_footprint_file(mod_file, category, subcategory, None, expected_path)
+                    if hasattr(validate_footprint_file, 'global_results'):
+                        for fp_name, res in validate_footprint_file.global_results.items():
+                            results.setdefault(fp_name, {'success': [], 'fail': []})
+                            results[fp_name]['success'].extend(res.get('success', []))
+                            results[fp_name]['fail'].extend(res.get('fail', []))
+                        validate_footprint_file.global_results = {}
+                    # Check for duplicates
+                    with open(mod_file, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    footprint = parse_kicad_mod(content)
+                    if footprint['name'] in footprint_names:
+                        results.setdefault(footprint['name'], {'success': [], 'fail': []})
+                        results[footprint['name']]['fail'].append("duplicate footprint name")
+                    footprint_names.add(footprint['name'])
+                    errors.extend(file_errors)
+    # Print grouped results
+    print("\nFootprint Validation:")
+    for fp, res in results.items():
+        print(f"  {fp}:")
+        for msg in res['success']:
+            print(f"    ✓ {msg}")
+        for msg in res['fail']:
+            print(f"    ❌ {msg}")
+    # Determine pass/fail from grouped results
+    any_fail = any(res['fail'] for res in results.values())
+    if not any_fail:
+        print("✓ Footprints validation passed")
+    else:
+        print("❌ Footprints validation failed")
+    return not any_fail, errors
 
 def check_3d_models() -> Tuple[bool, List[str]]:
     """Validate 3D model files."""
@@ -507,26 +607,20 @@ def check_3d_models() -> Tuple[bool, List[str]]:
                     step_files = glob.glob(os.path.join(model_dir, "*.step"))
                     wrl_files = glob.glob(os.path.join(model_dir, "*.wrl"))
                     
-                    # Check file sizes and names
+                    # Check file sizes and names, group errors by file
                     for file in step_files + wrl_files:
+                        file_errors = []
                         try:
                             # Check file size
                             size = os.path.getsize(file)
                             if size == 0:
-                                errors.append(f"Empty 3D model file: {file}")
+                                file_errors.append(f"Empty 3D model file")
                             elif size > MAX_3D_MODEL_SIZE:
-                                errors.append(f"Large 3D model file (>{CONFIG['validation']['max_3d_model_size_mb']}MB): {file}")
-                            
-                            # Check if file is in correct category
-                            filename = os.path.basename(file)
-                            expected_cat, expected_subcat, expected_subsubcat = get_component_category(filename)
-                            expected_path = get_component_path(expected_cat, expected_subcat, expected_subsubcat)
-                            actual_path = get_component_path(category, subcategory, subsubcategory)
-                            if expected_path != actual_path:
-                                errors.append(f"3D model {filename} should be in {expected_path}/ not {actual_path}/")
-                        
+                                file_errors.append(f"Large 3D model file (>{CONFIG['validation']['max_3d_model_size_mb']}MB)")
                         except Exception as e:
-                            errors.append(f"Error checking {file}: {str(e)}")
+                            file_errors.append(f"Error checking file: {str(e)}")
+                        if file_errors:
+                            errors.append((os.path.basename(file), file_errors))
             else:
                 # Handle regular subcategories
                 model_dir = os.path.join(LAB_ROOT, '3dmodels', get_component_path(category, subcategory))
@@ -537,34 +631,51 @@ def check_3d_models() -> Tuple[bool, List[str]]:
                 step_files = glob.glob(os.path.join(model_dir, "*.step"))
                 wrl_files = glob.glob(os.path.join(model_dir, "*.wrl"))
                 
-                # Check file sizes and names
+                # Check file sizes and names, group errors by file
                 for file in step_files + wrl_files:
+                    file_errors = []
                     try:
                         # Check file size
                         size = os.path.getsize(file)
                         if size == 0:
-                            errors.append(f"Empty 3D model file: {file}")
+                            file_errors.append(f"Empty 3D model file")
                         elif size > MAX_3D_MODEL_SIZE:
-                            errors.append(f"Large 3D model file (>{CONFIG['validation']['max_3d_model_size_mb']}MB): {file}")
-                        
-                        # Check if file is in correct category
-                        filename = os.path.basename(file)
-                        expected_cat, expected_subcat, _ = get_component_category(filename)
-                        expected_path = get_component_path(expected_cat, expected_subcat)
-                        actual_path = get_component_path(category, subcategory)
-                        if expected_path != actual_path:
-                            errors.append(f"3D model {filename} should be in {expected_path}/ not {actual_path}/")
-                    
+                            file_errors.append(f"Large 3D model file (>{CONFIG['validation']['max_3d_model_size_mb']}MB)")
                     except Exception as e:
-                        errors.append(f"Error checking {file}: {str(e)}")
-    
-    return len(errors) == 0, errors
+                        file_errors.append(f"Error checking file: {str(e)}")
+                    if file_errors:
+                        errors.append((os.path.basename(file), file_errors))
+    # Flatten errors for main error reporting
+    grouped_errors = []
+    for fname, ferrs in errors:
+        grouped_errors.append(f"3D Model {fname}:")
+        for ferr in ferrs:
+            grouped_errors.append(f"    - {ferr}")
+    return len(grouped_errors) == 0, grouped_errors
+
+def validate_datasheet_file(file_path, allowed_formats, max_size_mb, naming_convention):
+    errors = []
+    try:
+        size = os.path.getsize(file_path)
+        if size == 0:
+            errors.append(f"Empty datasheet file: {os.path.basename(file_path)}")
+        elif size > max_size_mb:
+            errors.append(f"Large datasheet file (>{max_size_mb // (1024*1024)}MB): {os.path.basename(file_path)}")
+        ext = os.path.splitext(file_path)[1].lower().lstrip('.')
+        if ext not in allowed_formats:
+            errors.append(f"Invalid datasheet format: {os.path.basename(file_path)}. Allowed formats: {', '.join(allowed_formats)}")
+        if not re.match(naming_convention, os.path.basename(file_path)):
+            errors.append(f"Datasheet {os.path.basename(file_path)} does not follow naming convention: {naming_convention}")
+    except Exception as e:
+        errors.append(f"Error checking {os.path.basename(file_path)}: {str(e)}")
+    return errors
 
 def check_datasheets() -> Tuple[bool, List[str]]:
     """Validate datasheet files and references."""
     errors = []
-    
-    # Check each category directory
+    allowed_formats = CONFIG['datasheets']['allowed_formats']
+    max_size_mb = CONFIG['datasheets']['max_size_mb'] * 1024 * 1024
+    naming_convention = CONFIG['datasheets']['naming_convention']
     for category, cat_info in CATEGORIES.items():
         for subcategory, subcat_info in cat_info['subcategories'].items():
             # Handle nested subcategories
@@ -573,64 +684,22 @@ def check_datasheets() -> Tuple[bool, List[str]]:
                     datasheet_dir = os.path.join(LAB_ROOT, 'datasheets', get_component_path(category, subcategory, subsubcategory))
                     if not os.path.exists(datasheet_dir):
                         continue
-                    
-                    # Check each datasheet file
                     for file in os.listdir(datasheet_dir):
                         file_path = os.path.join(datasheet_dir, file)
                         if not os.path.isfile(file_path):
                             continue
-                        
-                        try:
-                            # Check file size
-                            size = os.path.getsize(file_path)
-                            if size == 0:
-                                errors.append(f"Empty datasheet file: {file}")
-                            elif size > CONFIG['datasheets']['max_size_mb'] * 1024 * 1024:
-                                errors.append(f"Large datasheet file (>{CONFIG['datasheets']['max_size_mb']}MB): {file}")
-                            
-                            # Check file format
-                            ext = os.path.splitext(file)[1].lower().lstrip('.')
-                            if ext not in CONFIG['datasheets']['allowed_formats']:
-                                errors.append(f"Invalid datasheet format: {file}. Allowed formats: {', '.join(CONFIG['datasheets']['allowed_formats'])}")
-                            
-                            # Check naming convention
-                            if not re.match(r'^[A-Za-z0-9]+_[A-Za-z0-9]+_[A-Za-z0-9]+\.[a-z]+$', file):
-                                errors.append(f"Datasheet {file} does not follow naming convention: {CONFIG['datasheets']['naming_convention']}")
-                        
-                        except Exception as e:
-                            errors.append(f"Error checking {file}: {str(e)}")
+                        file_errors = validate_datasheet_file(file_path, allowed_formats, max_size_mb, naming_convention)
+                        errors.extend(file_errors)
             else:
-                # Handle regular subcategories
                 datasheet_dir = os.path.join(LAB_ROOT, 'datasheets', get_component_path(category, subcategory))
                 if not os.path.exists(datasheet_dir):
                     continue
-                
-                # Check each datasheet file
                 for file in os.listdir(datasheet_dir):
                     file_path = os.path.join(datasheet_dir, file)
                     if not os.path.isfile(file_path):
                         continue
-                    
-                    try:
-                        # Check file size
-                        size = os.path.getsize(file_path)
-                        if size == 0:
-                            errors.append(f"Empty datasheet file: {file}")
-                        elif size > CONFIG['datasheets']['max_size_mb'] * 1024 * 1024:
-                            errors.append(f"Large datasheet file (>{CONFIG['datasheets']['max_size_mb']}MB): {file}")
-                        
-                        # Check file format
-                        ext = os.path.splitext(file)[1].lower().lstrip('.')
-                        if ext not in CONFIG['datasheets']['allowed_formats']:
-                            errors.append(f"Invalid datasheet format: {file}. Allowed formats: {', '.join(CONFIG['datasheets']['allowed_formats'])}")
-                        
-                        # Check naming convention
-                        if not re.match(r'^[A-Za-z0-9]+_[A-Za-z0-9]+_[A-Za-z0-9]+\.[a-z]+$', file):
-                            errors.append(f"Datasheet {file} does not follow naming convention: {CONFIG['datasheets']['naming_convention']}")
-                    
-                    except Exception as e:
-                        errors.append(f"Error checking {file}: {str(e)}")
-    
+                    file_errors = validate_datasheet_file(file_path, allowed_formats, max_size_mb, naming_convention)
+                    errors.extend(file_errors)
     return len(errors) == 0, errors
 
 def main():
@@ -649,14 +718,17 @@ def main():
     for name, check_func in checks:
         print(f"\nChecking {name}...")
         passed, errors = check_func()
-        if not passed:
-            print(f"❌ {name} validation failed:")
-            for error in errors:
-                print(f"  - {error}")
+        # Only print grouped errors for Directory Structure, 3D Models, Datasheets
+        if name not in ["Symbols", "Footprints"]:
+            if not passed:
+                print(f"❌ {name} validation failed:")
+                for error in errors:
+                    print(f"  - {error}")
+                all_passed = False
+            else:
+                print(f"✓ {name} validation passed")
+        if not passed and name in ["Symbols", "Footprints"]:
             all_passed = False
-        else:
-            print(f"✓ {name} validation passed")
-    
     if not all_passed:
         print("\nValidation failed. Please fix the issues above.")
         sys.exit(1)

@@ -1,6 +1,6 @@
 # Contributing to the KiCad Lab Library
 
-This guide explains how to contribute new components to our shared KiCad library.
+This guide explains how to contribute new components to our shared KiCad library. **All contributions must be submitted via a pull request (PR) and must pass all automated validation and tests before being merged.**
 
 ## Library Structure
 
@@ -96,7 +96,7 @@ Our library is organized into three main directories, each with subdirectories f
 ## Getting Started
 
 1. **Setup Your Environment**
-   - Follow the instructions in `env/setup.md`
+   - Follow the instructions in `docs/setup.md`
    - Make sure you can access the library in KiCad
 
 2. **Fork and Clone**
@@ -136,21 +136,29 @@ Our library is organized into three main directories, each with subdirectories f
    - Example: `3dmodels/active/sensors/cmos_image/OV2640_CSP.wrl` for a CMOS image sensor
 3. Link it in the footprint file
 
-## Validation
+## Automated Validation & PR Requirements
 
-Before submitting changes:
+**All contributions must:**
+- Be submitted via a GitHub pull request (PR).
+- Pass all automated validation and tests before being merged.
+- Not be merged by maintainers unless all checks pass.
 
-1. Run the validation script:
-   ```bash
-   python scripts/validate_libraries.py
-   ```
+### What the Automated Validation Checks
+- **Required fields**: All symbols and footprints must have all required fields (Reference, Value, Description, Keywords, Validated, etc.).
+- **Naming conventions**: File and component names must follow the library's naming rules.
+- **Pin/footprint matching**: For symbols with a linked footprint, pin numbers must match pad numbers in the footprint.
+- **3D model references**: Footprints must reference valid 3D model files if applicable.
+- **Datasheet links**: Datasheet fields must be valid URLs or reference an existing file.
+- **Directory structure**: All files must be in the correct subdirectory according to the config.
+- **No duplicates**: No duplicate symbol or footprint names.
+- **Grouped validation output**: The validation script will print a grouped summary for each symbol and footprint, showing all passing (✓) and failing (❌) checks under each item.
 
-2. Check for:
-   - Required fields in symbols and footprints
-   - Correct naming conventions
-   - Valid 3D model references
-   - No duplicate names
-   - Components are in the correct subdirectories
+### Running Validation Locally
+Before submitting your PR, run the validation script:
+```bash
+python scripts/validate_libraries.py
+```
+Review the output. **All symbols and footprints you add or modify must show only passing checks (✓) in the grouped output.**
 
 ## Submitting Changes
 
@@ -178,12 +186,13 @@ Before submitting changes:
 
 5. Create a pull request on GitHub
 
-## Review Process
+## Review & Merge Process
 
-1. Your PR will be automatically validated
-2. A team member will review your changes
-3. Address any feedback
-4. Once approved, your changes will be merged
+1. Your PR will be automatically validated by CI.
+2. Review the grouped validation output in the PR checks for any errors or warnings.
+3. A team member will review your changes and may request fixes.
+4. **PRs will not be merged unless all validation checks pass.**
+5. Once approved and passing, your changes will be merged.
 
 ## Best Practices
 
