@@ -417,6 +417,66 @@ def parse_changed_list(file_path):
                 changed_files.add(line)
     return changed_symbols, changed_files
 
+def validate_datasheet_file(file_path, allowed_formats, max_size_mb, naming_convention):
+    """Validate a single datasheet file."""
+    errors = []
+    try:
+        size = os.path.getsize(file_path)
+        if size == 0:
+            errors.append(f"Empty datasheet file: {os.path.basename(file_path)}")
+        elif size > max_size_mb:
+            errors.append(f"Large datasheet file (>{max_size_mb // (1024*1024)}MB): {os.path.basename(file_path)}")
+        ext = os.path.splitext(file_path)[1].lower().lstrip('.')
+        if ext not in allowed_formats:
+            errors.append(f"Invalid datasheet format: {os.path.basename(file_path)}. Allowed formats: {', '.join(allowed_formats)}")
+        if not re.match(naming_convention, os.path.basename(file_path)):
+            errors.append(f"Datasheet {os.path.basename(file_path)} does not follow naming convention: {naming_convention}")
+    except Exception as e:
+        errors.append(f"Error checking {os.path.basename(file_path)}: {str(e)}")
+    return errors
+
+def validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path):
+    errors = []
+    results = {}  # footprint_name -> {'success': [..], 'fail': [..]}
+    try:
+        with open(mod_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        footprint = parse_kicad_mod(content)
+        # Use file path to determine category
+        actual_path = os.path.relpath(os.path.dirname(mod_file), os.path.join(LAB_ROOT, 'footprints'))
+        # Only check if the footprint is in the correct category/subcategory
+        expected_parts = expected_path.split('/')
+        actual_parts = actual_path.split('/')
+        if len(expected_parts) > 0 and expected_parts[0] != actual_parts[0]:
+            results.setdefault(footprint['name'], {'success': [], 'fail': []})
+            results[footprint['name']]['fail'].append(f"should be in category {expected_parts[0]}/ not {actual_parts[0]}/")
+        elif len(expected_parts) > 1 and len(actual_parts) > 1 and expected_parts[1] != actual_parts[1]:
+            results.setdefault(footprint['name'], {'success': [], 'fail': []})
+            results[footprint['name']]['fail'].append(f"should be in subcategory {expected_parts[1]}/ not {actual_parts[1]}/")
+        else:
+            results.setdefault(footprint['name'], {'success': [], 'fail': []})
+            results[footprint['name']]['success'].append(f"Footprint is in correct directory: {actual_path}/")
+        # Check fields
+        field_errs = validate_component_fields(footprint['fields'], 'footprint', footprint['name'], category, subcategory, subsubcategory)
+        if not field_errs:
+            results[footprint['name']]['success'].append("All required fields are present")
+        else:
+            for e in field_errs:
+                cleaned = re.sub(r'^Footprint [^:]+:?\\s*-?\\s*', '', e)
+                results[footprint['name']]['fail'].append(cleaned)
+        # Check 3D models
+        for model in footprint['models']:
+            model_path = os.path.join(LAB_ROOT, '3dmodels', expected_path, model)
+            if not os.path.exists(model_path):
+                results[footprint['name']]['fail'].append(f"references missing 3D model: {model}")
+            else:
+                results[footprint['name']]['success'].append(f"3D model '{model}' found")
+    except Exception as e:
+        errors.append(f"Footprint error processing {mod_file}: {str(e)}")
+    # Store results globally for check_footprints to print
+    validate_footprint_file.global_results = results
+    return errors
+
 def check_symbols(changed_symbols=None) -> Tuple[bool, List[str]]:
     """Validate symbol library files. If changed_symbols is provided, only validate those."""
     errors = []
@@ -433,6 +493,13 @@ def check_symbols(changed_symbols=None) -> Tuple[bool, List[str]]:
             abs_fp_path = os.path.join(LAB_ROOT, fp_path)
             if os.path.exists(abs_fp_path):
                 return abs_fp_path
+            # Try without the updated suffix
+            if fp_name.endswith('-updated'):
+                fp_name = fp_name[:-8]  # Remove -updated suffix
+                fp_path = f'footprints/{subdir}/{fp_name}.kicad_mod'
+                abs_fp_path = os.path.join(LAB_ROOT, fp_path)
+                if os.path.exists(abs_fp_path):
+                    return abs_fp_path
         return None
     if changed_symbols is not None:
         # Only validate the specified (file, symbol) pairs
@@ -497,43 +564,6 @@ def check_symbols(changed_symbols=None) -> Tuple[bool, List[str]]:
         return not any_fail, errors
     # ... existing full-library validation code ...
     # (rest of function unchanged)
-
-def validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path):
-    errors = []
-    results = {}  # footprint_name -> {'success': [..], 'fail': [..]}
-    try:
-        with open(mod_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-        footprint = parse_kicad_mod(content)
-        # Use file path to determine category
-        actual_path = os.path.relpath(os.path.dirname(mod_file), os.path.join(LAB_ROOT, 'footprints'))
-        if expected_path != actual_path:
-            results.setdefault(footprint['name'], {'success': [], 'fail': []})
-            results[footprint['name']]['fail'].append(f"should be in {expected_path}/ not {actual_path}/")
-        else:
-            results.setdefault(footprint['name'], {'success': [], 'fail': []})
-            results[footprint['name']]['success'].append(f"Footprint is in correct directory: {expected_path}/")
-        # Check for duplicates (handled in main loop)
-        # Check fields
-        field_errs = validate_component_fields(footprint['fields'], 'footprint', footprint['name'], category, subcategory, subsubcategory)
-        if not field_errs:
-            results[footprint['name']]['success'].append("All required fields are present")
-        else:
-            for e in field_errs:
-                cleaned = re.sub(r'^Footprint [^:]+:?\\s*-?\\s*', '', e)
-                results[footprint['name']]['fail'].append(cleaned)
-        # Check 3D models
-        for model in footprint['models']:
-            model_path = os.path.join(LAB_ROOT, '3dmodels', expected_path, model)
-            if not os.path.exists(model_path):
-                results[footprint['name']]['fail'].append(f"references missing 3D model: {model}")
-            else:
-                results[footprint['name']]['success'].append(f"3D model '{model}' found")
-    except Exception as e:
-        errors.append(f"Footprint error processing {mod_file}: {str(e)}")
-    # Store results globally for check_footprints to print
-    validate_footprint_file.global_results = results
-    return errors
 
 def check_footprints(changed_files=None) -> Tuple[bool, List[str]]:
     """Validate footprint libraries. If changed_files is provided, only validate those files."""
