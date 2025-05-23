@@ -41,25 +41,20 @@ def optimize_png(png_path: str) -> None:
 
 def is_component_file(file_path: str) -> bool:
     """Check if a file is a component file (not a library file)."""
-    # Debug output
     print(f"\nChecking if {file_path} is a component file:")
-    
-    # Skip files in the root directories
-    if os.path.dirname(file_path) in ["symbols", "footprints", "3dmodels"]:
-        print(f"  Skipping: File is in root directory")
-        return False
-        
-    # For .kicad_sym files, we want to process them if they're in a subdirectory
-    if file_path.endswith(".kicad_sym"):
-        # Check if the file is in a subdirectory (e.g., symbols/passive/capacitors/)
-        if len(os.path.dirname(file_path).split(os.sep)) > 1:
-            print(f"  Processing: Symbol library file in subdirectory")
-            return True
-        print(f"  Skipping: Symbol library file in root directory")
-        return False
-    
-    print(f"  Processing: File appears to be a component")
-    return True
+
+    # Normalize path for consistent splitting
+    norm_path = os.path.normpath(file_path)
+    parts = norm_path.split(os.sep)
+
+    # We want files like symbols/passive/capacitors/capacitors.kicad_sym
+    # That is: [symbols, passive, capacitors, capacitors.kicad_sym]
+    if len(parts) >= 3 and parts[0] in ["symbols", "footprints", "3dmodels"]:
+        print(f"  Processing: File is in a subdirectory of {parts[0]}")
+        return True
+
+    print(f"  Skipping: File is not in a subdirectory of symbols/footprints/3dmodels")
+    return False
 
 def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dict[str, str]]:
     """Generate renders of a symbol using KiCad's command-line tools."""
