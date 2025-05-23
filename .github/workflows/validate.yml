@@ -1,56 +1,95 @@
-name: Validate Libraries
+name: Validate Library
 
 on:
+  pull_request:
+    paths:
+      - 'symbols/**'
+      - 'footprints/**'
+      - '3dmodels/**'
+      - 'datasheets/**'
+      - 'scripts/**'
+      - 'config/**'
   push:
     branches:
       - main
     paths:
-      - 'scripts/**'
-      - 'config/**'
       - 'symbols/**'
       - 'footprints/**'
       - '3dmodels/**'
-      - '.github/workflows/validate.yml'
-  pull_request:
-    paths:
+      - 'datasheets/**'
       - 'scripts/**'
       - 'config/**'
-      - 'symbols/**'
-      - 'footprints/**'
-      - '3dmodels/**'
-      - '.github/workflows/validate.yml'
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pytest pyyaml
-      - name: Run unit tests
-        run: PYTHONPATH=. pytest tests/
-
   validate:
-    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for git diff
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pyyaml
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # For PRs, diff against the base branch
+            if git ls-remote --heads origin ${{ github.base_ref }} | grep -q ${{ github.base_ref }}; then
+              git fetch origin ${{ github.base_ref }}
+              git diff --name-only origin/${{ github.base_ref }} HEAD > changed_files.txt
+            else
+              # If base branch doesn't exist yet, get all files in the PR
+              git diff --name-only $(git rev-list --max-parents=0 HEAD) HEAD > changed_files.txt
+            fi
+          else
+            # For pushes to main, diff against the previous commit
+            git diff --name-only HEAD^ HEAD > changed_files.txt
+          fi
+          
+          if [ ! -s changed_files.txt ]; then
+            echo "No files changed"
+            exit 0
+          fi
+          
+          echo "Changed files:"
+          cat changed_files.txt
+
+      - name: Generate changed-list
+        run: |
+          if [ ! -s changed_files.txt ]; then
+            echo "No files to process"
+            exit 0
+          fi
+          
+          python scripts/diff_symbols.py changed_files.txt > changed_list.txt
+          if [ ! -s changed_list.txt ]; then
+            echo "No components to validate"
+            exit 0
+          fi
+          
+          echo "Changed list:"
+          cat changed_list.txt
+
       - name: Run validation
-        run: python scripts/validate_libraries.py
+        run: |
+          if [ -s changed_list.txt ]; then
+            python scripts/validate_libraries.py --changed-list changed_list.txt
+          else
+            echo "No changes to validate"
+          fi
+
+      - name: Run unit tests
+        run: |
+          python -m unittest discover -s tests
 
   pr_checks:
     if: github.event_name == 'pull_request'
@@ -58,6 +97,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
       - name: Check PR template
         run: |
           if [ -f .github/PULL_REQUEST_TEMPLATE.md ]; then
@@ -67,10 +109,19 @@ jobs:
               exit 1
             fi
           fi
+          
       - name: Check file structure
         run: |
+          # Get changed files
+          if git ls-remote --heads origin ${{ github.base_ref }} | grep -q ${{ github.base_ref }}; then
+            git fetch origin ${{ github.base_ref }}
+            changed_files=$(git diff --name-only origin/${{ github.base_ref }} HEAD)
+          else
+            changed_files=$(git diff --name-only $(git rev-list --max-parents=0 HEAD) HEAD)
+          fi
+          
           # Check if files are in correct directories
-          for file in $(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}); do
+          for file in $changed_files; do
             if [[ $file == symbols/* ]] || [[ $file == footprints/* ]] || [[ $file == 3dmodels/* ]]; then
               # Extract category from file path
               category=$(echo $file | cut -d'/' -f2)
