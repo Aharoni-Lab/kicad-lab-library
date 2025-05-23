@@ -749,7 +749,9 @@ def main():
             for comp, msgs in grouped.items():
                 print(f"  - {comp}:")
                 for msg in msgs:
-                    print(f"      - {msg}")
+                    # Remove redundant component name from the message if present
+                    cleaned_msg = re.sub(r'^\s*-\s*(Symbol|Footprint) [^:]+:?\\s*', '- ', msg)
+                    print(f"      {cleaned_msg}")
             all_passed = False
         else:
             print(f"✓ {name} validation passed")
