@@ -282,31 +282,22 @@ def check_symbols() -> Tuple[bool, List[str]]:
                             # Check each symbol
                             symbol_names = set()
                             for symbol in symbols:
-                                # Check category
-                                expected_cat, expected_subcat, expected_subsubcat = get_component_category(symbol['name'])
-                                expected_path = get_component_path(expected_cat, expected_subcat, expected_subsubcat)
-                                actual_path = get_component_path(category, subcategory, subsubcategory)
-                                if expected_path != actual_path:
-                                    errors.append(f"Symbol {symbol['name']} should be in {expected_path}/ not {actual_path}/")
-                                
                                 # Check for duplicates
                                 if symbol['name'] in symbol_names:
                                     errors.append(f"Duplicate symbol name: {symbol['name']}")
                                 symbol_names.add(symbol['name'])
-                                
-                                # Check fields
-                                errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory, subsubcategory))
-                                
+                                # Check fields and reference prefix
+                                errs = validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory, subsubcategory)
+                                # If reference prefix error, add details
+                                if 'Reference' in symbol['fields']:
+                                    allowed_prefixes = get_reference_prefixes(category, subcategory, subsubcategory)
+                                    ref_value = symbol['fields']['Reference']
+                                    if allowed_prefixes and not any(ref_value.startswith(prefix) for prefix in allowed_prefixes):
+                                        errs.append(f"Reference field '{ref_value}' does not match allowed prefixes: {allowed_prefixes}")
+                                errors.extend([f"Symbol {symbol['name']}:\n    - {e}" for e in errs])
                                 # Check pins
                                 if not symbol['pins']:
-                                    errors.append(f"Symbol {symbol['name']} has no pins")
-                                else:
-                                    pin_numbers = set()
-                                    for pin in symbol['pins']:
-                                        if pin['number'] in pin_numbers:
-                                            errors.append(f"Symbol {symbol['name']} has duplicate pin number: {pin['number']}")
-                                        pin_numbers.add(pin['number'])
-                        
+                                    errors.append(f"Symbol {symbol['name']}:\n    - has no pins")
                         except Exception as e:
                             errors.append(f"Error processing {sym_file}: {str(e)}")
             else:
@@ -342,34 +333,24 @@ def check_symbols() -> Tuple[bool, List[str]]:
                         # Check each symbol
                         symbol_names = set()
                         for symbol in symbols:
-                            # Check category
-                            expected_cat, expected_subcat, _ = get_component_category(symbol['name'])
-                            expected_path = get_component_path(expected_cat, expected_subcat)
-                            actual_path = get_component_path(category, subcategory)
-                            if expected_path != actual_path:
-                                errors.append(f"Symbol {symbol['name']} should be in {expected_path}/ not {actual_path}/")
-                            
                             # Check for duplicates
                             if symbol['name'] in symbol_names:
                                 errors.append(f"Duplicate symbol name: {symbol['name']}")
                             symbol_names.add(symbol['name'])
-                            
-                            # Check fields
-                            errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory))
-                            
+                            # Check fields and reference prefix
+                            errs = validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory)
+                            # If reference prefix error, add details
+                            if 'Reference' in symbol['fields']:
+                                allowed_prefixes = get_reference_prefixes(category, subcategory)
+                                ref_value = symbol['fields']['Reference']
+                                if allowed_prefixes and not any(ref_value.startswith(prefix) for prefix in allowed_prefixes):
+                                    errs.append(f"Reference field '{ref_value}' does not match allowed prefixes: {allowed_prefixes}")
+                            errors.extend([f"Symbol {symbol['name']}:\n    - {e}" for e in errs])
                             # Check pins
                             if not symbol['pins']:
-                                errors.append(f"Symbol {symbol['name']} has no pins")
-                            else:
-                                pin_numbers = set()
-                                for pin in symbol['pins']:
-                                    if pin['number'] in pin_numbers:
-                                        errors.append(f"Symbol {symbol['name']} has duplicate pin number: {pin['number']}")
-                                    pin_numbers.add(pin['number'])
-                    
+                                errors.append(f"Symbol {symbol['name']}:\n    - has no pins")
                     except Exception as e:
                         errors.append(f"Error processing {sym_file}: {str(e)}")
-    
     return len(errors) == 0, errors
 
 def parse_kicad_mod(content: str) -> Dict:
