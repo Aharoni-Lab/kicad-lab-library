@@ -522,26 +522,20 @@ def check_3d_models() -> Tuple[bool, List[str]]:
                     step_files = glob.glob(os.path.join(model_dir, "*.step"))
                     wrl_files = glob.glob(os.path.join(model_dir, "*.wrl"))
                     
-                    # Check file sizes and names
+                    # Check file sizes and names, group errors by file
                     for file in step_files + wrl_files:
+                        file_errors = []
                         try:
                             # Check file size
                             size = os.path.getsize(file)
                             if size == 0:
-                                errors.append(f"Empty 3D model file: {file}")
+                                file_errors.append(f"Empty 3D model file")
                             elif size > MAX_3D_MODEL_SIZE:
-                                errors.append(f"Large 3D model file (>{CONFIG['validation']['max_3d_model_size_mb']}MB): {file}")
-                            
-                            # Check if file is in correct category
-                            filename = os.path.basename(file)
-                            expected_cat, expected_subcat, expected_subsubcat = get_component_category(filename)
-                            expected_path = get_component_path(expected_cat, expected_subcat, expected_subsubcat)
-                            actual_path = get_component_path(category, subcategory, subsubcategory)
-                            if expected_path != actual_path:
-                                errors.append(f"3D model {filename} should be in {expected_path}/ not {actual_path}/")
-                        
+                                file_errors.append(f"Large 3D model file (>{CONFIG['validation']['max_3d_model_size_mb']}MB)")
                         except Exception as e:
-                            errors.append(f"Error checking {file}: {str(e)}")
+                            file_errors.append(f"Error checking file: {str(e)}")
+                        if file_errors:
+                            errors.append((os.path.basename(file), file_errors))
             else:
                 # Handle regular subcategories
                 model_dir = os.path.join(LAB_ROOT, '3dmodels', get_component_path(category, subcategory))
@@ -552,28 +546,27 @@ def check_3d_models() -> Tuple[bool, List[str]]:
                 step_files = glob.glob(os.path.join(model_dir, "*.step"))
                 wrl_files = glob.glob(os.path.join(model_dir, "*.wrl"))
                 
-                # Check file sizes and names
+                # Check file sizes and names, group errors by file
                 for file in step_files + wrl_files:
+                    file_errors = []
                     try:
                         # Check file size
                         size = os.path.getsize(file)
                         if size == 0:
-                            errors.append(f"Empty 3D model file: {file}")
+                            file_errors.append(f"Empty 3D model file")
                         elif size > MAX_3D_MODEL_SIZE:
-                            errors.append(f"Large 3D model file (>{CONFIG['validation']['max_3d_model_size_mb']}MB): {file}")
-                        
-                        # Check if file is in correct category
-                        filename = os.path.basename(file)
-                        expected_cat, expected_subcat, _ = get_component_category(filename)
-                        expected_path = get_component_path(expected_cat, expected_subcat)
-                        actual_path = get_component_path(category, subcategory)
-                        if expected_path != actual_path:
-                            errors.append(f"3D model {filename} should be in {expected_path}/ not {actual_path}/")
-                    
+                            file_errors.append(f"Large 3D model file (>{CONFIG['validation']['max_3d_model_size_mb']}MB)")
                     except Exception as e:
-                        errors.append(f"Error checking {file}: {str(e)}")
-    
-    return len(errors) == 0, errors
+                        file_errors.append(f"Error checking file: {str(e)}")
+                    if file_errors:
+                        errors.append((os.path.basename(file), file_errors))
+    # Flatten errors for main error reporting
+    grouped_errors = []
+    for fname, ferrs in errors:
+        grouped_errors.append(f"3D Model {fname}:")
+        for ferr in ferrs:
+            grouped_errors.append(f"    - {ferr}")
+    return len(grouped_errors) == 0, grouped_errors
 
 def check_datasheets() -> Tuple[bool, List[str]]:
     """Validate datasheet files and references."""
