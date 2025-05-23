@@ -230,14 +230,15 @@ def validate_component_fields(fields: Dict, component_type: str, name: str, cate
             errors.append(f"{component_type.title()} {name} has invalid 'Validated' value: {fields['Validated']}. Must be 'Yes' or 'No'")
     else:
         errors.append(f"{component_type.title()} {name} missing 'Validated' field")
-    # Check Reference prefix (only for symbols)
-    if component_type == 'symbol' and 'Reference' in fields:
+    # Check Reference prefix (for both symbols and footprints)
+    if 'Reference' in fields:
         allowed_prefixes = get_reference_prefixes(category, subcategory, subsubcategory)
         ref_value = fields['Reference']
         if allowed_prefixes and not any(ref_value.startswith(prefix) for prefix in allowed_prefixes):
-            errors.append(f"Symbol {name} Reference '{ref_value}' does not start with allowed prefixes: {', '.join(allowed_prefixes)}")
-    # Check datasheet reference
-    errors.extend(validate_datasheet_reference(fields, component_type, name))
+            errors.append(f"{component_type.title()} {name} Reference '{ref_value}' does not start with allowed prefixes: {', '.join(allowed_prefixes)}")
+    # Only check datasheet for symbols
+    if component_type == 'symbol':
+        errors.extend(validate_datasheet_reference(fields, component_type, name))
     return errors
 
 def check_symbols() -> Tuple[bool, List[str]]:
@@ -375,8 +376,8 @@ def parse_kicad_mod(content: str) -> Dict:
     """Parse KiCad footprint file and extract footprint definition."""
     footprint = {'name': '', 'fields': {}, 'models': []}
     
-    # Extract name
-    name_match = re.search(r'\(module "([^"]+)"', content)
+    # Extract name (no quotes in KiCad footprint files)
+    name_match = re.search(r'\(module\s+([^)\s]+)', content)
     if name_match:
         footprint['name'] = name_match.group(1)
     
@@ -384,8 +385,8 @@ def parse_kicad_mod(content: str) -> Dict:
     for line in content.split('\n'):
         if line.strip().startswith('(fp_text value '):
             footprint['fields']['Value'] = line.split('"')[1]
-        elif line.strip().startswith('(fp_text datasheet '):
-            footprint['fields']['Datasheet'] = line.split('"')[1]
+        elif line.strip().startswith('(fp_text reference '):
+            footprint['fields']['Reference'] = line.split('"')[1]
         elif line.strip().startswith('(fp_text description '):
             footprint['fields']['Description'] = line.split('"')[1]
         elif line.strip().startswith('(model '):
@@ -651,8 +652,21 @@ def main():
         passed, errors = check_func()
         if not passed:
             print(f"❌ {name} validation failed:")
+            # Group errors by component if possible
+            grouped = {}
             for error in errors:
-                print(f"  - {error}")
+                # Try to extract component name
+                match = re.match(r'(Symbol|Footprint) ([^ ]*) (.*)', error)
+                if match:
+                    comp_type, comp_name, msg = match.groups()
+                    key = f"{comp_type} {comp_name}".strip()
+                    grouped.setdefault(key, []).append(msg)
+                else:
+                    grouped.setdefault('Other', []).append(error)
+            for comp, msgs in grouped.items():
+                print(f"  - {comp}:")
+                for msg in msgs:
+                    print(f"      - {msg}")
             all_passed = False
         else:
             print(f"✓ {name} validation passed")

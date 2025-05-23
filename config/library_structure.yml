@@ -104,7 +104,6 @@ validation:
   
   required_footprint_fields:
     - "Value"
-    - "Datasheet"
     - "Description"
     - "Keywords"
     - "Validated"
