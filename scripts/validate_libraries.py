@@ -375,24 +375,39 @@ def check_symbols() -> Tuple[bool, List[str]]:
 def parse_kicad_mod(content: str) -> Dict:
     """Parse KiCad footprint file and extract footprint definition."""
     footprint = {'name': '', 'fields': {}, 'models': []}
-    
-    # Extract name (no quotes in KiCad footprint files)
-    name_match = re.search(r'\(module\s+([^)\s]+)', content)
+
+    # Extract name (should match (footprint "NAME")
+    name_match = re.search(r'\(footprint\s+"([^"]+)"', content)
     if name_match:
         footprint['name'] = name_match.group(1)
-    
-    # Extract fields
+
+    # Extract fields from (property ...) lines
     for line in content.split('\n'):
-        if line.strip().startswith('(fp_text value '):
-            footprint['fields']['Value'] = line.split('"')[1]
-        elif line.strip().startswith('(fp_text reference '):
-            footprint['fields']['Reference'] = line.split('"')[1]
-        elif line.strip().startswith('(fp_text description '):
-            footprint['fields']['Description'] = line.split('"')[1]
-        elif line.strip().startswith('(model '):
+        line = line.strip()
+        if line.startswith('(property "Reference"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Reference'] = parts[3]
+        elif line.startswith('(property "Value"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Value'] = parts[3]
+        elif line.startswith('(property "Description"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Description'] = parts[3]
+        elif line.startswith('(property "Keywords"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Keywords'] = parts[3]
+        elif line.startswith('(property "Validated"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Validated'] = parts[3]
+        elif line.startswith('(model '):
             model_path = line.split('"')[1]
             footprint['models'].append(model_path)
-    
+
     return footprint
 
 def check_footprints() -> Tuple[bool, List[str]]:
