@@ -132,49 +132,48 @@ def get_reference_prefixes(category: str, subcategory: str, subsubcategory: str 
     except Exception:
         return []
 
-def parse_kicad_sym(content: str) -> List[Dict]:
+def parse_kicad_sym(content: str) -> list:
     """Parse KiCad symbol file and extract only top-level symbol definitions."""
     symbols = []
     lines = content.split('\n')
-    stack = []
     current_symbol = None
+    symbol_depth = 0
+    in_top_symbol = False
 
     for line in lines:
         line_stripped = line.lstrip()
         if line_stripped.startswith('(symbol '):
-            stack.append('symbol')
-            if len(stack) == 1:
-                # Top-level symbol
-                if current_symbol:
-                    symbols.append(current_symbol)
+            if not in_top_symbol:
+                # Start of a top-level symbol
                 symbol_name = line_stripped.split('"')[1]
                 current_symbol = {'name': symbol_name, 'fields': {}, 'pins': []}
-        elif line_stripped.startswith('(property ') and current_symbol and len(stack) == 1:
-            parts = line_stripped.split('"')
-            if len(parts) >= 4:
-                field_name = parts[1]
-                field_value = parts[3]
-                current_symbol['fields'][field_name] = field_value
-        elif line_stripped.startswith('(pin ') and current_symbol and len(stack) == 1:
-            parts = line_stripped.split('"')
-            if len(parts) >= 4:
-                pin = {
-                    'number': parts[1],
-                    'name': parts[3],
-                    'type': parts[5] if len(parts) > 5 else 'unknown'
-                }
-                current_symbol['pins'].append(pin)
-        if line_stripped.startswith('('):
-            # Count open parens
-            stack.extend(['('] * (line_stripped.count('(') - (1 if line_stripped.startswith('(symbol ') else 0)))
-        if line_stripped.endswith(')'):
-            # Count close parens
-            for _ in range(line_stripped.count(')')):
-                if stack:
-                    stack.pop()
-            if not stack and current_symbol:
+                in_top_symbol = True
+                symbol_depth = 1
+            else:
+                # Nested symbol (sub-symbol), just increase depth
+                symbol_depth += 1
+        elif in_top_symbol:
+            if line_stripped.startswith('(property '):
+                parts = line_stripped.split('"')
+                if len(parts) >= 4:
+                    field_name = parts[1]
+                    field_value = parts[3]
+                    current_symbol['fields'][field_name] = field_value
+            elif line_stripped.startswith('(pin '):
+                parts = line_stripped.split('"')
+                if len(parts) >= 4:
+                    pin = {
+                        'number': parts[1],
+                        'name': parts[3],
+                        'type': parts[5] if len(parts) > 5 else 'unknown'
+                    }
+                    current_symbol['pins'].append(pin)
+            # Track parentheses to know when the top-level symbol block ends
+            symbol_depth += line_stripped.count('(') - line_stripped.count(')')
+            if symbol_depth == 0:
                 symbols.append(current_symbol)
                 current_symbol = None
+                in_top_symbol = False
 
     return symbols
 
