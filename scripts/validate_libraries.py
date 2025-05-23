@@ -437,16 +437,17 @@ def check_footprints() -> Tuple[bool, List[str]]:
                                 content = f.read()
                             footprint = parse_kicad_mod(content)
                             
-                            # Check category
-                            expected_cat, expected_subcat, expected_subsubcat = get_component_category(footprint['name'])
+                            # Use Reference field to determine category
+                            ref_value = footprint['fields'].get('Reference', '')
+                            expected_cat, expected_subcat, expected_subsubcat = get_component_category(ref_value)
                             expected_path = get_component_path(expected_cat, expected_subcat, expected_subsubcat)
                             actual_path = get_component_path(category, subcategory, subsubcategory)
                             if expected_path != actual_path:
-                                errors.append(f"Footprint {footprint['name']} should be in {expected_path}/ not {actual_path}/")
+                                errors.append(f"Footprint {footprint['name']}: should be in {expected_path}/ not {actual_path}/")
                             
                             # Check for duplicates
                             if footprint['name'] in footprint_names:
-                                errors.append(f"Duplicate footprint name: {footprint['name']}")
+                                errors.append(f"Footprint {footprint['name']}: duplicate footprint name")
                             footprint_names.add(footprint['name'])
                             
                             # Check fields
@@ -456,10 +457,10 @@ def check_footprints() -> Tuple[bool, List[str]]:
                             for model in footprint['models']:
                                 model_path = os.path.join(LAB_ROOT, '3dmodels', expected_path, model)
                                 if not os.path.exists(model_path):
-                                    errors.append(f"Footprint {footprint['name']} references missing 3D model: {model}")
+                                    errors.append(f"Footprint {footprint['name']}: references missing 3D model: {model}")
                         
                         except Exception as e:
-                            errors.append(f"Error processing {mod_file}: {str(e)}")
+                            errors.append(f"Footprint {footprint['name']}: error processing {mod_file}: {str(e)}")
             else:
                 # Handle regular subcategories
                 footprint_dir = os.path.join(LAB_ROOT, 'footprints', get_component_path(category, subcategory))
@@ -479,16 +480,17 @@ def check_footprints() -> Tuple[bool, List[str]]:
                             content = f.read()
                         footprint = parse_kicad_mod(content)
                         
-                        # Check category
-                        expected_cat, expected_subcat, _ = get_component_category(footprint['name'])
+                        # Use Reference field to determine category
+                        ref_value = footprint['fields'].get('Reference', '')
+                        expected_cat, expected_subcat, _ = get_component_category(ref_value)
                         expected_path = get_component_path(expected_cat, expected_subcat)
                         actual_path = get_component_path(category, subcategory)
                         if expected_path != actual_path:
-                            errors.append(f"Footprint {footprint['name']} should be in {expected_path}/ not {actual_path}/")
+                            errors.append(f"Footprint {footprint['name']}: should be in {expected_path}/ not {actual_path}/")
                         
                         # Check for duplicates
                         if footprint['name'] in footprint_names:
-                            errors.append(f"Duplicate footprint name: {footprint['name']}")
+                            errors.append(f"Footprint {footprint['name']}: duplicate footprint name")
                         footprint_names.add(footprint['name'])
                         
                         # Check fields
@@ -498,10 +500,10 @@ def check_footprints() -> Tuple[bool, List[str]]:
                         for model in footprint['models']:
                             model_path = os.path.join(LAB_ROOT, '3dmodels', expected_path, model)
                             if not os.path.exists(model_path):
-                                errors.append(f"Footprint {footprint['name']} references missing 3D model: {model}")
+                                errors.append(f"Footprint {footprint['name']}: references missing 3D model: {model}")
                     
                     except Exception as e:
-                        errors.append(f"Error processing {mod_file}: {str(e)}")
+                        errors.append(f"Footprint {footprint['name']}: error processing {mod_file}: {str(e)}")
     
     return len(errors) == 0, errors
 
