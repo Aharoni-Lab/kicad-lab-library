@@ -133,19 +133,30 @@ def get_reference_prefixes(category: str, subcategory: str, subsubcategory: str 
         return []
 
 def extract_pins_from_block(block: str) -> list:
-    """Recursively extract all pins from a symbol block (including nested sub-symbols)."""
+    """Extract all pins from a symbol block, including multi-line pins."""
     pins = []
-    # Find all (pin ...) blocks
-    for pin_match in re.finditer(r'\(pin [^\)]*\)', block):
-        pin_line = pin_match.group(0)
-        parts = pin_line.split('"')
-        if len(parts) >= 4:
-            pin = {
-                'number': parts[1],
-                'name': parts[3],
-                'type': parts[5] if len(parts) > 5 else 'unknown'
-            }
-            pins.append(pin)
+    lines = block.split('\n')
+    in_pin = False
+    pin_lines = []
+    for line in lines:
+        if line.lstrip().startswith('(pin '):
+            in_pin = True
+            pin_lines = [line]
+        elif in_pin:
+            pin_lines.append(line)
+            if line.strip().endswith(')'):
+                # End of pin block
+                pin_block = '\n'.join(pin_lines)
+                import re
+                number_match = re.search(r'\(number\s+"([^"]+)"', pin_block)
+                name_match = re.search(r'\(name\s+"([^"]+)"', pin_block)
+                pin = {
+                    'number': number_match.group(1) if number_match else '',
+                    'name': name_match.group(1) if name_match else '',
+                    'type': 'unknown'
+                }
+                pins.append(pin)
+                in_pin = False
     return pins
 
 def parse_kicad_sym(content: str) -> list:
