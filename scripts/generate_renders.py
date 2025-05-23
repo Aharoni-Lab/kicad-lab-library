@@ -41,27 +41,44 @@ def optimize_png(png_path: str) -> None:
 
 def is_component_file(file_path: str) -> bool:
     """Check if a file is a component file (not a library file)."""
-    # Skip library files (they end with .kicad_sym but are not component files)
-    if file_path.endswith(".kicad_sym"):
-        return False
+    # Debug output
+    print(f"\nChecking if {file_path} is a component file:")
+    
     # Skip files in the root directories
     if os.path.dirname(file_path) in ["symbols", "footprints", "3dmodels"]:
+        print(f"  Skipping: File is in root directory")
         return False
+        
+    # Skip files that are just library containers (e.g., capacitors.kicad_sym)
+    if os.path.basename(file_path).endswith(".kicad_sym"):
+        # Check if the file is a library container by looking at its contents
+        try:
+            with open(file_path, 'r') as f:
+                content = f.read()
+                if "(kicad_symbol_lib" in content:
+                    print(f"  Skipping: File is a library container")
+                    return False
+        except Exception as e:
+            print(f"  Warning: Could not read file to check if it's a library: {e}")
+    
+    print(f"  Processing: File appears to be a component")
     return True
 
 def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dict[str, str]]:
-    """Generate renders of a symbol using KiCad's command-line tools (SVG) and convert to PNG."""
+    """Generate renders of a symbol using KiCad's command-line tools."""
     if not is_component_file(symbol_file):
-        print(f"Skipping library file: {symbol_file}")
         return False, {}
         
     print(f"\nGenerating renders for symbol: {symbol_file}")
     symbol_name = os.path.splitext(os.path.basename(symbol_file))[0]
     outputs = {}
+    
+    # Create a temporary project for rendering
     temp_dir = os.path.join(LAB_ROOT, "temp_render")
     os.makedirs(temp_dir, exist_ok=True)
     
     try:
+        # Create a minimal schematic file
         sch_file = os.path.join(temp_dir, "temp.kicad_sch")
         with open(sch_file, "w") as f:
             f.write(f"""(kicad_sch (version 20211123) (generator eeschema)
@@ -86,45 +103,33 @@ def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dic
     (effects (font (size 1.27 1.27)) (justify left))
   )
 )""")
+        
+        # Generate different views of the symbol
         views = {
             "default": {
-                "svg": os.path.join(output_dir, f"{symbol_name}_symbol.svg"),
-                "png": os.path.join(output_dir, f"{symbol_name}_symbol.png"),
-                "options": []
+                "output": os.path.join(output_dir, f"{symbol_name}_symbol.png"),
+                "options": ["--page-size-mode", "1", "--black-and-white", "false"]
             },
             "bw": {
-                "svg": os.path.join(output_dir, f"{symbol_name}_symbol_bw.svg"),
-                "png": os.path.join(output_dir, f"{symbol_name}_symbol_bw.png"),
-                "options": ["--black-and-white"]
+                "output": os.path.join(output_dir, f"{symbol_name}_symbol_bw.png"),
+                "options": ["--page-size-mode", "1", "--black-and-white", "true"]
             }
         }
+        
         for view_name, view_config in views.items():
             print(f"\nGenerating {view_name} view...")
-            # Use a unique output directory for each view
-            view_outdir = os.path.join(output_dir, f"{symbol_name}_{view_name}_svgdir")
-            os.makedirs(view_outdir, exist_ok=True)
             success, output = run_kicad_cli([
-                "kicad-cli", "sch", "export", "svg",
-                "--output", view_outdir,
+                "kicad-cli", "sch", "export", "png",
+                "--output", view_config["output"],
                 *view_config["options"],
                 sch_file
             ])
-            temp_svg = os.path.join(view_outdir, "temp.svg")
-            if success and os.path.exists(temp_svg):
-                try:
-                    print(f"Moving SVG to {view_config['svg']}")
-                    shutil.move(temp_svg, view_config["svg"])
-                    print(f"Converting SVG to PNG: {view_config['png']}")
-                    cairosvg.svg2png(url=view_config["svg"], write_to=view_config["png"])
-                    optimize_png(view_config["png"])
-                    outputs[view_name] = view_config["png"]
-                    print(f"Successfully generated {view_name} view")
-                except Exception as e:
-                    print(f"Failed to convert SVG to PNG for {view_name}: {e}")
+            if success:
+                print(f"Successfully generated {view_name} view")
+                outputs[view_name] = view_config["output"]
             else:
                 print(f"Failed to generate {view_name} symbol render: {output}")
-            # Clean up the view output directory
-            shutil.rmtree(view_outdir, ignore_errors=True)
+        
         return len(outputs) > 0, outputs
     finally:
         # Clean up temporary files
