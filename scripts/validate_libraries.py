@@ -404,6 +404,10 @@ def check_symbols() -> Tuple[bool, List[str]]:
                                             fp = parse_kicad_mod(fpf.read())
                                         symbol_pins = set(pin['number'] for pin in symbol['pins'])
                                         footprint_pads = fp.get('pads', set())
+                                        print(f"[DEBUG] Symbol: {symbol['name']}")
+                                        print(f"[DEBUG]   Symbol pins: {sorted(symbol_pins)}")
+                                        print(f"[DEBUG]   Footprint file: {fp_file}")
+                                        print(f"[DEBUG]   Footprint pads: {sorted(footprint_pads)}")
                                         if symbol_pins != footprint_pads:
                                             errors.append(f"Symbol {symbol['name']}:\n    - Pin numbers {sorted(symbol_pins)} do not match footprint pads {sorted(footprint_pads)} (footprint: {fp_file})")
                                     elif not fp_file:
@@ -467,6 +471,10 @@ def check_symbols() -> Tuple[bool, List[str]]:
                                         fp = parse_kicad_mod(fpf.read())
                                     symbol_pins = set(pin['number'] for pin in symbol['pins'])
                                     footprint_pads = fp.get('pads', set())
+                                    print(f"[DEBUG] Symbol: {symbol['name']}")
+                                    print(f"[DEBUG]   Symbol pins: {sorted(symbol_pins)}")
+                                    print(f"[DEBUG]   Footprint file: {fp_file}")
+                                    print(f"[DEBUG]   Footprint pads: {sorted(footprint_pads)}")
                                     if symbol_pins != footprint_pads:
                                         errors.append(f"Symbol {symbol['name']}:\n    - Pin numbers {sorted(symbol_pins)} do not match footprint pads {sorted(footprint_pads)} (footprint: {fp_file})")
                                 elif not fp_file:
