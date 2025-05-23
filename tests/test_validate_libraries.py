@@ -10,7 +10,7 @@ def test_parse_kicad_sym():
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(property "Reference" "R"
+		(property "Reference" "C"
 			(at 0 0 0)
 			(effects
 				(font
@@ -18,7 +18,7 @@ def test_parse_kicad_sym():
 				)
 			)
 		)
-		(property "Value" "Test"
+		(property "Value" ""
 			(at 0 0 0)
 			(effects
 				(font
@@ -26,49 +26,49 @@ def test_parse_kicad_sym():
 				)
 			)
 		)
-		(property "Footprint" "TestFootprint"
+		(property "Footprint" ""
 			(at 0 0 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
-		(property "Datasheet" "http://example.com"
+		(property "Datasheet" ""
 			(at 0 0 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
-		(property "Description" "desc"
+		(property "Description" ""
 			(at 0 0 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-			)
-		)
-		(property "Keywords" "kw"
-			(at 0 0 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Validated" "Yes"
-			(at 0 0 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
+				(hide yes)
 			)
 		)
 		(symbol "TestSymbol_0_1"
+			(rectangle
+				(start -3.81 8.89)
+				(end 6.35 -6.35)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "TestSymbol_1_1"
 			(pin input line
-				(at 0 0 0)
+				(at -6.35 5.08 0)
 				(length 2.54)
 				(name "1"
 					(effects
@@ -78,6 +78,24 @@ def test_parse_kicad_sym():
 					)
 				)
 				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -6.35 -1.27 0)
+				(length 2.54)
+				(name "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -96,7 +114,7 @@ def test_parse_kicad_sym():
     assert s['name'] == 'TestSymbol'
     for field in REQUIRED_SYMBOL_FIELDS:
         assert field in s['fields']
-    assert s['fields']['Reference'] == 'R'
+    assert s['fields']['Reference'] == 'C'
     # Do not check s['pins'] for KiCad 7+/9+ top-level symbols
 
 def test_parse_kicad_mod():
