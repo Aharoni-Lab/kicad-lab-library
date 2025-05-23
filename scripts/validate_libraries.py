@@ -241,10 +241,63 @@ def validate_component_fields(fields: Dict, component_type: str, name: str, cate
         errors.extend(validate_datasheet_reference(fields, component_type, name))
     return errors
 
+def parse_kicad_mod(content: str) -> Dict:
+    """Parse KiCad footprint file and extract footprint definition and pad numbers."""
+    footprint = {'name': '', 'fields': {}, 'models': [], 'pads': set()}
+
+    # Extract name (should match (footprint "NAME")
+    name_match = re.search(r'\(footprint\s+"([^"]+)"', content)
+    if name_match:
+        footprint['name'] = name_match.group(1)
+
+    # Extract fields from (property ...) lines
+    for line in content.split('\n'):
+        line = line.strip()
+        if line.startswith('(property "Reference"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Reference'] = parts[3]
+        elif line.startswith('(property "Value"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Value'] = parts[3]
+        elif line.startswith('(property "Description"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Description'] = parts[3]
+        elif line.startswith('(property "Keywords"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Keywords'] = parts[3]
+        elif line.startswith('(property "Validated"'):
+            parts = line.split('"')
+            if len(parts) > 3:
+                footprint['fields']['Validated'] = parts[3]
+        elif line.startswith('(model '):
+            model_path = line.split('"')[1]
+            footprint['models'].append(model_path)
+        elif line.startswith('(pad '):
+            # (pad "1" smd ...)
+            pad_parts = line.split('"')
+            if len(pad_parts) > 1:
+                pad_number = pad_parts[1]
+                footprint['pads'].add(pad_number)
+
+    return footprint
+
 def check_symbols() -> Tuple[bool, List[str]]:
     """Validate symbol library files."""
     errors = []
+    warnings = []
     
+    # Helper to find footprint file by name
+    def find_footprint_file(footprint_name: str) -> str:
+        for root, dirs, files in os.walk(os.path.join(LAB_ROOT, 'footprints')):
+            for file in files:
+                if file.endswith('.kicad_mod') and file[:-10] == footprint_name:
+                    return os.path.join(root, file)
+        return None
+
     # Check each category directory
     for category, cat_info in CATEGORIES.items():
         for subcategory, subcat_info in cat_info['subcategories'].items():
@@ -295,9 +348,21 @@ def check_symbols() -> Tuple[bool, List[str]]:
                                     if allowed_prefixes and not any(ref_value.startswith(prefix) for prefix in allowed_prefixes):
                                         errs.append(f"Reference field '{ref_value}' does not match allowed prefixes: {allowed_prefixes}")
                                 errors.extend([f"Symbol {symbol['name']}:\n    - {e}" for e in errs])
-                                # Check pins
+                                # Check pins (warning only)
                                 if not symbol['pins']:
-                                    errors.append(f"Symbol {symbol['name']}:\n    - has no pins")
+                                    warnings.append(f"⚠️ Symbol {symbol['name']} has no pins (file: {sym_file})")
+                                # Check pin/footprint pad match if Footprint field is set
+                                if 'Footprint' in symbol['fields'] and symbol['fields']['Footprint']:
+                                    fp_file = find_footprint_file(symbol['fields']['Footprint'])
+                                    if fp_file and symbol['pins']:
+                                        with open(fp_file, 'r', encoding='utf-8') as fpf:
+                                            fp = parse_kicad_mod(fpf.read())
+                                        symbol_pins = set(pin['number'] for pin in symbol['pins'])
+                                        footprint_pads = fp.get('pads', set())
+                                        if symbol_pins != footprint_pads:
+                                            errors.append(f"Symbol {symbol['name']}:\n    - Pin numbers {sorted(symbol_pins)} do not match footprint pads {sorted(footprint_pads)} (footprint: {fp_file})")
+                                    elif not fp_file:
+                                        errors.append(f"Symbol {symbol['name']}:\n    - Footprint '{symbol['fields']['Footprint']}' not found for pin check")
                         except Exception as e:
                             errors.append(f"Error processing {sym_file}: {str(e)}")
             else:
@@ -346,50 +411,28 @@ def check_symbols() -> Tuple[bool, List[str]]:
                                 if allowed_prefixes and not any(ref_value.startswith(prefix) for prefix in allowed_prefixes):
                                     errs.append(f"Reference field '{ref_value}' does not match allowed prefixes: {allowed_prefixes}")
                             errors.extend([f"Symbol {symbol['name']}:\n    - {e}" for e in errs])
-                            # Check pins
+                            # Check pins (warning only)
                             if not symbol['pins']:
-                                errors.append(f"Symbol {symbol['name']}:\n    - has no pins")
+                                warnings.append(f"⚠️ Symbol {symbol['name']} has no pins (file: {sym_file})")
+                            # Check pin/footprint pad match if Footprint field is set
+                            if 'Footprint' in symbol['fields'] and symbol['fields']['Footprint']:
+                                fp_file = find_footprint_file(symbol['fields']['Footprint'])
+                                if fp_file and symbol['pins']:
+                                    with open(fp_file, 'r', encoding='utf-8') as fpf:
+                                        fp = parse_kicad_mod(fpf.read())
+                                    symbol_pins = set(pin['number'] for pin in symbol['pins'])
+                                    footprint_pads = fp.get('pads', set())
+                                    if symbol_pins != footprint_pads:
+                                        errors.append(f"Symbol {symbol['name']}:\n    - Pin numbers {sorted(symbol_pins)} do not match footprint pads {sorted(footprint_pads)} (footprint: {fp_file})")
+                                elif not fp_file:
+                                    errors.append(f"Symbol {symbol['name']}:\n    - Footprint '{symbol['fields']['Footprint']}' not found for pin check")
                     except Exception as e:
                         errors.append(f"Error processing {sym_file}: {str(e)}")
+    if warnings:
+        print("\nWarnings:")
+        for w in warnings:
+            print(w)
     return len(errors) == 0, errors
-
-def parse_kicad_mod(content: str) -> Dict:
-    """Parse KiCad footprint file and extract footprint definition."""
-    footprint = {'name': '', 'fields': {}, 'models': []}
-
-    # Extract name (should match (footprint "NAME")
-    name_match = re.search(r'\(footprint\s+"([^"]+)"', content)
-    if name_match:
-        footprint['name'] = name_match.group(1)
-
-    # Extract fields from (property ...) lines
-    for line in content.split('\n'):
-        line = line.strip()
-        if line.startswith('(property "Reference"'):
-            parts = line.split('"')
-            if len(parts) > 3:
-                footprint['fields']['Reference'] = parts[3]
-        elif line.startswith('(property "Value"'):
-            parts = line.split('"')
-            if len(parts) > 3:
-                footprint['fields']['Value'] = parts[3]
-        elif line.startswith('(property "Description"'):
-            parts = line.split('"')
-            if len(parts) > 3:
-                footprint['fields']['Description'] = parts[3]
-        elif line.startswith('(property "Keywords"'):
-            parts = line.split('"')
-            if len(parts) > 3:
-                footprint['fields']['Keywords'] = parts[3]
-        elif line.startswith('(property "Validated"'):
-            parts = line.split('"')
-            if len(parts) > 3:
-                footprint['fields']['Validated'] = parts[3]
-        elif line.startswith('(model '):
-            model_path = line.split('"')[1]
-            footprint['models'].append(model_path)
-
-    return footprint
 
 def check_footprints() -> Tuple[bool, List[str]]:
     """Validate footprint libraries."""

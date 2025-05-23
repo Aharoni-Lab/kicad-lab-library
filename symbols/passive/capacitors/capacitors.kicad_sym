@@ -122,7 +122,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Lab_Passive_Capacitors:Test_cap"
 			(at 0 0 0)
 			(effects
 				(font
@@ -131,7 +131,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "empty"
 			(at 0 0 0)
 			(effects
 				(font
@@ -141,6 +141,24 @@
 			)
 		)
 		(property "Description" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Validated" "No"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "ki_keywords" "cap"
 			(at 0 0 0)
 			(effects
 				(font
