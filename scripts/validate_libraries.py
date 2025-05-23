@@ -334,7 +334,7 @@ def parse_kicad_mod(content: str) -> Dict:
 def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_footprint_file_by_libprefix):
     errors = []
     warnings = []
-    successes = {}  # symbol_name -> [success messages]
+    results = {}  # symbol_name -> {'success': [..], 'fail': [..]}
     try:
         with open(sym_file, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -359,14 +359,20 @@ def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_f
             # Check fields and reference prefix
             errs = validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory, subsubcategory)
             if not errs:
-                successes.setdefault(symbol['name'], []).append("All required fields are present")
+                results.setdefault(symbol['name'], {'success': [], 'fail': []})
+                results[symbol['name']]['success'].append("All required fields are present")
+            else:
+                results.setdefault(symbol['name'], {'success': [], 'fail': []})
+                for e in errs:
+                    # Remove redundant symbol name from error message
+                    cleaned = re.sub(r'^Symbol [^:]+:?\\s*-?\\s*', '', e)
+                    results[symbol['name']]['fail'].append(cleaned)
             # If reference prefix error, add details
             if 'Reference' in symbol['fields']:
                 allowed_prefixes = get_reference_prefixes(category, subcategory, subsubcategory)
                 ref_value = symbol['fields']['Reference']
                 if allowed_prefixes and not any(ref_value.startswith(prefix) for prefix in allowed_prefixes):
-                    errs.append(f"Reference field '{ref_value}' does not match allowed prefixes: {allowed_prefixes}")
-            errors.extend([f"Symbol {symbol['name']}:\n    - {e}" for e in errs])
+                    results[symbol['name']]['fail'].append(f"Reference field '{ref_value}' does not match allowed prefixes: {allowed_prefixes}")
             # Check pins (warning only)
             if not symbol['pins']:
                 warnings.append(f"⚠️ Symbol {symbol['name']} has no pins (file: {sym_file})")
@@ -379,23 +385,26 @@ def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_f
                     symbol_pins = set(pin['number'] for pin in symbol['pins'])
                     footprint_pads = fp.get('pads', set())
                     if symbol_pins != footprint_pads:
-                        errors.append(f"Symbol {symbol['name']}:\n    - Pin numbers {sorted(symbol_pins)} do not match footprint pads {sorted(footprint_pads)} (footprint: {fp_file})")
+                        results.setdefault(symbol['name'], {'success': [], 'fail': []})
+                        results[symbol['name']]['fail'].append(f"Pin numbers {sorted(symbol_pins)} do not match footprint pads {sorted(footprint_pads)}")
                     else:
                         n = len(symbol_pins)
-                        successes.setdefault(symbol['name'], []).append(f"All {n} symbol pins match {n} footprint pads")
+                        results.setdefault(symbol['name'], {'success': [], 'fail': []})
+                        results[symbol['name']]['success'].append(f"All {n} symbol pins match {n} footprint pads")
                 elif not fp_file:
-                    errors.append(f"Symbol {symbol['name']}:\n    - Footprint '{symbol['fields']['Footprint']}' not found for pin check")
+                    results.setdefault(symbol['name'], {'success': [], 'fail': []})
+                    results[symbol['name']]['fail'].append(f"Footprint '{symbol['fields']['Footprint']}' not found for pin check")
     except Exception as e:
         errors.append(f"Error processing {sym_file}: {str(e)}")
-    # Store successes globally for check_symbols to print
-    validate_symbol_file.global_successes = successes
+    # Store results globally for check_symbols to print
+    validate_symbol_file.global_results = results
     return errors, warnings
 
 def check_symbols() -> Tuple[bool, List[str]]:
     """Validate symbol library files."""
     errors = []
     warnings = []
-    successes = {}  # New: group success messages by symbol name
+    results = {}  # symbol_name -> {'success': [..], 'fail': [..]}
     def find_footprint_file_by_libprefix(footprint_field: str) -> str:
         if ':' not in footprint_field:
             return None
@@ -423,11 +432,13 @@ def check_symbols() -> Tuple[bool, List[str]]:
                         file_errors, file_warnings = validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_footprint_file_by_libprefix)
                         errors.extend(file_errors)
                         warnings.extend(file_warnings)
-                        # Collect successes from global_successes (set below)
-                        if hasattr(validate_symbol_file, 'global_successes'):
-                            for symbol_name, msgs in validate_symbol_file.global_successes.items():
-                                successes.setdefault(symbol_name, []).extend(msgs)
-                            validate_symbol_file.global_successes = {}  # Reset for next file
+                        # Collect successes and fails
+                        if hasattr(validate_symbol_file, 'global_results'):
+                            for symbol_name, res in validate_symbol_file.global_results.items():
+                                results.setdefault(symbol_name, {'success': [], 'fail': []})
+                                results[symbol_name]['success'].extend(res.get('success', []))
+                                results[symbol_name]['fail'].extend(res.get('fail', []))
+                            validate_symbol_file.global_results = {}
             else:
                 symbol_dir = os.path.join(LAB_ROOT, 'symbols', get_component_path(category, subcategory))
                 if not os.path.exists(symbol_dir):
@@ -439,26 +450,30 @@ def check_symbols() -> Tuple[bool, List[str]]:
                     file_errors, file_warnings = validate_symbol_file(sym_file, category, subcategory, None, find_footprint_file_by_libprefix)
                     errors.extend(file_errors)
                     warnings.extend(file_warnings)
-                    if hasattr(validate_symbol_file, 'global_successes'):
-                        for symbol_name, msgs in validate_symbol_file.global_successes.items():
-                            successes.setdefault(symbol_name, []).extend(msgs)
-                        validate_symbol_file.global_successes = {}
-    # Print grouped successes
-    if successes:
-        print("\nPassed:")
-        for symbol, msgs in successes.items():
-            print(f"  ✓ Symbol {symbol}:")
-            for msg in msgs:
-                print(f"      ✓ {msg}")
+                    if hasattr(validate_symbol_file, 'global_results'):
+                        for symbol_name, res in validate_symbol_file.global_results.items():
+                            results.setdefault(symbol_name, {'success': [], 'fail': []})
+                            results[symbol_name]['success'].extend(res.get('success', []))
+                            results[symbol_name]['fail'].extend(res.get('fail', []))
+                        validate_symbol_file.global_results = {}
+    # Print grouped results
+    print("\nSymbol Validation:")
+    for symbol, res in results.items():
+        print(f"  {symbol}:")
+        for msg in res['success']:
+            print(f"    ✓ {msg}")
+        for msg in res['fail']:
+            print(f"    ❌ {msg}")
     if warnings:
         print("\nWarnings:")
         for w in warnings:
             print(w)
+    # Return errors for CI exit code
     return len(errors) == 0, errors
 
 def validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path):
     errors = []
-    successes = {}  # footprint_name -> [success messages]
+    results = {}  # footprint_name -> {'success': [..], 'fail': [..]}
     try:
         with open(mod_file, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -466,32 +481,37 @@ def validate_footprint_file(mod_file, category, subcategory, subsubcategory, exp
         # Use file path to determine category
         actual_path = os.path.relpath(os.path.dirname(mod_file), os.path.join(LAB_ROOT, 'footprints'))
         if expected_path != actual_path:
-            errors.append(f"Footprint {footprint['name']}: should be in {expected_path}/ not {actual_path}/")
+            results.setdefault(footprint['name'], {'success': [], 'fail': []})
+            results[footprint['name']]['fail'].append(f"should be in {expected_path}/ not {actual_path}/")
         else:
-            successes.setdefault(footprint['name'], []).append(f"Footprint is in correct directory: {expected_path}/")
+            results.setdefault(footprint['name'], {'success': [], 'fail': []})
+            results[footprint['name']]['success'].append(f"Footprint is in correct directory: {expected_path}/")
         # Check for duplicates (handled in main loop)
         # Check fields
         field_errs = validate_component_fields(footprint['fields'], 'footprint', footprint['name'], category, subcategory, subsubcategory)
         if not field_errs:
-            successes.setdefault(footprint['name'], []).append("All required fields are present")
-        errors.extend(field_errs)
+            results[footprint['name']]['success'].append("All required fields are present")
+        else:
+            for e in field_errs:
+                cleaned = re.sub(r'^Footprint [^:]+:?\\s*-?\\s*', '', e)
+                results[footprint['name']]['fail'].append(cleaned)
         # Check 3D models
         for model in footprint['models']:
             model_path = os.path.join(LAB_ROOT, '3dmodels', expected_path, model)
             if not os.path.exists(model_path):
-                errors.append(f"Footprint {footprint['name']}: references missing 3D model: {model}")
+                results[footprint['name']]['fail'].append(f"references missing 3D model: {model}")
             else:
-                successes.setdefault(footprint['name'], []).append(f"3D model '{model}' found")
+                results[footprint['name']]['success'].append(f"3D model '{model}' found")
     except Exception as e:
         errors.append(f"Footprint error processing {mod_file}: {str(e)}")
-    # Store successes globally for check_footprints to print
-    validate_footprint_file.global_successes = successes
+    # Store results globally for check_footprints to print
+    validate_footprint_file.global_results = results
     return errors
 
 def check_footprints() -> Tuple[bool, List[str]]:
     """Validate footprint libraries."""
     errors = []
-    successes = {}  # New: group success messages by footprint name
+    results = {}  # footprint_name -> {'success': [..], 'fail': [..]}
     for category, cat_info in CATEGORIES.items():
         for subcategory, subcat_info in cat_info['subcategories'].items():
             # Handle nested subcategories
@@ -507,17 +527,20 @@ def check_footprints() -> Tuple[bool, List[str]]:
                     expected_path = get_component_path(category, subcategory, subsubcategory)
                     for mod_file in mod_files:
                         file_errors = validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path)
-                        # Collect successes from global_successes (set below)
-                        if hasattr(validate_footprint_file, 'global_successes'):
-                            for fp_name, msgs in validate_footprint_file.global_successes.items():
-                                successes.setdefault(fp_name, []).extend(msgs)
-                            validate_footprint_file.global_successes = {}
+                        # Collect results from global_results (set below)
+                        if hasattr(validate_footprint_file, 'global_results'):
+                            for fp_name, res in validate_footprint_file.global_results.items():
+                                results.setdefault(fp_name, {'success': [], 'fail': []})
+                                results[fp_name]['success'].extend(res.get('success', []))
+                                results[fp_name]['fail'].extend(res.get('fail', []))
+                            validate_footprint_file.global_results = {}
                         # Check for duplicates
                         with open(mod_file, 'r', encoding='utf-8') as f:
                             content = f.read()
                         footprint = parse_kicad_mod(content)
                         if footprint['name'] in footprint_names:
-                            errors.append(f"Footprint {footprint['name']}: duplicate footprint name")
+                            results.setdefault(footprint['name'], {'success': [], 'fail': []})
+                            results[footprint['name']]['fail'].append("duplicate footprint name")
                         footprint_names.add(footprint['name'])
                         errors.extend(file_errors)
             else:
@@ -531,25 +554,29 @@ def check_footprints() -> Tuple[bool, List[str]]:
                 expected_path = get_component_path(category, subcategory)
                 for mod_file in mod_files:
                     file_errors = validate_footprint_file(mod_file, category, subcategory, None, expected_path)
-                    if hasattr(validate_footprint_file, 'global_successes'):
-                        for fp_name, msgs in validate_footprint_file.global_successes.items():
-                            successes.setdefault(fp_name, []).extend(msgs)
-                        validate_footprint_file.global_successes = {}
+                    if hasattr(validate_footprint_file, 'global_results'):
+                        for fp_name, res in validate_footprint_file.global_results.items():
+                            results.setdefault(fp_name, {'success': [], 'fail': []})
+                            results[fp_name]['success'].extend(res.get('success', []))
+                            results[fp_name]['fail'].extend(res.get('fail', []))
+                        validate_footprint_file.global_results = {}
                     # Check for duplicates
                     with open(mod_file, 'r', encoding='utf-8') as f:
                         content = f.read()
                     footprint = parse_kicad_mod(content)
                     if footprint['name'] in footprint_names:
-                        errors.append(f"Footprint {footprint['name']}: duplicate footprint name")
+                        results.setdefault(footprint['name'], {'success': [], 'fail': []})
+                        results[footprint['name']]['fail'].append("duplicate footprint name")
                     footprint_names.add(footprint['name'])
                     errors.extend(file_errors)
-    # Print grouped successes
-    if successes:
-        print("\nPassed:")
-        for fp, msgs in successes.items():
-            print(f"  ✓ Footprint {fp}:")
-            for msg in msgs:
-                print(f"      ✓ {msg}")
+    # Print grouped results
+    print("\nFootprint Validation:")
+    for fp, res in results.items():
+        print(f"  {fp}:")
+        for msg in res['success']:
+            print(f"    ✓ {msg}")
+        for msg in res['fail']:
+            print(f"    ❌ {msg}")
     return len(errors) == 0, errors
 
 def check_3d_models() -> Tuple[bool, List[str]]:
