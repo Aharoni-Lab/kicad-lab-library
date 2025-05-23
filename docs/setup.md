@@ -1,9 +1,9 @@
 # KiCad Lab Library Environment Setup
 
-This guide helps you configure your KiCad environment to use our shared lab library.
+This guide helps you configure your KiCad environment to use our shared lab library and contribute new components.
 
 ## Prerequisites
-- KiCad 8.0 or later (version 9.0 recommended)
+- KiCad 8.0 or later (**9.0 recommended**)
 - Git
 - Python 3.6 or later
 
@@ -16,41 +16,27 @@ This guide helps you configure your KiCad environment to use our shared lab libr
    ```
 
 2. **Set Environment Variable**
-   
    Add the following environment variable to your system. Use the actual path where you cloned the repository, replacing 'path\to\kicad-lab-library':
-   
+
    Windows (PowerShell):
    ```powershell
    [System.Environment]::SetEnvironmentVariable('KICAD_LAB_LIBS', 'C:\path\to\kicad-lab-library', 'User')
    ```
-   
    Linux/macOS:
    ```bash
    echo 'export KICAD_LAB_LIBS=/path/to/kicad-lab-library' >> ~/.bashrc
    ```
 
 3. **Find Your KiCad Version**
-
-   You need to provide your KiCad version as an argument to the setup script. This ensures the script updates the correct configuration directory.
-
-   - **In KiCad:**
-     - Open KiCad.
-     - Go to `Help` > `About KiCad`.
-     - Look for the version number (e.g., `9.0.0` or `8.0.1`).
-     - Use the major and minor version (e.g., `9.0` or `8.0`).
-   - **On Disk:**
-     - On Windows, you can also check the folder names in `C:\Users\<your-username>\AppData\Roaming\kicad\` (e.g., `8.0`, `9.0`).
-     - On Linux/macOS, check `~/.config/kicad/` or `~/Library/Preferences/kicad/` for versioned folders.
+   - In KiCad: Go to `Help` > `About KiCad` and note the version (e.g., `9.0`).
+   - On disk: Check the versioned folders in your KiCad config directory (see below).
 
 4. **Configure KiCad Libraries**
-
    Run the setup script with your KiCad version as an argument:
-   
    Windows (PowerShell):
    ```powershell
    python scripts/setup_libraries.py 9.0
    ```
-   
    Linux/macOS:
    ```bash
    python3 scripts/setup_libraries.py 9.0
@@ -61,15 +47,13 @@ This guide helps you configure your KiCad environment to use our shared lab libr
    - Create backups of your existing library configuration files
    - Add our lab libraries to your existing configuration
    - Not overwrite any of your existing libraries
-   - Support KiCad 8.0 and later versions
+   - Support KiCad 8.0 and later
 
 5. **Verify Setup**
    - Open KiCad
    - Create a new project
-   - Open the schematic editor
-   - Try placing components from different Lab libraries
-   - Open the PCB editor
-   - Try placing footprints from different Lab libraries
+   - Open the schematic editor and try placing components from Lab libraries
+   - Open the PCB editor and try placing footprints from Lab libraries
 
 ## Troubleshooting
 
@@ -80,6 +64,9 @@ If components or footprints aren't showing up:
 4. Verify that the library files exist in the correct subdirectories
 5. Try restarting KiCad after making these changes
 6. Check the console output of `setup_libraries.py` for any warnings or errors
+7. **If validation fails:**
+   - Run `python scripts/validate_libraries.py` and review the grouped output for each symbol/footprint. All checks must pass (✓) for your changes to be accepted.
+   - See the [Contributing Guide](../docs/CONTRIBUTING.md) for full validation and PR requirements.
 
 ## Contributing
 
@@ -87,11 +74,13 @@ When adding new components:
 1. Follow the KLC guidelines in `docs/KLC_GUIDELINES.md`
 2. Place components in the appropriate category and subcategory directories
 3. Follow the naming conventions defined in `config/library_structure.yml`
-4. Run the validation script locally before committing:
+4. **Run the validation script locally before committing:**
    ```bash
    python scripts/validate_libraries.py
    ```
-5. Create a pull request for review
+   - Review the grouped validation output. All items must pass (✓) for your PR to be accepted.
+5. **All contributions must be submitted via a pull request (PR) and pass all automated validation and CI checks.**
+6. See the [Contributing Guide](../docs/CONTRIBUTING.md) for full details.
 
 ## Library Structure
 
