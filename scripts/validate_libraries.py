@@ -120,6 +120,18 @@ def get_component_path(category: str, subcategory: str, subsubcategory: str = No
         path.append(subsubcategory)
     return os.path.join(*path)
 
+def get_reference_prefixes(category: str, subcategory: str, subsubcategory: str = None) -> List[str]:
+    """Get the allowed reference prefixes for a given (sub)category."""
+    try:
+        if subsubcategory:
+            return CATEGORIES[category]['subcategories'][subcategory]['subcategories'][subsubcategory].get('reference_prefixes', [])
+        elif subcategory:
+            return CATEGORIES[category]['subcategories'][subcategory].get('reference_prefixes', [])
+        else:
+            return CATEGORIES[category].get('reference_prefixes', [])
+    except Exception:
+        return []
+
 def parse_kicad_sym(content: str) -> List[Dict]:
     """Parse KiCad symbol file and extract only top-level symbol definitions."""
     symbols = []
@@ -203,16 +215,14 @@ def validate_datasheet_reference(fields: Dict, component_type: str, name: str) -
     
     return errors
 
-def validate_component_fields(fields: Dict, component_type: str, name: str) -> List[str]:
-    """Validate component fields and their values."""
+def validate_component_fields(fields: Dict, component_type: str, name: str, category=None, subcategory=None, subsubcategory=None) -> List[str]:
+    """Validate component fields and their values, including Reference prefix."""
     errors = []
-    
     # Check required fields
     required_fields = REQUIRED_SYMBOL_FIELDS if component_type == 'symbol' else REQUIRED_FOOTPRINT_FIELDS
     missing_fields = required_fields - set(fields.keys())
     if missing_fields:
         errors.append(f"{component_type.title()} {name} missing required fields: {', '.join(missing_fields)}")
-    
     # Check Validated field
     if 'Validated' in fields:
         validated_value = fields['Validated'].lower()
@@ -220,10 +230,14 @@ def validate_component_fields(fields: Dict, component_type: str, name: str) -> L
             errors.append(f"{component_type.title()} {name} has invalid 'Validated' value: {fields['Validated']}. Must be 'Yes' or 'No'")
     else:
         errors.append(f"{component_type.title()} {name} missing 'Validated' field")
-    
+    # Check Reference prefix (only for symbols)
+    if component_type == 'symbol' and 'Reference' in fields:
+        allowed_prefixes = get_reference_prefixes(category, subcategory, subsubcategory)
+        ref_value = fields['Reference']
+        if allowed_prefixes and not any(ref_value.startswith(prefix) for prefix in allowed_prefixes):
+            errors.append(f"Symbol {name} Reference '{ref_value}' does not start with allowed prefixes: {', '.join(allowed_prefixes)}")
     # Check datasheet reference
     errors.extend(validate_datasheet_reference(fields, component_type, name))
-    
     return errors
 
 def check_symbols() -> Tuple[bool, List[str]]:
@@ -281,7 +295,7 @@ def check_symbols() -> Tuple[bool, List[str]]:
                                 symbol_names.add(symbol['name'])
                                 
                                 # Check fields
-                                errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name']))
+                                errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory, subsubcategory))
                                 
                                 # Check pins
                                 if not symbol['pins']:
@@ -342,7 +356,7 @@ def check_symbols() -> Tuple[bool, List[str]]:
                             symbol_names.add(symbol['name'])
                             
                             # Check fields
-                            errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name']))
+                            errors.extend(validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory))
                             
                             # Check pins
                             if not symbol['pins']:
@@ -422,7 +436,7 @@ def check_footprints() -> Tuple[bool, List[str]]:
                             footprint_names.add(footprint['name'])
                             
                             # Check fields
-                            errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name']))
+                            errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name'], category, subcategory, subsubcategory))
                             
                             # Check 3D models
                             for model in footprint['models']:
@@ -464,7 +478,7 @@ def check_footprints() -> Tuple[bool, List[str]]:
                         footprint_names.add(footprint['name'])
                         
                         # Check fields
-                        errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name']))
+                        errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name'], category, subcategory))
                         
                         # Check 3D models
                         for model in footprint['models']:
