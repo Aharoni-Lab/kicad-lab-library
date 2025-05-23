@@ -559,11 +559,29 @@ def check_3d_models() -> Tuple[bool, List[str]]:
             grouped_errors.append(f"    - {ferr}")
     return len(grouped_errors) == 0, grouped_errors
 
+def validate_datasheet_file(file_path, allowed_formats, max_size_mb, naming_convention):
+    errors = []
+    try:
+        size = os.path.getsize(file_path)
+        if size == 0:
+            errors.append(f"Empty datasheet file: {os.path.basename(file_path)}")
+        elif size > max_size_mb:
+            errors.append(f"Large datasheet file (>{max_size_mb // (1024*1024)}MB): {os.path.basename(file_path)}")
+        ext = os.path.splitext(file_path)[1].lower().lstrip('.')
+        if ext not in allowed_formats:
+            errors.append(f"Invalid datasheet format: {os.path.basename(file_path)}. Allowed formats: {', '.join(allowed_formats)}")
+        if not re.match(naming_convention, os.path.basename(file_path)):
+            errors.append(f"Datasheet {os.path.basename(file_path)} does not follow naming convention: {naming_convention}")
+    except Exception as e:
+        errors.append(f"Error checking {os.path.basename(file_path)}: {str(e)}")
+    return errors
+
 def check_datasheets() -> Tuple[bool, List[str]]:
     """Validate datasheet files and references."""
     errors = []
-    
-    # Check each category directory
+    allowed_formats = CONFIG['datasheets']['allowed_formats']
+    max_size_mb = CONFIG['datasheets']['max_size_mb'] * 1024 * 1024
+    naming_convention = CONFIG['datasheets']['naming_convention']
     for category, cat_info in CATEGORIES.items():
         for subcategory, subcat_info in cat_info['subcategories'].items():
             # Handle nested subcategories
@@ -572,64 +590,22 @@ def check_datasheets() -> Tuple[bool, List[str]]:
                     datasheet_dir = os.path.join(LAB_ROOT, 'datasheets', get_component_path(category, subcategory, subsubcategory))
                     if not os.path.exists(datasheet_dir):
                         continue
-                    
-                    # Check each datasheet file
                     for file in os.listdir(datasheet_dir):
                         file_path = os.path.join(datasheet_dir, file)
                         if not os.path.isfile(file_path):
                             continue
-                        
-                        try:
-                            # Check file size
-                            size = os.path.getsize(file_path)
-                            if size == 0:
-                                errors.append(f"Empty datasheet file: {file}")
-                            elif size > CONFIG['datasheets']['max_size_mb'] * 1024 * 1024:
-                                errors.append(f"Large datasheet file (>{CONFIG['datasheets']['max_size_mb']}MB): {file}")
-                            
-                            # Check file format
-                            ext = os.path.splitext(file)[1].lower().lstrip('.')
-                            if ext not in CONFIG['datasheets']['allowed_formats']:
-                                errors.append(f"Invalid datasheet format: {file}. Allowed formats: {', '.join(CONFIG['datasheets']['allowed_formats'])}")
-                            
-                            # Check naming convention
-                            if not re.match(r'^[A-Za-z0-9]+_[A-Za-z0-9]+_[A-Za-z0-9]+\.[a-z]+$', file):
-                                errors.append(f"Datasheet {file} does not follow naming convention: {CONFIG['datasheets']['naming_convention']}")
-                        
-                        except Exception as e:
-                            errors.append(f"Error checking {file}: {str(e)}")
+                        file_errors = validate_datasheet_file(file_path, allowed_formats, max_size_mb, naming_convention)
+                        errors.extend(file_errors)
             else:
-                # Handle regular subcategories
                 datasheet_dir = os.path.join(LAB_ROOT, 'datasheets', get_component_path(category, subcategory))
                 if not os.path.exists(datasheet_dir):
                     continue
-                
-                # Check each datasheet file
                 for file in os.listdir(datasheet_dir):
                     file_path = os.path.join(datasheet_dir, file)
                     if not os.path.isfile(file_path):
                         continue
-                    
-                    try:
-                        # Check file size
-                        size = os.path.getsize(file_path)
-                        if size == 0:
-                            errors.append(f"Empty datasheet file: {file}")
-                        elif size > CONFIG['datasheets']['max_size_mb'] * 1024 * 1024:
-                            errors.append(f"Large datasheet file (>{CONFIG['datasheets']['max_size_mb']}MB): {file}")
-                        
-                        # Check file format
-                        ext = os.path.splitext(file)[1].lower().lstrip('.')
-                        if ext not in CONFIG['datasheets']['allowed_formats']:
-                            errors.append(f"Invalid datasheet format: {file}. Allowed formats: {', '.join(CONFIG['datasheets']['allowed_formats'])}")
-                        
-                        # Check naming convention
-                        if not re.match(r'^[A-Za-z0-9]+_[A-Za-z0-9]+_[A-Za-z0-9]+\.[a-z]+$', file):
-                            errors.append(f"Datasheet {file} does not follow naming convention: {CONFIG['datasheets']['naming_convention']}")
-                    
-                    except Exception as e:
-                        errors.append(f"Error checking {file}: {str(e)}")
-    
+                    file_errors = validate_datasheet_file(file_path, allowed_formats, max_size_mb, naming_convention)
+                    errors.extend(file_errors)
     return len(errors) == 0, errors
 
 def main():
@@ -665,7 +641,7 @@ def main():
                 print(f"  - {comp}:")
                 for msg in msgs:
                     # Remove redundant component name from the message if present
-                    cleaned_msg = re.sub(r'^\s*-\s*(Symbol|Footprint) [^:]+:?\\s*', '- ', msg)
+                    cleaned_msg = re.sub(r'^\s*-+\s*(Symbol|Footprint) [^:]+:?\s*', '- ', msg)
                     print(f"      {cleaned_msg}")
             all_passed = False
         else:
