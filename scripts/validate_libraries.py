@@ -140,23 +140,23 @@ def parse_kicad_sym(content: str) -> List[Dict]:
     current_symbol = None
 
     for line in lines:
-        line = line.strip()
-        if line.startswith('(symbol '):
+        line_stripped = line.lstrip()
+        if line_stripped.startswith('(symbol '):
             stack.append('symbol')
             if len(stack) == 1:
                 # Top-level symbol
                 if current_symbol:
                     symbols.append(current_symbol)
-                symbol_name = line.split('"')[1]
+                symbol_name = line_stripped.split('"')[1]
                 current_symbol = {'name': symbol_name, 'fields': {}, 'pins': []}
-        elif line.startswith('(property ') and current_symbol and len(stack) == 1:
-            parts = line.split('"')
+        elif line_stripped.startswith('(property ') and current_symbol and len(stack) == 1:
+            parts = line_stripped.split('"')
             if len(parts) >= 4:
                 field_name = parts[1]
                 field_value = parts[3]
                 current_symbol['fields'][field_name] = field_value
-        elif line.startswith('(pin ') and current_symbol and len(stack) == 1:
-            parts = line.split('"')
+        elif line_stripped.startswith('(pin ') and current_symbol and len(stack) == 1:
+            parts = line_stripped.split('"')
             if len(parts) >= 4:
                 pin = {
                     'number': parts[1],
@@ -164,12 +164,12 @@ def parse_kicad_sym(content: str) -> List[Dict]:
                     'type': parts[5] if len(parts) > 5 else 'unknown'
                 }
                 current_symbol['pins'].append(pin)
-        if line.startswith('('):
+        if line_stripped.startswith('('):
             # Count open parens
-            stack.extend(['('] * (line.count('(') - (1 if line.startswith('(symbol ') else 0)))
-        if line.endswith(')'):
+            stack.extend(['('] * (line_stripped.count('(') - (1 if line_stripped.startswith('(symbol ') else 0)))
+        if line_stripped.endswith(')'):
             # Count close parens
-            for _ in range(line.count(')')):
+            for _ in range(line_stripped.count(')')):
                 if stack:
                     stack.pop()
             if not stack and current_symbol:

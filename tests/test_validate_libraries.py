@@ -44,7 +44,7 @@ def test_validate_component_fields_symbol():
         'Reference': 'R',
         'Value': 'Test',
         'Footprint': 'TestFootprint',
-        'Datasheet': '',
+        'Datasheet': 'http://example.com',
         'Description': 'desc',
         'Keywords': 'kw',
         'Validated': 'Yes',
