@@ -13,11 +13,16 @@ from typing import List, Tuple, Dict
 LAB_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def run_kicad_cli(command: List[str]) -> Tuple[bool, str]:
-    """Run a KiCad CLI command and return success status and output."""
+    """Run a KiCad CLI command and return success status and output. Print stdout and stderr for debugging."""
+    print(f"Running command: {' '.join(command)}")
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
+        print("STDOUT:", result.stdout)
+        print("STDERR:", result.stderr)
         return True, result.stdout
     except subprocess.CalledProcessError as e:
+        print("STDOUT:", e.stdout)
+        print("STDERR:", e.stderr)
         return False, f"Error: {e.stderr}"
 
 def generate_symbol_render(symbol_file: str, output_dir: str) -> Tuple[bool, Dict[str, str]]:

@@ -21,10 +21,15 @@ jobs:
         with:
           python-version: '3.10'
       
-      - name: Install KiCad
+      - name: Install KiCad and KiCad CLI
         run: |
           sudo apt-get update
-          sudo apt-get install -y kicad
+          sudo apt-get install -y kicad kicad-cli
+      
+      - name: Check KiCad CLI
+        run: |
+          which kicad-cli || echo "kicad-cli not found"
+          kicad-cli --version || echo "kicad-cli not working"
       
       - name: Get modified files
         id: modified-files
