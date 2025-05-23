@@ -282,13 +282,14 @@ def validate_component_fields(fields: Dict, component_type: str, name: str, cate
 def parse_kicad_mod(content: str) -> Dict:
     """Parse KiCad footprint file and extract footprint definition and pad numbers."""
     footprint = {'name': '', 'fields': {}, 'models': [], 'pads': set()}
+    tags_value = None
 
     # Extract name (should match (footprint "NAME")
     name_match = re.search(r'\(footprint\s+"([^"]+)"', content)
     if name_match:
         footprint['name'] = name_match.group(1)
 
-    # Extract fields from (property ...) lines
+    # Extract fields from (property ...) lines and tags
     for line in content.split('\n'):
         line = line.strip()
         if line.startswith('(property "Reference"'):
@@ -320,12 +321,20 @@ def parse_kicad_mod(content: str) -> Dict:
             if len(pad_parts) > 1:
                 pad_number = pad_parts[1]
                 footprint['pads'].add(pad_number)
-
+        elif line.startswith('(tags '):
+            # (tags "kword1 kword2")
+            tag_match = re.match(r'\(tags\s+"([^"]*)"', line)
+            if tag_match:
+                tags_value = tag_match.group(2)
+    # If no property Keywords, use tags as Keywords
+    if 'Keywords' not in footprint['fields'] and tags_value is not None:
+        footprint['fields']['Keywords'] = tags_value
     return footprint
 
 def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_footprint_file_by_libprefix):
     errors = []
     warnings = []
+    successes = {}  # symbol_name -> [success messages]
     try:
         with open(sym_file, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -349,6 +358,8 @@ def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_f
             symbol_names.add(symbol['name'])
             # Check fields and reference prefix
             errs = validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory, subsubcategory)
+            if not errs:
+                successes.setdefault(symbol['name'], []).append("All required fields are present")
             # If reference prefix error, add details
             if 'Reference' in symbol['fields']:
                 allowed_prefixes = get_reference_prefixes(category, subcategory, subsubcategory)
@@ -371,17 +382,20 @@ def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_f
                         errors.append(f"Symbol {symbol['name']}:\n    - Pin numbers {sorted(symbol_pins)} do not match footprint pads {sorted(footprint_pads)} (footprint: {fp_file})")
                     else:
                         n = len(symbol_pins)
-                        print(f"✓ Symbol {symbol['name']}: All {n} symbol pins match {n} footprint pads")
+                        successes.setdefault(symbol['name'], []).append(f"All {n} symbol pins match {n} footprint pads")
                 elif not fp_file:
                     errors.append(f"Symbol {symbol['name']}:\n    - Footprint '{symbol['fields']['Footprint']}' not found for pin check")
     except Exception as e:
         errors.append(f"Error processing {sym_file}: {str(e)}")
+    # Store successes globally for check_symbols to print
+    validate_symbol_file.global_successes = successes
     return errors, warnings
 
 def check_symbols() -> Tuple[bool, List[str]]:
     """Validate symbol library files."""
     errors = []
     warnings = []
+    successes = {}  # New: group success messages by symbol name
     def find_footprint_file_by_libprefix(footprint_field: str) -> str:
         if ':' not in footprint_field:
             return None
@@ -409,6 +423,11 @@ def check_symbols() -> Tuple[bool, List[str]]:
                         file_errors, file_warnings = validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_footprint_file_by_libprefix)
                         errors.extend(file_errors)
                         warnings.extend(file_warnings)
+                        # Collect successes from global_successes (set below)
+                        if hasattr(validate_symbol_file, 'global_successes'):
+                            for symbol_name, msgs in validate_symbol_file.global_successes.items():
+                                successes.setdefault(symbol_name, []).extend(msgs)
+                            validate_symbol_file.global_successes = {}  # Reset for next file
             else:
                 symbol_dir = os.path.join(LAB_ROOT, 'symbols', get_component_path(category, subcategory))
                 if not os.path.exists(symbol_dir):
@@ -420,6 +439,17 @@ def check_symbols() -> Tuple[bool, List[str]]:
                     file_errors, file_warnings = validate_symbol_file(sym_file, category, subcategory, None, find_footprint_file_by_libprefix)
                     errors.extend(file_errors)
                     warnings.extend(file_warnings)
+                    if hasattr(validate_symbol_file, 'global_successes'):
+                        for symbol_name, msgs in validate_symbol_file.global_successes.items():
+                            successes.setdefault(symbol_name, []).extend(msgs)
+                        validate_symbol_file.global_successes = {}
+    # Print grouped successes
+    if successes:
+        print("\nPassed:")
+        for symbol, msgs in successes.items():
+            print(f"  ✓ Symbol {symbol}:")
+            for msg in msgs:
+                print(f"      ✓ {msg}")
     if warnings:
         print("\nWarnings:")
         for w in warnings:
@@ -428,6 +458,7 @@ def check_symbols() -> Tuple[bool, List[str]]:
 
 def validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path):
     errors = []
+    successes = {}  # footprint_name -> [success messages]
     try:
         with open(mod_file, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -436,21 +467,31 @@ def validate_footprint_file(mod_file, category, subcategory, subsubcategory, exp
         actual_path = os.path.relpath(os.path.dirname(mod_file), os.path.join(LAB_ROOT, 'footprints'))
         if expected_path != actual_path:
             errors.append(f"Footprint {footprint['name']}: should be in {expected_path}/ not {actual_path}/")
+        else:
+            successes.setdefault(footprint['name'], []).append(f"Footprint is in correct directory: {expected_path}/")
         # Check for duplicates (handled in main loop)
         # Check fields
-        errors.extend(validate_component_fields(footprint['fields'], 'footprint', footprint['name'], category, subcategory, subsubcategory))
+        field_errs = validate_component_fields(footprint['fields'], 'footprint', footprint['name'], category, subcategory, subsubcategory)
+        if not field_errs:
+            successes.setdefault(footprint['name'], []).append("All required fields are present")
+        errors.extend(field_errs)
         # Check 3D models
         for model in footprint['models']:
             model_path = os.path.join(LAB_ROOT, '3dmodels', expected_path, model)
             if not os.path.exists(model_path):
                 errors.append(f"Footprint {footprint['name']}: references missing 3D model: {model}")
+            else:
+                successes.setdefault(footprint['name'], []).append(f"3D model '{model}' found")
     except Exception as e:
         errors.append(f"Footprint error processing {mod_file}: {str(e)}")
+    # Store successes globally for check_footprints to print
+    validate_footprint_file.global_successes = successes
     return errors
 
 def check_footprints() -> Tuple[bool, List[str]]:
     """Validate footprint libraries."""
     errors = []
+    successes = {}  # New: group success messages by footprint name
     for category, cat_info in CATEGORIES.items():
         for subcategory, subcat_info in cat_info['subcategories'].items():
             # Handle nested subcategories
@@ -466,6 +507,11 @@ def check_footprints() -> Tuple[bool, List[str]]:
                     expected_path = get_component_path(category, subcategory, subsubcategory)
                     for mod_file in mod_files:
                         file_errors = validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path)
+                        # Collect successes from global_successes (set below)
+                        if hasattr(validate_footprint_file, 'global_successes'):
+                            for fp_name, msgs in validate_footprint_file.global_successes.items():
+                                successes.setdefault(fp_name, []).extend(msgs)
+                            validate_footprint_file.global_successes = {}
                         # Check for duplicates
                         with open(mod_file, 'r', encoding='utf-8') as f:
                             content = f.read()
@@ -485,6 +531,10 @@ def check_footprints() -> Tuple[bool, List[str]]:
                 expected_path = get_component_path(category, subcategory)
                 for mod_file in mod_files:
                     file_errors = validate_footprint_file(mod_file, category, subcategory, None, expected_path)
+                    if hasattr(validate_footprint_file, 'global_successes'):
+                        for fp_name, msgs in validate_footprint_file.global_successes.items():
+                            successes.setdefault(fp_name, []).extend(msgs)
+                        validate_footprint_file.global_successes = {}
                     # Check for duplicates
                     with open(mod_file, 'r', encoding='utf-8') as f:
                         content = f.read()
@@ -493,6 +543,13 @@ def check_footprints() -> Tuple[bool, List[str]]:
                         errors.append(f"Footprint {footprint['name']}: duplicate footprint name")
                     footprint_names.add(footprint['name'])
                     errors.extend(file_errors)
+    # Print grouped successes
+    if successes:
+        print("\nPassed:")
+        for fp, msgs in successes.items():
+            print(f"  ✓ Footprint {fp}:")
+            for msg in msgs:
+                print(f"      ✓ {msg}")
     return len(errors) == 0, errors
 
 def check_3d_models() -> Tuple[bool, List[str]]:
