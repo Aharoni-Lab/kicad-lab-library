@@ -464,12 +464,18 @@ def check_symbols() -> Tuple[bool, List[str]]:
             print(f"    ✓ {msg}")
         for msg in res['fail']:
             print(f"    ❌ {msg}")
+    # Determine pass/fail from grouped results
+    any_fail = any(res['fail'] for res in results.values())
+    if not any_fail:
+        print("✓ Symbols validation passed")
+    else:
+        print("❌ Symbols validation failed")
     if warnings:
         print("\nWarnings:")
         for w in warnings:
             print(w)
     # Return errors for CI exit code
-    return len(errors) == 0, errors
+    return not any_fail, errors
 
 def validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path):
     errors = []
@@ -577,7 +583,13 @@ def check_footprints() -> Tuple[bool, List[str]]:
             print(f"    ✓ {msg}")
         for msg in res['fail']:
             print(f"    ❌ {msg}")
-    return len(errors) == 0, errors
+    # Determine pass/fail from grouped results
+    any_fail = any(res['fail'] for res in results.values())
+    if not any_fail:
+        print("✓ Footprints validation passed")
+    else:
+        print("❌ Footprints validation failed")
+    return not any_fail, errors
 
 def check_3d_models() -> Tuple[bool, List[str]]:
     """Validate 3D model files."""
