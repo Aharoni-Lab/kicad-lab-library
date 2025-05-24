@@ -23,7 +23,30 @@ on:
       - '.github/workflows/validate.yml'
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for comparing changes
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install -r scripts/requirements.txt
+
+      - name: Run tests
+        run: |
+          python -m pytest tests/ -v
+
   validate:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +64,8 @@ jobs:
           sudo apt-get install -y software-properties-common
           sudo add-apt-repository --yes ppa:kicad/kicad-7.0-releases
           sudo apt-get update
-          sudo apt-get install -y kicad
+          # Install specific version to avoid dependency issues
+          sudo apt-get install -y kicad=7.0.7-0~202401240730~ubuntu22.04.1
 
       - name: Verify KiCad CLI
         run: |
@@ -54,10 +78,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           pip install -r scripts/requirements.txt
-
-      - name: Run tests
-        run: |
-          python -m pytest tests/ -v
 
       - name: Get changed files
         id: changed-files
