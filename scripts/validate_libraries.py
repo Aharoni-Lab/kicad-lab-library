@@ -355,6 +355,10 @@ def get_changed_symbols(changed_files: Set[str], base_sha: str = None) -> Dict[s
     sym_files = {f for f in changed_files if f.endswith('.kicad_sym')}
     if not sym_files:
         return changed_symbols
+    
+    print("\nDetecting symbol changes:")
+    print("------------------------")
+    
     # For each symbol file, get the list of symbols in both versions
     for sym_file in sym_files:
         current_symbols = set()
@@ -363,6 +367,7 @@ def get_changed_symbols(changed_files: Set[str], base_sha: str = None) -> Dict[s
             with open(sym_file, 'r', encoding='utf-8') as f:
                 current_content = f.read()
             current_symbols = {s['name'] for s in parse_kicad_sym(current_content)}
+            
             # Get base version symbols if we have a base SHA
             if base_sha:
                 try:
@@ -373,29 +378,68 @@ def get_changed_symbols(changed_files: Set[str], base_sha: str = None) -> Dict[s
                         universal_newlines=True
                     )
                     base_symbols = {s['name'] for s in parse_kicad_sym(base_content)}
+                    
+                    # Find added, removed, and modified symbols
+                    added = current_symbols - base_symbols
+                    removed = base_symbols - current_symbols
+                    common = current_symbols.intersection(base_symbols)
+                    
+                    # For modified symbols, we need to compare their content
+                    modified = set()
+                    for symbol_name in common:
+                        # Get current symbol content
+                        current_symbol = next(s for s in parse_kicad_sym(current_content) if s['name'] == symbol_name)
+                        base_symbol = next(s for s in parse_kicad_sym(base_content) if s['name'] == symbol_name)
+                        if current_symbol != base_symbol:
+                            modified.add(symbol_name)
+                    
+                    # Print changes for this file
+                    print(f"\nFile: {sym_file}")
+                    if added:
+                        print("  Added symbols:")
+                        for symbol in sorted(added):
+                            print(f"    + {symbol}")
+                    if removed:
+                        print("  Removed symbols:")
+                        for symbol in sorted(removed):
+                            print(f"    - {symbol}")
+                    if modified:
+                        print("  Modified symbols:")
+                        for symbol in sorted(modified):
+                            print(f"    ~ {symbol}")
+                    
+                    # Combine all changes
+                    diff = added | removed | modified
+                    if diff:
+                        changed_symbols[sym_file] = diff
+                    
                 except subprocess.CalledProcessError:
                     # File didn't exist in base commit, all symbols are new
-                    base_symbols = set()
+                    print(f"\nFile: {sym_file}")
+                    print("  New file, all symbols are added:")
+                    for symbol in sorted(current_symbols):
+                        print(f"    + {symbol}")
+                    changed_symbols[sym_file] = current_symbols
             else:
                 # No base SHA, assume all symbols are changed
-                base_symbols = set()
-            # Find changed symbols (added, modified, or removed)
-            diff = current_symbols.symmetric_difference(base_symbols)
-            # For modified symbols, we need to compare their content
-            if base_sha:
-                common_symbols = current_symbols.intersection(base_symbols)
-                for symbol_name in common_symbols:
-                    # Get current symbol content
-                    current_symbol = next(s for s in parse_kicad_sym(current_content) if s['name'] == symbol_name)
-                    base_symbol = next(s for s in parse_kicad_sym(base_content) if s['name'] == symbol_name)
-                    if current_symbol != base_symbol:
-                        diff.add(symbol_name)
-            if diff:
-                changed_symbols[sym_file] = diff
+                print(f"\nFile: {sym_file}")
+                print("  No base SHA provided, all symbols are considered changed:")
+                for symbol in sorted(current_symbols):
+                    print(f"    * {symbol}")
+                changed_symbols[sym_file] = current_symbols
+                
         except Exception as e:
             print(f"Warning: Error processing {sym_file}: {str(e)}")
             # If we can't process the file, do not add it to the result
             continue
+    
+    if not changed_symbols:
+        print("\nNo symbol changes detected.")
+    else:
+        print("\nTotal changes:")
+        for file, symbols in changed_symbols.items():
+            print(f"  {file}: {len(symbols)} symbols changed")
+    
     return changed_symbols
 
 def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_footprint_file_by_libprefix, changed_symbols: Dict[str, Set[str]] = None):
