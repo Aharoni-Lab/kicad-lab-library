@@ -854,7 +854,11 @@ def main():
     
     print("Running KiCad library validation...")
     if changed_files:
-        print(f"Validating {len(changed_files)} changed files...")
+        print(f"\nChanged files:")
+        print("-------------")
+        for file in sorted(changed_files):
+            print(f"  {file}")
+        print(f"\nValidating {len(changed_files)} changed files...")
     
     checks = [
         ("Directory Structure", validate_directory_structure),
