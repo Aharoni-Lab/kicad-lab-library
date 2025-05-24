@@ -470,13 +470,13 @@ def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_f
             if symbol['name'] in symbol_names:
                 errors.append(f"Duplicate symbol name: {symbol['name']}")
             symbol_names.add(symbol['name'])
+            # Initialize results for this symbol
+            results[symbol['name']] = {'success': [], 'fail': []}
             # Check fields and reference prefix
             errs = validate_component_fields(symbol['fields'], 'symbol', symbol['name'], category, subcategory, subsubcategory)
             if not errs:
-                results.setdefault(symbol['name'], {'success': [], 'fail': []})
                 results[symbol['name']]['success'].append("All required fields are present")
             else:
-                results.setdefault(symbol['name'], {'success': [], 'fail': []})
                 for e in errs:
                     # Remove redundant symbol name from error message
                     cleaned = re.sub(r'^Symbol [^:]+:?\\s*-?\\s*', '', e)
@@ -487,6 +487,8 @@ def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_f
                 ref_value = symbol['fields']['Reference']
                 if allowed_prefixes and not any(ref_value.startswith(prefix) for prefix in allowed_prefixes):
                     results[symbol['name']]['fail'].append(f"Reference field '{ref_value}' does not match allowed prefixes: {allowed_prefixes}")
+                else:
+                    results[symbol['name']]['success'].append(f"Reference field '{ref_value}' matches allowed prefixes")
             # Check pins (warning only)
             if not symbol['pins']:
                 warnings.append(f"⚠️ Symbol {symbol['name']} has no pins (file: {sym_file})")
@@ -499,14 +501,11 @@ def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_f
                     symbol_pins = set(pin['number'] for pin in symbol['pins'])
                     footprint_pads = fp.get('pads', set())
                     if symbol_pins != footprint_pads:
-                        results.setdefault(symbol['name'], {'success': [], 'fail': []})
                         results[symbol['name']]['fail'].append(f"Pin numbers {sorted(symbol_pins)} do not match footprint pads {sorted(footprint_pads)}")
                     else:
                         n = len(symbol_pins)
-                        results.setdefault(symbol['name'], {'success': [], 'fail': []})
                         results[symbol['name']]['success'].append(f"All {n} symbol pins match {n} footprint pads")
                 elif not fp_file:
-                    results.setdefault(symbol['name'], {'success': [], 'fail': []})
                     results[symbol['name']]['fail'].append(f"Footprint '{symbol['fields']['Footprint']}' not found for pin check")
     except Exception as e:
         errors.append(f"Error processing {sym_file}: {str(e)}")
@@ -712,6 +711,13 @@ def check_footprints(changed_files: Set[str] = None, base_sha: str = None) -> Tu
     # Get changed footprints if we have changed files
     changed_footprints = get_changed_footprints(changed_files, base_sha) if changed_files else None
     
+    # If we have changed files but no changed footprints, return early
+    if changed_files and not changed_footprints:
+        print("\nFootprint Validation:")
+        print("  No changed footprints to validate")
+        print("✓ Footprints validation passed")
+        return True, []
+    
     for category, cat_info in CATEGORIES.items():
         for subcategory, subcat_info in cat_info['subcategories'].items():
             # Handle nested subcategories
@@ -726,15 +732,12 @@ def check_footprints(changed_files: Set[str] = None, base_sha: str = None) -> Tu
                     footprint_names = set()
                     expected_path = get_component_path(category, subcategory, subsubcategory)
                     for mod_file in mod_files:
+                        # Skip if not in changed files
                         if changed_files and mod_file not in changed_files:
                             continue
-                        # Skip unchanged footprints if we're tracking changes
-                        if changed_footprints and mod_file in changed_footprints:
-                            with open(mod_file, 'r', encoding='utf-8') as f:
-                                content = f.read()
-                            footprint = parse_kicad_mod(content)
-                            if footprint['name'] not in changed_footprints[mod_file]:
-                                continue
+                        # Skip if not in changed footprints
+                        if changed_footprints and mod_file not in changed_footprints:
+                            continue
                         file_errors = validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path)
                         if hasattr(validate_footprint_file, 'global_results'):
                             for fp_name, res in validate_footprint_file.global_results.items():
@@ -761,15 +764,12 @@ def check_footprints(changed_files: Set[str] = None, base_sha: str = None) -> Tu
                 footprint_names = set()
                 expected_path = get_component_path(category, subcategory)
                 for mod_file in mod_files:
+                    # Skip if not in changed files
                     if changed_files and mod_file not in changed_files:
                         continue
-                    # Skip unchanged footprints if we're tracking changes
-                    if changed_footprints and mod_file in changed_footprints:
-                        with open(mod_file, 'r', encoding='utf-8') as f:
-                            content = f.read()
-                        footprint = parse_kicad_mod(content)
-                        if footprint['name'] not in changed_footprints[mod_file]:
-                            continue
+                    # Skip if not in changed footprints
+                    if changed_footprints and mod_file not in changed_footprints:
+                        continue
                     file_errors = validate_footprint_file(mod_file, category, subcategory, None, expected_path)
                     if hasattr(validate_footprint_file, 'global_results'):
                         for fp_name, res in validate_footprint_file.global_results.items():
