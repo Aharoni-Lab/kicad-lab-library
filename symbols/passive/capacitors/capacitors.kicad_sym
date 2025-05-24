@@ -120,7 +120,7 @@
 		)
 		(embedded_fonts no)
 	)
-	(symbol "test-symbol-can-delete2"
+	(symbol "test-symbol-can-delete2222"
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -185,7 +185,7 @@
 				(hide yes)
 			)
 		)
-		(symbol "test-symbol-can-delete2_0_1"
+		(symbol "test-symbol-can-delete2222_0_1"
 			(rectangle
 				(start -3.81 8.89)
 				(end 6.35 -6.35)
@@ -198,7 +198,7 @@
 				)
 			)
 		)
-		(symbol "test-symbol-can-delete2_1_1"
+		(symbol "test-symbol-can-delete2222_1_1"
 			(pin input line
 				(at -6.35 5.08 0)
 				(length 2.54)
