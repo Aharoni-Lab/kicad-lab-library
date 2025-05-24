@@ -581,25 +581,20 @@ def check_symbols(changed_files: Set[str] = None, base_sha: str = None) -> Tuple
                         validate_symbol_file.global_results = {}
     
     # Print grouped results
-    print("\nSymbol Validation Results:")
-    print("-" * 30)
+    print("\nSymbol Validation:")
     for symbol, res in sorted(results.items()):
-        print(f"\n  {symbol}:")
-        if res['success']:
-            print("    ✓ Successes:")
-            for msg in res['success']:
-                print(f"      - {msg}")
-        if res['fail']:
-            print("    ❌ Failures:")
-            for msg in res['fail']:
-                print(f"      - {msg}")
+        print(f"  {symbol}:")
+        for msg in res['success']:
+            print(f"    ✓ {msg}")
+        for msg in res['fail']:
+            print(f"    ❌ {msg}")
     
     # Determine pass/fail from grouped results
     any_fail = any(res['fail'] for res in results.values())
     if not any_fail:
-        print("\n✓ Symbols validation passed")
+        print("✓ Symbols validation passed")
     else:
-        print("\n❌ Symbols validation failed")
+        print("❌ Symbols validation failed")
     if warnings:
         print("\nWarnings:")
         for w in warnings:
@@ -607,6 +602,66 @@ def check_symbols(changed_files: Set[str] = None, base_sha: str = None) -> Tuple
     
     # Return errors for CI exit code
     return not any_fail, errors
+
+def get_changed_footprints(changed_files: Set[str], base_sha: str = None) -> Dict[str, Set[str]]:
+    """Get set of changed footprints from .kicad_mod files.
+    Returns a dict mapping file paths to sets of changed footprint names."""
+    changed_footprints = {}
+    # Filter for .kicad_mod files
+    mod_files = {f for f in changed_files if f.endswith('.kicad_mod')}
+    if not mod_files:
+        return changed_footprints
+    
+    print("\nDetecting footprint changes:")
+    print("------------------------")
+    
+    # For each footprint file, get the list of footprints in both versions
+    for mod_file in mod_files:
+        try:
+            # Get current footprint
+            with open(mod_file, 'r', encoding='utf-8') as f:
+                current_content = f.read()
+            current_footprint = parse_kicad_mod(current_content)
+            
+            # Get base version if we have a base SHA
+            if base_sha:
+                try:
+                    # Get the file content from the base commit
+                    base_content = subprocess.check_output(
+                        ['git', 'show', f'{base_sha}:{mod_file}'],
+                        stderr=subprocess.PIPE,
+                        universal_newlines=True
+                    )
+                    base_footprint = parse_kicad_mod(base_content)
+                    
+                    # Compare footprints
+                    if current_footprint != base_footprint:
+                        print(f"\nFile: {mod_file}")
+                        print(f"  Modified footprint: {current_footprint['name']}")
+                        changed_footprints[mod_file] = {current_footprint['name']}
+                except subprocess.CalledProcessError:
+                    # File didn't exist in base commit, it's a new footprint
+                    print(f"\nFile: {mod_file}")
+                    print(f"  New footprint: {current_footprint['name']}")
+                    changed_footprints[mod_file] = {current_footprint['name']}
+            else:
+                # No base SHA, assume the footprint is changed
+                print(f"\nFile: {mod_file}")
+                print(f"  No base SHA provided, footprint considered changed: {current_footprint['name']}")
+                changed_footprints[mod_file] = {current_footprint['name']}
+                
+        except Exception as e:
+            print(f"Warning: Error processing {mod_file}: {str(e)}")
+            continue
+    
+    if not changed_footprints:
+        print("\nNo footprint changes detected.")
+    else:
+        print("\nTotal changes:")
+        for file, footprints in changed_footprints.items():
+            print(f"  {file}: {len(footprints)} footprints changed")
+    
+    return changed_footprints
 
 def validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path):
     errors = []
@@ -649,10 +704,14 @@ def validate_footprint_file(mod_file, category, subcategory, subsubcategory, exp
     validate_footprint_file.global_results = results
     return errors
 
-def check_footprints(changed_files: Set[str] = None) -> Tuple[bool, List[str]]:
+def check_footprints(changed_files: Set[str] = None, base_sha: str = None) -> Tuple[bool, List[str]]:
     """Validate footprint libraries."""
     errors = []
     results = {}  # footprint_name -> {'success': [..], 'fail': [..]}
+    
+    # Get changed footprints if we have changed files
+    changed_footprints = get_changed_footprints(changed_files, base_sha) if changed_files else None
+    
     for category, cat_info in CATEGORIES.items():
         for subcategory, subcat_info in cat_info['subcategories'].items():
             # Handle nested subcategories
@@ -669,8 +728,14 @@ def check_footprints(changed_files: Set[str] = None) -> Tuple[bool, List[str]]:
                     for mod_file in mod_files:
                         if changed_files and mod_file not in changed_files:
                             continue
+                        # Skip unchanged footprints if we're tracking changes
+                        if changed_footprints and mod_file in changed_footprints:
+                            with open(mod_file, 'r', encoding='utf-8') as f:
+                                content = f.read()
+                            footprint = parse_kicad_mod(content)
+                            if footprint['name'] not in changed_footprints[mod_file]:
+                                continue
                         file_errors = validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path)
-                        # Collect results from global_results (set below)
                         if hasattr(validate_footprint_file, 'global_results'):
                             for fp_name, res in validate_footprint_file.global_results.items():
                                 results.setdefault(fp_name, {'success': [], 'fail': []})
@@ -698,6 +763,13 @@ def check_footprints(changed_files: Set[str] = None) -> Tuple[bool, List[str]]:
                 for mod_file in mod_files:
                     if changed_files and mod_file not in changed_files:
                         continue
+                    # Skip unchanged footprints if we're tracking changes
+                    if changed_footprints and mod_file in changed_footprints:
+                        with open(mod_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        footprint = parse_kicad_mod(content)
+                        if footprint['name'] not in changed_footprints[mod_file]:
+                            continue
                     file_errors = validate_footprint_file(mod_file, category, subcategory, None, expected_path)
                     if hasattr(validate_footprint_file, 'global_results'):
                         for fp_name, res in validate_footprint_file.global_results.items():
@@ -716,7 +788,7 @@ def check_footprints(changed_files: Set[str] = None) -> Tuple[bool, List[str]]:
                     errors.extend(file_errors)
     # Print grouped results
     print("\nFootprint Validation:")
-    for fp, res in results.items():
+    for fp, res in sorted(results.items()):
         print(f"  {fp}:")
         for msg in res['success']:
             print(f"    ✓ {msg}")
