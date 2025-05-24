@@ -63,13 +63,13 @@ jobs:
           sudo apt-get install -y software-properties-common
           sudo add-apt-repository --yes ppa:kicad/kicad-7.0-releases
           sudo apt-get update
-          # Install KiCad components individually
+          # Install KiCad and its components
           sudo apt-get install -y \
+            kicad \
             kicad-symbols \
             kicad-footprints \
             kicad-packages3d \
-            kicad-templates \
-            kicad-cli
+            kicad-templates
 
       - name: Verify KiCad CLI
         run: |
