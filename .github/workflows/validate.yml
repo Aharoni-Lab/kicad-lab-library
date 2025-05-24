@@ -57,26 +57,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install KiCad
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y software-properties-common
-          sudo add-apt-repository --yes ppa:kicad/kicad-7.0-releases
-          sudo apt-get update
-          # Install KiCad and its components
-          sudo apt-get install -y \
-            kicad \
-            kicad-symbols \
-            kicad-footprints \
-            kicad-packages3d \
-            kicad-templates
-
-      - name: Verify KiCad CLI
-        run: |
-          kicad-cli --version
-          kicad-cli pcb --version
-          kicad-cli sch --version
-
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
