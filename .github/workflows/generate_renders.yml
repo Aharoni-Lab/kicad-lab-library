@@ -27,8 +27,13 @@ jobs:
           sudo apt-get install -y software-properties-common
           sudo add-apt-repository --yes ppa:kicad/kicad-7.0-releases
           sudo apt-get update
-          # Install latest version for Ubuntu 24.04
-          sudo apt-get install -y kicad
+          # Install KiCad components individually
+          sudo apt-get install -y \
+            kicad-symbols \
+            kicad-footprints \
+            kicad-packages3d \
+            kicad-templates \
+            kicad-cli
       
       - name: Check KiCad CLI
         run: |
