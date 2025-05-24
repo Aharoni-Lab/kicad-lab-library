@@ -850,7 +850,17 @@ def main():
     # Get base SHA for PRs
     base_sha = None
     if os.environ.get('GITHUB_EVENT_NAME') == 'pull_request':
-        base_sha = os.environ.get('GITHUB_BASE_SHA')
+        # Try to get base SHA from event file
+        event_path = os.environ.get('GITHUB_EVENT_PATH')
+        if event_path and os.path.exists(event_path):
+            try:
+                with open(event_path, 'r') as f:
+                    event_data = json.load(f)
+                    base_sha = event_data.get('pull_request', {}).get('base', {}).get('sha')
+                    if base_sha:
+                        print(f"\nUsing base SHA: {base_sha}")
+            except Exception as e:
+                print(f"Warning: Could not read GitHub event file: {str(e)}")
     
     print("Running KiCad library validation...")
     if changed_files:
