@@ -581,24 +581,29 @@ def check_symbols(changed_files: Set[str] = None, base_sha: str = None) -> Tuple
                         validate_symbol_file.global_results = {}
     
     # Print grouped results
-    print("\nSymbol Validation:")
-    for symbol, res in results.items():
-        print(f"  {symbol}:")
-        for msg in res['success']:
-            print(f"    ✓ {msg}")
-        for msg in res['fail']:
-            print(f"    ❌ {msg}")
+    print("\nSymbol Validation Results:")
+    print("-" * 30)
+    for symbol, res in sorted(results.items()):
+        print(f"\n  {symbol}:")
+        if res['success']:
+            print("    ✓ Successes:")
+            for msg in res['success']:
+                print(f"      - {msg}")
+        if res['fail']:
+            print("    ❌ Failures:")
+            for msg in res['fail']:
+                print(f"      - {msg}")
     
     # Determine pass/fail from grouped results
     any_fail = any(res['fail'] for res in results.values())
     if not any_fail:
-        print("✓ Symbols validation passed")
+        print("\n✓ Symbols validation passed")
     else:
-        print("❌ Symbols validation failed")
+        print("\n❌ Symbols validation failed")
     if warnings:
         print("\nWarnings:")
         for w in warnings:
-            print(w)
+            print(f"  - {w}")
     
     # Return errors for CI exit code
     return not any_fail, errors
@@ -862,9 +867,9 @@ def main():
             except Exception as e:
                 print(f"Warning: Could not read GitHub event file: {str(e)}")
     
-    print("Running KiCad library validation...")
+    print("\nRunning KiCad library validation...")
     if changed_files:
-        print(f"\nChanged files:")
+        print("\nChanged files:")
         print("-------------")
         for file in sorted(changed_files):
             print(f"  {file}")
@@ -880,24 +885,30 @@ def main():
     
     all_passed = True
     for name, check_func in checks:
-        print(f"\nChecking {name}...")
+        print(f"\n{'='*50}")
+        print(f"Checking {name}...")
+        print(f"{'='*50}")
         passed, errors = check_func()
         # Only print grouped errors for Directory Structure, 3D Models, Datasheets
         if name not in ["Symbols", "Footprints"]:
             if not passed:
-                print(f"❌ {name} validation failed:")
+                print(f"\n❌ {name} validation failed:")
                 for error in errors:
                     print(f"  - {error}")
                 all_passed = False
             else:
-                print(f"✓ {name} validation passed")
+                print(f"\n✓ {name} validation passed")
         if not passed and name in ["Symbols", "Footprints"]:
             all_passed = False
     if not all_passed:
-        print("\nValidation failed. Please fix the issues above.")
+        print("\n" + "="*50)
+        print("Validation failed. Please fix the issues above.")
+        print("="*50)
         sys.exit(1)
     else:
-        print("\nAll validations passed!")
+        print("\n" + "="*50)
+        print("All validations passed!")
+        print("="*50)
         sys.exit(0)
 
 if __name__ == '__main__':
