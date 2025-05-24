@@ -10,6 +10,7 @@ on:
       - 'symbols/**'
       - 'footprints/**'
       - '3dmodels/**'
+      - 'datasheets/**'
       - '.github/workflows/validate.yml'
   pull_request:
     paths:
@@ -18,39 +19,86 @@ on:
       - 'symbols/**'
       - 'footprints/**'
       - '3dmodels/**'
+      - 'datasheets/**'
       - '.github/workflows/validate.yml'
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pytest pyyaml
-      - name: Run unit tests
-        run: PYTHONPATH=. pytest tests/
-
   validate:
-    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for comparing changes
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-      - name: Install dependencies
+          python-version: '3.11'
+
+      - name: Install KiCad
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository --yes ppa:kicad/kicad-7.0-releases
+          sudo apt-get update
+          sudo apt-get install -y kicad
+
+      - name: Verify KiCad CLI
+        run: |
+          kicad-cli --version
+          kicad-cli pcb --version
+          kicad-cli sch --version
+
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyyaml
+          pip install pytest
+          pip install -r scripts/requirements.txt
+
+      - name: Run tests
+        run: |
+          python -m pytest tests/ -v
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # For pull requests, compare with the base branch
+            git fetch origin ${{ github.base_ref }}
+            CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} HEAD)
+          else
+            # For pushes to main, compare with the previous commit
+            CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          fi
+          
+          # Filter for relevant paths and write to file
+          echo "$CHANGED_FILES" | grep -E '^(symbols|footprints|3dmodels|datasheets|scripts|\.github/workflows)/' > changed_files.txt
+          
+          # Set output for next steps
+          echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+          cat changed_files.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Run validation
-        run: python scripts/validate_libraries.py
+        if: steps.changed-files.outputs.changed_files != ''
+        run: |
+          # Set LAB_ROOT environment variable
+          export LAB_ROOT=${{ github.workspace }}
+          
+          # Run validation script with changed files
+          python scripts/validate_libraries.py --changed-files changed_files.txt
+
+      - name: Check validation results
+        if: steps.changed-files.outputs.changed_files != ''
+        run: |
+          if [ -f validation_results.json ]; then
+            # Check if there are any errors
+            if jq -e '.errors | length > 0' validation_results.json; then
+              echo "Validation errors found:"
+              jq '.errors[]' validation_results.json
+              exit 1
+            fi
+          fi
 
   pr_checks:
     if: github.event_name == 'pull_request'

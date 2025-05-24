@@ -153,6 +153,42 @@ Our library is organized into three main directories, each with subdirectories f
 - **No duplicates**: No duplicate symbol or footprint names.
 - **Grouped validation output**: The validation script will print a grouped summary for each symbol and footprint, showing all passing (✓) and failing (❌) checks under each item.
 
+### Optimized Validation and Rendering
+The validation and rendering process has been optimized to only process changed files and symbols:
+
+1. **Changed File Detection**:
+   - For PRs: Files changed between the PR branch and target branch
+   - For direct pushes to main: Files changed in the latest commit
+   - Only relevant files are processed (symbols, footprints, 3D models)
+
+2. **Symbol-Level Changes**:
+   - For symbol files (.kicad_sym), only changed symbols are validated and rendered
+   - Changes are detected at the individual symbol level
+   - New, modified, and removed symbols are tracked separately
+
+3. **Other Components**:
+   - Footprints (.kicad_mod) are validated and rendered at the file level
+   - 3D models (.step, .wrl) are validated and rendered at the file level
+   - Datasheets are validated at the file level
+
+4. **Running Validation Locally**:
+   ```bash
+   # Validate all files (backward compatible)
+   python scripts/validate_libraries.py
+
+   # Validate only changed files
+   python scripts/validate_libraries.py --changed-files changed_files.txt
+   ```
+
+5. **Generating Renders Locally**:
+   ```bash
+   # Generate renders for all files (backward compatible)
+   python scripts/generate_renders.py
+
+   # Generate renders for changed files
+   python scripts/generate_renders.py --changed-files changed_files.txt
+   ```
+
 ### Running Validation Locally
 Before submitting your PR, run the validation script:
 ```bash

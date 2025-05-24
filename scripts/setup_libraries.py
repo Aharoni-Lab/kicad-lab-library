@@ -74,12 +74,13 @@ def generate_library_entries(structure):
     
     return "\n".join(sym_entries), "\n".join(fp_entries)
 
-def backup_file(file_path):
-    """Create a backup of the file if it exists."""
-    if file_path.exists():
-        backup_path = file_path.with_suffix(file_path.suffix + ".bak")
-        print(f"Creating backup of {file_path} as {backup_path}")
-        file_path.rename(backup_path)
+def backup_file(file_path: Path) -> None:
+    """Create a backup of a file before modifying it."""
+    backup_path = file_path.with_suffix(file_path.suffix + '.bak')
+    if backup_path.exists():
+        backup_path.unlink()  # Remove existing backup file
+    file_path.rename(backup_path)
+    print(f"Created backup of {file_path} as {backup_path}")
 
 def append_libraries(config_file, entries):
     """Append library entries to the configuration file, only if not already present."""

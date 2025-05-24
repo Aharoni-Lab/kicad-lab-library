@@ -31,14 +31,16 @@ jobs:
           which kicad-cli || echo "kicad-cli not found"
           kicad-cli --version || echo "kicad-cli not working"
       
-      - name: Get modified files
-        id: modified-files
+      - name: Get changed files
+        id: changed-files
         run: |
           # Get list of modified files
-          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > modified_files.txt
-          # Set environment variable with modified files
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > changed_files.txt
+          # Filter for relevant files
+          grep -E '\.(kicad_sym|kicad_mod|wrl|step)$' changed_files.txt > filtered_changed_files.txt
+          # Set environment variable with changed files
           echo "MODIFIED_FILES<<EOF" >> $GITHUB_ENV
-          cat modified_files.txt >> $GITHUB_ENV
+          cat filtered_changed_files.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
       
       - name: Install dependencies
@@ -48,7 +50,12 @@ jobs:
       
       - name: Generate renders
         run: |
-          python scripts/generate_renders.py
+          if [ -s filtered_changed_files.txt ]; then
+            echo "Generating renders for changed files..."
+            python scripts/generate_renders.py --changed-files filtered_changed_files.txt
+          else
+            echo "No relevant files changed, skipping render generation"
+          fi
       
       - name: Upload renders
         uses: actions/upload-artifact@v4

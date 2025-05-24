@@ -8,11 +8,19 @@ import json
 import glob
 import re
 import yaml
+import argparse
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
+import subprocess
 
 LAB_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_FILE = os.path.join(LAB_ROOT, 'config', 'library_structure.yml')
+
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description='Validate KiCad library files')
+    parser.add_argument('--changed-files', type=str, help='Path to file containing list of changed files')
+    return parser.parse_args()
 
 def load_config() -> Dict:
     """Load the library structure configuration."""
@@ -30,70 +38,78 @@ REQUIRED_SYMBOL_FIELDS = set(CONFIG['validation']['required_symbol_fields'])
 REQUIRED_FOOTPRINT_FIELDS = set(CONFIG['validation']['required_footprint_fields'])
 MAX_3D_MODEL_SIZE = CONFIG['validation']['max_3d_model_size_mb'] * 1024 * 1024
 
-def validate_directory_structure() -> Tuple[bool, List[str]]:
+def get_changed_files(changed_files_path: str = None) -> Set[str]:
+    """Get set of changed files from file or return None for all files."""
+    if not changed_files_path or not os.path.exists(changed_files_path):
+        return None
+    
+    with open(changed_files_path, 'r') as f:
+        return {line.strip() for line in f if line.strip()}
+
+def validate_directory_structure(changed_files: Set[str] = None, lab_root: str = None) -> Tuple[bool, List[str]]:
     """Validate that the actual directory structure matches the configuration."""
     errors = []
     required_dirs = set()
-    
+    if lab_root is None:
+        lab_root = LAB_ROOT
     # Build the set of required directories from the configuration
     for category in CATEGORIES:
         # Add main category directories
         for lib_type in ['symbols', 'footprints', '3dmodels']:
-            required_dirs.add(os.path.join(LAB_ROOT, lib_type, category))
-        
+            required_dirs.add(os.path.join(lab_root, lib_type, category))
         # Add subcategory directories
         for subcategory in CATEGORIES[category]['subcategories']:
             for lib_type in ['symbols', 'footprints', '3dmodels']:
-                required_dirs.add(os.path.join(LAB_ROOT, lib_type, category, subcategory))
-            
+                required_dirs.add(os.path.join(lab_root, lib_type, category, subcategory))
             # Add nested subcategory directories if they exist
             if 'subcategories' in CATEGORIES[category]['subcategories'][subcategory]:
                 for subsubcategory in CATEGORIES[category]['subcategories'][subcategory]['subcategories']:
                     for lib_type in ['symbols', 'footprints', '3dmodels']:
-                        required_dirs.add(os.path.join(LAB_ROOT, lib_type, category, subcategory, subsubcategory))
-    
+                        required_dirs.add(os.path.join(lab_root, lib_type, category, subcategory, subsubcategory))
+    # If we have changed files, only check directories that contain them
+    if changed_files:
+        dirs_to_check = set()
+        for file in changed_files:
+            parts = Path(file).parts
+            if len(parts) >= 3 and parts[0] in ['symbols', 'footprints', '3dmodels']:
+                dirs_to_check.add(os.path.join(lab_root, *parts[:-1]))
+        if not dirs_to_check:
+            return True, []  # No relevant directories to check
+        required_dirs = required_dirs.intersection(dirs_to_check)
     # Check for missing directories
     for required_dir in required_dirs:
         if not os.path.exists(required_dir):
-            errors.append(f"Missing required directory: {os.path.relpath(required_dir, LAB_ROOT)}")
-    
+            errors.append(f"Missing required directory: {os.path.relpath(required_dir, lab_root)}")
     # Check for unexpected directories
     for lib_type in ['symbols', 'footprints', '3dmodels']:
-        lib_root = os.path.join(LAB_ROOT, lib_type)
+        lib_root = os.path.join(lab_root, lib_type)
         if not os.path.exists(lib_root):
             errors.append(f"Missing library root directory: {lib_type}/")
             continue
-        
         # Check each category directory
         for category in os.listdir(lib_root):
             category_path = os.path.join(lib_root, category)
             if not os.path.isdir(category_path):
                 continue
-            
             if category not in CATEGORIES:
                 errors.append(f"Unexpected category directory: {lib_type}/{category}/")
                 continue
-            
             # Check subcategories
             for subcategory in os.listdir(category_path):
                 subcategory_path = os.path.join(category_path, subcategory)
                 if not os.path.isdir(subcategory_path):
                     continue
-                
                 if subcategory not in CATEGORIES[category]['subcategories']:
                     errors.append(f"Unexpected subcategory directory: {lib_type}/{category}/{subcategory}/")
                     continue
-                
                 # Check nested subcategories
                 if 'subcategories' in CATEGORIES[category]['subcategories'][subcategory]:
                     for subsubcategory in os.listdir(subcategory_path):
                         subsubcategory_path = os.path.join(subcategory_path, subsubcategory)
                         if not os.path.isdir(subsubcategory_path):
                             continue
-                        
                         if subsubcategory not in CATEGORIES[category]['subcategories'][subcategory]['subcategories']:
                             errors.append(f"Unexpected nested subcategory directory: {lib_type}/{category}/{subcategory}/{subsubcategory}/")
-    
     return len(errors) == 0, errors
 
 def get_component_category(name: str) -> Tuple[str, str, str]:
@@ -282,8 +298,10 @@ def parse_kicad_mod(content: str) -> Dict:
     footprint = {'name': '', 'fields': {}, 'models': [], 'pads': set()}
     tags_value = None
 
-    # Extract name (should match (footprint "NAME")
+    # Extract name (should match (footprint "NAME") or (module "NAME")
     name_match = re.search(r'\(footprint\s+"([^"]+)"', content)
+    if not name_match:
+        name_match = re.search(r'\(module\s+"([^"]+)"', content)
     if name_match:
         footprint['name'] = name_match.group(1)
 
@@ -323,13 +341,64 @@ def parse_kicad_mod(content: str) -> Dict:
             # (tags "kword1 kword2")
             tag_match = re.match(r'\(tags\s+"([^"]*)"', line)
             if tag_match:
-                tags_value = tag_match.group(1)
+                tags_value = tag_match.group(2)
     # If no property Keywords, use tags as Keywords
     if 'Keywords' not in footprint['fields'] and tags_value is not None:
         footprint['fields']['Keywords'] = tags_value
     return footprint
 
-def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_footprint_file_by_libprefix):
+def get_changed_symbols(changed_files: Set[str], base_sha: str = None) -> Dict[str, Set[str]]:
+    """Get set of changed symbols from .kicad_sym files.
+    Returns a dict mapping file paths to sets of changed symbol names."""
+    changed_symbols = {}
+    # Filter for .kicad_sym files
+    sym_files = {f for f in changed_files if f.endswith('.kicad_sym')}
+    if not sym_files:
+        return changed_symbols
+    # For each symbol file, get the list of symbols in both versions
+    for sym_file in sym_files:
+        current_symbols = set()
+        try:
+            # Get current symbols
+            with open(sym_file, 'r', encoding='utf-8') as f:
+                current_content = f.read()
+            current_symbols = {s['name'] for s in parse_kicad_sym(current_content)}
+            # Get base version symbols if we have a base SHA
+            if base_sha:
+                try:
+                    # Get the file content from the base commit
+                    base_content = subprocess.check_output(
+                        ['git', 'show', f'{base_sha}:{sym_file}'],
+                        stderr=subprocess.PIPE,
+                        universal_newlines=True
+                    )
+                    base_symbols = {s['name'] for s in parse_kicad_sym(base_content)}
+                except subprocess.CalledProcessError:
+                    # File didn't exist in base commit, all symbols are new
+                    base_symbols = set()
+            else:
+                # No base SHA, assume all symbols are changed
+                base_symbols = set()
+            # Find changed symbols (added, modified, or removed)
+            diff = current_symbols.symmetric_difference(base_symbols)
+            # For modified symbols, we need to compare their content
+            if base_sha:
+                common_symbols = current_symbols.intersection(base_symbols)
+                for symbol_name in common_symbols:
+                    # Get current symbol content
+                    current_symbol = next(s for s in parse_kicad_sym(current_content) if s['name'] == symbol_name)
+                    base_symbol = next(s for s in parse_kicad_sym(base_content) if s['name'] == symbol_name)
+                    if current_symbol != base_symbol:
+                        diff.add(symbol_name)
+            if diff:
+                changed_symbols[sym_file] = diff
+        except Exception as e:
+            print(f"Warning: Error processing {sym_file}: {str(e)}")
+            # If we can't process the file, do not add it to the result
+            continue
+    return changed_symbols
+
+def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_footprint_file_by_libprefix, changed_symbols: Dict[str, Set[str]] = None):
     errors = []
     warnings = []
     results = {}  # symbol_name -> {'success': [..], 'fail': [..]}
@@ -350,6 +419,9 @@ def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_f
         # Check each symbol
         symbol_names = set()
         for symbol in symbols:
+            # Skip unchanged symbols if we're tracking changes
+            if changed_symbols and sym_file in changed_symbols and symbol['name'] not in changed_symbols[sym_file]:
+                continue
             # Check for duplicates
             if symbol['name'] in symbol_names:
                 errors.append(f"Duplicate symbol name: {symbol['name']}")
@@ -398,11 +470,15 @@ def validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_f
     validate_symbol_file.global_results = results
     return errors, warnings
 
-def check_symbols() -> Tuple[bool, List[str]]:
+def check_symbols(changed_files: Set[str] = None, base_sha: str = None) -> Tuple[bool, List[str]]:
     """Validate symbol library files."""
     errors = []
     warnings = []
     results = {}  # symbol_name -> {'success': [..], 'fail': [..]}
+    
+    # Get changed symbols if we have changed files
+    changed_symbols = get_changed_symbols(changed_files, base_sha) if changed_files else None
+    
     def find_footprint_file_by_libprefix(footprint_field: str) -> str:
         if ':' not in footprint_field:
             return None
@@ -415,6 +491,7 @@ def check_symbols() -> Tuple[bool, List[str]]:
             if os.path.exists(abs_fp_path):
                 return abs_fp_path
         return None
+    
     for category, cat_info in CATEGORIES.items():
         for subcategory, subcat_info in cat_info['subcategories'].items():
             # Handle nested subcategories
@@ -427,7 +504,9 @@ def check_symbols() -> Tuple[bool, List[str]]:
                     if not sym_files:
                         continue
                     for sym_file in sym_files:
-                        file_errors, file_warnings = validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_footprint_file_by_libprefix)
+                        if changed_files and sym_file not in changed_files:
+                            continue
+                        file_errors, file_warnings = validate_symbol_file(sym_file, category, subcategory, subsubcategory, find_footprint_file_by_libprefix, changed_symbols)
                         errors.extend(file_errors)
                         warnings.extend(file_warnings)
                         # Collect successes and fails
@@ -445,7 +524,9 @@ def check_symbols() -> Tuple[bool, List[str]]:
                 if not sym_files:
                     continue
                 for sym_file in sym_files:
-                    file_errors, file_warnings = validate_symbol_file(sym_file, category, subcategory, None, find_footprint_file_by_libprefix)
+                    if changed_files and sym_file not in changed_files:
+                        continue
+                    file_errors, file_warnings = validate_symbol_file(sym_file, category, subcategory, None, find_footprint_file_by_libprefix, changed_symbols)
                     errors.extend(file_errors)
                     warnings.extend(file_warnings)
                     if hasattr(validate_symbol_file, 'global_results'):
@@ -454,6 +535,7 @@ def check_symbols() -> Tuple[bool, List[str]]:
                             results[symbol_name]['success'].extend(res.get('success', []))
                             results[symbol_name]['fail'].extend(res.get('fail', []))
                         validate_symbol_file.global_results = {}
+    
     # Print grouped results
     print("\nSymbol Validation:")
     for symbol, res in results.items():
@@ -462,6 +544,7 @@ def check_symbols() -> Tuple[bool, List[str]]:
             print(f"    ✓ {msg}")
         for msg in res['fail']:
             print(f"    ❌ {msg}")
+    
     # Determine pass/fail from grouped results
     any_fail = any(res['fail'] for res in results.values())
     if not any_fail:
@@ -472,6 +555,7 @@ def check_symbols() -> Tuple[bool, List[str]]:
         print("\nWarnings:")
         for w in warnings:
             print(w)
+    
     # Return errors for CI exit code
     return not any_fail, errors
 
@@ -482,6 +566,10 @@ def validate_footprint_file(mod_file, category, subcategory, subsubcategory, exp
         with open(mod_file, 'r', encoding='utf-8') as f:
             content = f.read()
         footprint = parse_kicad_mod(content)
+        if not footprint['name']:
+            errors.append(f"Could not extract footprint name from {mod_file}")
+            validate_footprint_file.global_results = results
+            return errors
         # Use file path to determine category
         actual_path = os.path.relpath(os.path.dirname(mod_file), os.path.join(LAB_ROOT, 'footprints'))
         if expected_path != actual_path:
@@ -512,7 +600,7 @@ def validate_footprint_file(mod_file, category, subcategory, subsubcategory, exp
     validate_footprint_file.global_results = results
     return errors
 
-def check_footprints() -> Tuple[bool, List[str]]:
+def check_footprints(changed_files: Set[str] = None) -> Tuple[bool, List[str]]:
     """Validate footprint libraries."""
     errors = []
     results = {}  # footprint_name -> {'success': [..], 'fail': [..]}
@@ -530,6 +618,8 @@ def check_footprints() -> Tuple[bool, List[str]]:
                     footprint_names = set()
                     expected_path = get_component_path(category, subcategory, subsubcategory)
                     for mod_file in mod_files:
+                        if changed_files and mod_file not in changed_files:
+                            continue
                         file_errors = validate_footprint_file(mod_file, category, subcategory, subsubcategory, expected_path)
                         # Collect results from global_results (set below)
                         if hasattr(validate_footprint_file, 'global_results'):
@@ -557,6 +647,8 @@ def check_footprints() -> Tuple[bool, List[str]]:
                 footprint_names = set()
                 expected_path = get_component_path(category, subcategory)
                 for mod_file in mod_files:
+                    if changed_files and mod_file not in changed_files:
+                        continue
                     file_errors = validate_footprint_file(mod_file, category, subcategory, None, expected_path)
                     if hasattr(validate_footprint_file, 'global_results'):
                         for fp_name, res in validate_footprint_file.global_results.items():
@@ -589,7 +681,7 @@ def check_footprints() -> Tuple[bool, List[str]]:
         print("❌ Footprints validation failed")
     return not any_fail, errors
 
-def check_3d_models() -> Tuple[bool, List[str]]:
+def check_3d_models(changed_files: Set[str] = None) -> Tuple[bool, List[str]]:
     """Validate 3D model files."""
     errors = []
     
@@ -670,7 +762,7 @@ def validate_datasheet_file(file_path, allowed_formats, max_size_mb, naming_conv
         errors.append(f"Error checking {os.path.basename(file_path)}: {str(e)}")
     return errors
 
-def check_datasheets() -> Tuple[bool, List[str]]:
+def check_datasheets(changed_files: Set[str] = None) -> Tuple[bool, List[str]]:
     """Validate datasheet files and references."""
     errors = []
     allowed_formats = CONFIG['datasheets']['allowed_formats']
@@ -685,6 +777,8 @@ def check_datasheets() -> Tuple[bool, List[str]]:
                     if not os.path.exists(datasheet_dir):
                         continue
                     for file in os.listdir(datasheet_dir):
+                        if changed_files and file not in changed_files:
+                            continue
                         file_path = os.path.join(datasheet_dir, file)
                         if not os.path.isfile(file_path):
                             continue
@@ -695,6 +789,8 @@ def check_datasheets() -> Tuple[bool, List[str]]:
                 if not os.path.exists(datasheet_dir):
                     continue
                 for file in os.listdir(datasheet_dir):
+                    if changed_files and file not in changed_files:
+                        continue
                     file_path = os.path.join(datasheet_dir, file)
                     if not os.path.isfile(file_path):
                         continue
@@ -704,11 +800,21 @@ def check_datasheets() -> Tuple[bool, List[str]]:
 
 def main():
     """Run all validation checks."""
+    args = parse_args()
+    changed_files = get_changed_files(args.changed_files)
+    
+    # Get base SHA for PRs
+    base_sha = None
+    if os.environ.get('GITHUB_EVENT_NAME') == 'pull_request':
+        base_sha = os.environ.get('GITHUB_BASE_SHA')
+    
     print("Running KiCad library validation...")
+    if changed_files:
+        print(f"Validating {len(changed_files)} changed files...")
     
     checks = [
         ("Directory Structure", validate_directory_structure),
-        ("Symbols", check_symbols),
+        ("Symbols", lambda: check_symbols(changed_files, base_sha)),
         ("Footprints", check_footprints),
         ("3D Models", check_3d_models),
         ("Datasheets", check_datasheets)
