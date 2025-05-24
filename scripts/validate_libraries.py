@@ -341,7 +341,7 @@ def parse_kicad_mod(content: str) -> Dict:
             # (tags "kword1 kword2")
             tag_match = re.match(r'\(tags\s+"([^"]*)"', line)
             if tag_match:
-                tags_value = tag_match.group(2)
+                tags_value = tag_match.group(1)
     # If no property Keywords, use tags as Keywords
     if 'Keywords' not in footprint['fields'] and tags_value is not None:
         footprint['fields']['Keywords'] = tags_value
