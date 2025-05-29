@@ -1,0 +1,141 @@
+version: "1.0"
+description: "KiCad library for the Aharoni Lab"
+
+library:
+  prefix: ".Lab"
+  description: "KiCad library for the Aharoni Lab"
+  maintainer: "Daniel Aharoni <daharoni@mednet.ucla.edu>"
+  license: "MIT"
+  website: "https://github.com/Aharoni-Lab/kicad-lab-library"
+  repository: "https://github.com/Aharoni-Lab/kicad-lab-library.git"
+  directories:
+    symbols: "symbols"
+    footprints: "footprints"
+    models_3d: "3dmodels"
+    documentation: "docs"
+    tables: "tables"
+  naming:
+    symbols:
+      include_categories: true
+      category_separator: "_"
+      pattern: "^[A-Z][A-Za-z0-9_]+$"
+    footprints:
+      include_categories: true
+      category_separator: "_"
+      pattern: "^[A-Z][A-Za-z0-9_]+$"
+    models_3d:
+      include_categories: true
+      category_separator: "_"
+      pattern: "^[A-Z][A-Za-z0-9_]+$"
+    documentation:
+      include_categories: true
+      category_separator: "_"
+
+symbols:
+  actives:
+    description: "Active components"
+    categories:
+      ics:
+        description: "Integrated Circuits"
+        required_properties:
+          value:
+            type: "string"
+            pattern: "^[A-Z0-9-]+$"
+          manufacturer:
+            type: "string"
+          datasheet:
+            type: "string"
+            pattern: "^https?://.+$"
+      transistors:
+        description: "Transistors and other active components"
+        required_properties:
+          value:
+            type: "string"
+            pattern: "^[A-Z0-9-]+$"
+          manufacturer:
+            type: "string"
+          datasheet:
+            type: "string"
+            pattern: "^https?://.+$"
+  passives:
+    description: "Passive components"
+    categories:
+      capacitors:
+        description: "Capacitors"
+        required_properties:
+          value:
+            type: "string"
+            pattern: "^[0-9.]+[pPnNuUmMkK]?F$"
+          voltage:
+            type: "string"
+            pattern: "^[0-9.]+V$"
+          tolerance:
+            type: "string"
+            pattern: "^[0-9.]+%$"
+      resistors:
+        description: "Resistors"
+        required_properties:
+          value:
+            type: "string"
+            pattern: "^[0-9.]+[mMkKR]?$"
+          tolerance:
+            type: "string"
+            pattern: "^[0-9.]+%$"
+          power:
+            type: "string"
+            pattern: "^[0-9.]+W$"
+
+footprints:
+  smd:
+    description: "Surface Mount Devices"
+    categories:
+      capacitors:
+        description: "Surface mount capacitors"
+        required_properties:
+          package:
+            type: "string"
+          value:
+            type: "string"
+      resistors:
+        description: "Surface mount resistors"
+        required_properties:
+          package:
+            type: "string"
+          value:
+            type: "string"
+
+models_3d:
+  passives:
+    description: "Passive components"
+    categories:
+      capacitors:
+        description: "Capacitors"
+        required_properties:
+          value:
+            type: "string"
+          package:
+            type: "string"
+
+documentation:
+  passives:
+    description: "Passive components"
+    categories:
+      datasheets:
+        description: "Component datasheets"
+        required_properties:
+          title:
+            type: "string"
+          url:
+            type: "string"
+            pattern: "^https?://.+$"
+  actives:
+    description: "Active components"
+    categories:
+      datasheets:
+        description: "Component datasheets"
+        required_properties:
+          title:
+            type: "string"
+          url:
+            type: "string"
+            pattern: "^https?://.+$" 
