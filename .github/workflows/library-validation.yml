@@ -55,6 +55,8 @@ jobs:
           if [ $missing -eq 1 ]; then
             echo "Directory structure missing. Running create_library_structure.py..."
             python -m kicad_lib_validator.utils.create_library_structure structure.yaml
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
             git add .
             git commit -m "Initialize KiCad library directory structure from structure.yaml [skip ci]"
             git push
