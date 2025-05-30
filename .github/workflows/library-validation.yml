@@ -145,10 +145,23 @@ jobs:
       - name: Generate Library Report
         id: report
         run: |
+          # Set up flags based on outputs
+          tables_flag=""
+          structure_flag=""
+          if [ "${{ needs.validate-and-update.outputs.tables_updated }}" = "true" ]; then
+            tables_flag="--tables-updated"
+          fi
+          if [ "${{ needs.validate-and-update.outputs.structure_generated }}" = "true" ]; then
+            structure_flag="--structure-generated"
+          fi
+          
+          # Generate report with appropriate flags
           report_content=$(python -m kicad_lib_validator.utils.generate_report . \
-            --tables-updated ${{ needs.validate-and-update.outputs.tables_updated }} \
-            --structure-generated ${{ needs.validate-and-update.outputs.structure_generated }} \
+            $tables_flag \
+            $structure_flag \
             --verbose)
+            
+          # Set output
           echo "report_content<<EOF" >> $GITHUB_OUTPUT
           echo "$report_content" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
