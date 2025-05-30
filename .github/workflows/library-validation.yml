@@ -157,10 +157,25 @@ jobs:
       - name: Commit Table Changes
         if: steps.tables.outputs.changes == 'true'
         run: |
+          # Configure git
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+          
+          # Fetch the latest changes
+          git fetch origin ${{ github.head_ref }}
+          
+          # Create and checkout the branch
+          git checkout -b ${{ github.head_ref }}
+          
+          # Reset to the remote branch state
+          git reset --soft origin/${{ github.head_ref }}
+          
+          # Add and commit changes
+          git add tables/
           git commit -m "Update library tables [skip ci]"
-          git push origin HEAD:${{ github.head_ref }}
+          
+          # Force push to update the branch
+          git push -f origin HEAD:${{ github.head_ref }}
 
   comment-pr:
     needs: [generate-report, generate-tables]
