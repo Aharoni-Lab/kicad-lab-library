@@ -1,9 +1,9 @@
 version: "1.0"
-description: "KiCad library for the Aharoni Lab"
+description: ".Lab: Shared KiCad Library for the Aharoni Lab"
 
 library:
   prefix: ".Lab"
-  description: "KiCad library for the Aharoni Lab"
+  description: "Validated KiCad library for lab-wide hardware"
   maintainer: "Daniel Aharoni <daharoni@mednet.ucla.edu>"
   license: "MIT"
   website: "https://github.com/Aharoni-Lab/kicad-lab-library"
@@ -16,126 +16,513 @@ library:
     tables: "tables"
   naming:
     symbols:
+      prefix: true
+      separator: "_"
+      case: "upper"
       include_categories: true
       category_separator: "_"
-      pattern: "^[A-Z][A-Za-z0-9_]+$"
     footprints:
+      prefix: true
+      separator: "_"
+      case: "upper"
       include_categories: true
       category_separator: "_"
-      pattern: "^[A-Z][A-Za-z0-9_]+$"
     models_3d:
-      include_categories: true
-      category_separator: "_"
-      pattern: "^[A-Z][A-Za-z0-9_]+$"
-    documentation:
-      include_categories: true
+      prefix: false
+      separator: "_"
+      case: "lower"
+      include_categories: false
       category_separator: "_"
 
 symbols:
-  actives:
-    description: "Active components"
-    categories:
-      ics:
-        description: "Integrated Circuits"
-        required_properties:
-          value:
-            type: "string"
-            pattern: "^[A-Z0-9-]+$"
-          manufacturer:
-            type: "string"
-          datasheet:
-            type: "string"
-            pattern: "^https?://.+$"
-      transistors:
-        description: "Transistors and other active components"
-        required_properties:
-          value:
-            type: "string"
-            pattern: "^[A-Z0-9-]+$"
-          manufacturer:
-            type: "string"
-          datasheet:
-            type: "string"
-            pattern: "^https?://.+$"
-  passives:
+  passive:
     description: "Passive components"
-    categories:
-      capacitors:
-        description: "Capacitors"
+    entries:
+      resistor:
+        description: "Resistor symbols"
+        reference_prefix: "R"
         required_properties:
-          value:
+          Validated:
             type: "string"
-            pattern: "^[0-9.]+[pPnNuUmMkK]?F$"
-          voltage:
+            pattern: "^(Yes|No)$"
+            description: "Whether the component has been validated"
+        optional_properties:
+          Value:
             type: "string"
-            pattern: "^[0-9.]+V$"
-          tolerance:
+            pattern: "^[0-9.]+[kM]?[Ω]?$"
+            description: "Resistance with unit"
+          Tolerance:
             type: "string"
             pattern: "^[0-9.]+%$"
-      resistors:
-        description: "Resistors"
-        required_properties:
-          value:
-            type: "string"
-            pattern: "^[0-9.]+[mMkKR]?$"
-          tolerance:
-            type: "string"
-            pattern: "^[0-9.]+%$"
-          power:
+            description: "Tolerance"
+          Power:
             type: "string"
             pattern: "^[0-9.]+W$"
+            description: "Power rating"
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+            description: "URL to datasheet"
+        pins:
+          min_count: 2
+          max_count: 2
+
+      capacitor:
+        description: "Capacitor symbols"
+        reference_prefix: "C"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+            description: "Whether the component has been validated"
+        optional_properties:
+          Value:
+            type: "string"
+            pattern: "^[0-9.]+[pPnNuUmMkK]?F$"
+            description: "Capacitance value"
+          Voltage:
+            type: "string"
+            pattern: "^[0-9.]+V$"
+            description: "Voltage rating"
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+            description: "URL to datasheet"
+        pins:
+          min_count: 2
+          max_count: 2
+
+      inductor:
+        description: "Inductor symbols"
+        reference_prefix: "L"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Value:
+            type: "string"
+            pattern: "^[0-9.]+[uUnNmH]$"
+            description: "Inductance value"
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+            description: "URL to datasheet"
+        pins:
+          min_count: 2
+          max_count: 2
+
+      ferrite_bead:
+        description: "Ferrite bead symbols"
+        reference_prefix: "L"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Impedance:
+            type: "string"
+            description: "Impedance value"
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+            description: "URL to datasheet"
+        pins:
+          min_count: 2
+          max_count: 2
+
+      diode:
+        description: "Diode symbols"
+        reference_prefix: "D"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Type:
+            type: "string"
+            description: "Diode type (e.g., signal, Schottky)"
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+        pins:
+          min_count: 2
+          max_count: 2
+
+  active:
+    description: "Active components"
+    entries:
+      opamp:
+        description: "Op-amp symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+        pins:
+          min_count: 5
+
+      comparator:
+        description: "Comparator symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+        pins:
+          min_count: 4
+
+      transistor:
+        description: "Transistor symbols"
+        reference_prefix: "Q"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Type:
+            type: "string"
+            description: "BJT or MOSFET"
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+        pins:
+          min_count: 3
+
+  power:
+    description: "Power management"
+    entries:
+      regulator:
+        description: "Regulator symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+        pins:
+          min_count: 3
+
+      power_monitor:
+        description: "Power monitor symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+        pins:
+          min_count: 3
+
+      supervisor:
+        description: "Power supervisor symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+        pins:
+          min_count: 3
+
+  connector:
+    description: "Connector symbols"
+    entries:
+      header:
+        description: "Header symbols"
+        reference_prefix: "J"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+        pins:
+          min_count: 2
+
+      usb:
+        description: "USB symbols"
+        reference_prefix: "J"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+        pins:
+          min_count: 4
+
+      molex:
+        description: "Molex symbols"
+        reference_prefix: "J"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+        pins:
+          min_count: 2
+
+      jst:
+        description: "JST symbols"
+        reference_prefix: "J"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        optional_properties:
+          Datasheet:
+            type: "string"
+            pattern: "^https?://.*$"
+        pins:
+          min_count: 2
+
+  logic:
+    description: "Logic symbols"
+    entries:
+      gate:
+        description: "Logic gate symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 4
+
+      flipflop:
+        description: "Flip-flop symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 6
+
+      multiplexer:
+        description: "Multiplexer symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 4
+
+      level_shifter:
+        description: "Level-shifter symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 4
+
+  memory:
+    description: "Memory symbols"
+    entries:
+      eeprom:
+        description: "EEPROM symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 8
+
+      flash:
+        description: "Flash symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 8
+
+      ram:
+        description: "RAM symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 8
+
+  mcu:
+    description: "Microcontroller symbols"
+    entries:
+      microchip:
+        description: "Microchip PIC/AVR symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 20
+
+      st:
+        description: "ST STM32 symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 32
+
+      espressif:
+        description: "Espressif ESP32 symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 38
+
+  sensor:
+    description: "Sensor symbols"
+    entries:
+      temperature:
+        description: "Temperature sensor symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 3
+
+      pressure:
+        description: "Pressure sensor symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 3
+
+      accelerometer:
+        description: "Accelerometer symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 6
+
+      gyro:
+        description: "Gyro symbols"
+        reference_prefix: "U"
+        required_properties:
+          Validated:
+            type: "string"
+            pattern: "^(Yes|No)$"
+        pins:
+          min_count: 6
 
 footprints:
-  smd:
-    description: "Surface Mount Devices"
-    categories:
-      capacitors:
-        description: "Surface mount capacitors"
+  passive:
+    description: "Passive footprints"
+    entries:
+      resistor_smd:
+        description: "SMD resistor footprint"
+        reference_prefix: "REF"
         required_properties:
-          package:
+          Validated:
             type: "string"
-          value:
-            type: "string"
-      resistors:
-        description: "Surface mount resistors"
-        required_properties:
-          package:
-            type: "string"
-          value:
-            type: "string"
+            pattern: "^(Yes|No)$"
+        pads:
+          count: 2
+          naming:
+            pattern: "^[12]$"
 
-models_3d:
-  passives:
-    description: "Passive components"
-    categories:
-      capacitors:
-        description: "Capacitors"
+      capacitor_smd:
+        description: "SMD capacitor footprint"
+        reference_prefix: "REF"
         required_properties:
-          value:
+          Validated:
             type: "string"
-          package:
-            type: "string"
+            pattern: "^(Yes|No)$"
+        pads:
+          count: 2
+          naming:
+            pattern: "^[12]$"
 
-documentation:
-  passives:
-    description: "Passive components"
-    categories:
-      datasheets:
-        description: "Component datasheets"
+      inductor_smd:
+        description: "SMD inductor footprint"
+        reference_prefix: "REF"
         required_properties:
-          title:
+          Validated:
             type: "string"
-          url:
-            type: "string"
-            pattern: "^https?://.+$"
-  actives:
-    description: "Active components"
-    categories:
-      datasheets:
-        description: "Component datasheets"
+            pattern: "^(Yes|No)$"
+        pads:
+          count: 2
+          naming:
+            pattern: "^[12]$"
+
+      ferrite_bead_smd:
+        description: "SMD ferrite bead footprint"
+        reference_prefix: "REF"
         required_properties:
-          title:
+          Validated:
             type: "string"
-          url:
+            pattern: "^(Yes|No)$"
+        pads:
+          count: 2
+          naming:
+            pattern: "^[12]$"
+
+      diode_smd:
+        description: "SMD diode footprint"
+        reference_prefix: "REF"
+        required_properties:
+          Validated:
             type: "string"
-            pattern: "^https?://.+$" 
+            pattern: "^(Yes|No)$"
+        pads:
+          count: 2
+          naming:
+            pattern: "^[12]$"
+
+  ic:
+    description: "IC footprints"
+    entries:
+      soic:
+        description: "SOIC footprint"
+        reference_prefix: "REF"
+        required_properties:
+          Validated:
+            type: "string"
