@@ -39,6 +39,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install git+https://github.com/Aharoni-Lab/kicad-library-validator.git
 
+      - name: Check for Missing Directory Structure
+        id: check_structure
+        run: |
+          # Check if expected directories exist
+          expected_dirs=("symbols" "footprints" "3dmodels" "docs" "tables")
+          missing=0
+          for dir in "${expected_dirs[@]}"; do
+            if [ ! -d "$dir" ]; then
+              missing=1
+              break
+            fi
+          done
+          
+          if [ $missing -eq 1 ]; then
+            echo "Directory structure missing. Running create_library_structure.py..."
+            python -m kicad_lib_validator.utils.create_library_structure structure.yaml
+            git add .
+            git commit -m "Initialize KiCad library directory structure from structure.yaml [skip ci]"
+            git push
+            echo "structure_generated=true" >> $GITHUB_OUTPUT
+          else
+            echo "structure_generated=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Generate Library Report
         id: report
         run: |
@@ -75,6 +99,11 @@ jobs:
               comment += '\n\n## Library Tables Update\n\n';
               comment += 'The following changes were made to the library tables:\n\n';
               comment += '${{ steps.tables.outputs.tables_output }}';
+            }
+            
+            if ('${{ steps.check_structure.outputs.structure_generated }}' === 'true') {
+              comment += '\n\n## Directory Structure Generated\n\n';
+              comment += 'The KiCad library directory structure was automatically generated from structure.yaml.';
             }
             
             github.rest.issues.createComment({
