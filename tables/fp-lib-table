@@ -1,8 +1,2 @@
 (fp_lib_table
-  (lib (name ".Lab")
-    (type "KiCad")
-    (uri "${.LAB_DIR}/footprints/ic.pretty")
-    (options "")
-    (descr "Footprint library for .Lab")
-  )
 )
