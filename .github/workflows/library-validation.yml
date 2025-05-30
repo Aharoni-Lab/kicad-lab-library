@@ -37,7 +37,7 @@ jobs:
       - name: Install KiCad Library Validator
         run: |
           python -m pip install --upgrade pip
-          pip install kicad-library-validator
+          pip install git+https://github.com/Aharoni-Lab/kicad-library-validator.git
 
       - name: Generate Library Report
         id: report
