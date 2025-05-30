@@ -47,11 +47,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update Library Tables
+      - name: Generate Library Tables
         id: tables
         run: |
-          # Run update_kicad_tables and capture output
-          python -m kicad_lib_validator.utils.update_kicad_tables structure.yaml --verbose > tables_output.txt
+          # Run generate_library_tables and capture output
+          python -m kicad_lib_validator.utils.generate_library_tables structure.yaml --verbose > tables_output.txt
           
           # Check if any files were modified
           if git diff --quiet tables/; then
