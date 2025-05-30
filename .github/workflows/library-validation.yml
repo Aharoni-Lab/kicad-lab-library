@@ -176,11 +176,11 @@ jobs:
           echo "Raw report content:"
           echo "${{ needs.generate-report.outputs.report_content }}"
           echo "---"
-          echo "Content preview (first 100 chars):"
-          echo "${{ needs.generate-report.outputs.report_content[0..100] }}"
-          echo "---"
           echo "Content length:"
           echo "${{ needs.generate-report.outputs.report_content }}" | wc -c
+          echo "---"
+          echo "Content preview (first few lines):"
+          echo "${{ needs.generate-report.outputs.report_content }}" | head -n 5
 
       - name: Comment on PR
         uses: actions/github-script@v7
