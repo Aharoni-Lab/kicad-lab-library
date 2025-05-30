@@ -39,13 +39,13 @@ jobs:
 
       - name: Generate Library Report
         run: |
-          python -m kicad_lib_validator.utils.generate_report . --structure-file structure.yaml --output-path library_report.md --verbose
+          python -m kicad_lib_validator.utils.generate_report . --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Library Tables
         run: |
-          python -m kicad_lib_validator.utils.update_kicad_tables structure.yaml --verbose --output-dir .
+          python -m kicad_lib_validator.utils.update_kicad_tables structure.yaml
 
       - name: Comment on PR
         if: github.event_name == 'pull_request'
