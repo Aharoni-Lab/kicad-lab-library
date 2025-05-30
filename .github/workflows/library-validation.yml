@@ -21,13 +21,79 @@ on:
       - '.github/workflows/library-validation.yml'
 
 jobs:
-  validate:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Required for checking file changes
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install KiCad Library Validator
+        run: |
+          python -m pip install --upgrade pip
+          pip install git+https://github.com/Aharoni-Lab/kicad-library-validator.git
+
+  check-structure:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install KiCad Library Validator
+        run: |
+          python -m pip install --upgrade pip
+          pip install git+https://github.com/Aharoni-Lab/kicad-library-validator.git
+
+      - name: Check for Missing Directory Structure
+        id: check_structure
+        run: |
+          # Check if expected directories exist
+          expected_dirs=("symbols" "footprints" "3dmodels" "docs" "tables")
+          missing=0
+          for dir in "${expected_dirs[@]}"; do
+            if [ ! -d "$dir" ]; then
+              missing=1
+              break
+            fi
+          done
+          
+          if [ $missing -eq 1 ]; then
+            echo "Directory structure missing. Running create_library_structure.py..."
+            python -m kicad_lib_validator.utils.create_library_structure structure.yaml
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git add .
+            git commit -m "Initialize KiCad library directory structure from structure.yaml [skip ci]"
+            git push origin HEAD:${{ github.head_ref }}
+            echo "structure_generated=true" >> $GITHUB_OUTPUT
+          else
+            echo "structure_generated=false" >> $GITHUB_OUTPUT
+          fi
+
+  generate-report:
+    needs: check-structure
+    runs-on: ubuntu-latest
+    outputs:
+      report_content: ${{ steps.report.outputs.report_content }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -47,9 +113,31 @@ jobs:
           cat report_output.txt >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+  generate-tables:
+    needs: generate-report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install KiCad Library Validator
+        run: |
+          python -m pip install --upgrade pip
+          pip install git+https://github.com/Aharoni-Lab/kicad-library-validator.git
+
       - name: Generate Library Tables
         id: tables
         run: |
+          # Create tables directory if it doesn't exist
+          mkdir -p tables
+          
           # Run generate_library_tables and capture output
           python -m kicad_lib_validator.utils.generate_library_tables structure.yaml --verbose > tables_output.txt
           
@@ -63,18 +151,37 @@ jobs:
             echo "EOF" >> $GITHUB_OUTPUT
           fi
 
+      - name: Commit Table Changes
+        if: steps.tables.outputs.changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add tables/
+          git status
+          git commit -m "Update library tables [skip ci]"
+          git push origin HEAD:${{ github.head_ref }}
+
+  comment-pr:
+    needs: [generate-report, generate-tables]
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
       - name: Comment on PR
-        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            let comment = '## Library Validation Report\n\n' + '${{ steps.report.outputs.report_content }}';
+            let comment = '## Library Validation Report\n\n' + `${{ needs.generate-report.outputs.report_content }}`;
             
-            if ('${{ steps.tables.outputs.changes }}' === 'true') {
+            if ('${{ needs.generate-tables.outputs.changes }}' === 'true') {
               comment += '\n\n## Library Tables Update\n\n';
               comment += 'The following changes were made to the library tables:\n\n';
-              comment += '${{ steps.tables.outputs.tables_output }}';
+              comment += '${{ needs.generate-tables.outputs.tables_output }}';
+            }
+            
+            if ('${{ needs.check-structure.outputs.structure_generated }}' === 'true') {
+              comment += '\n\n## Directory Structure Generated\n\n';
+              comment += 'The KiCad library directory structure was automatically generated from structure.yaml.';
             }
             
             github.rest.issues.createComment({
@@ -82,13 +189,4 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: comment
-            });
-
-      - name: Commit Table Changes
-        if: steps.tables.outputs.changes == 'true'
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add tables/
-          git commit -m "Update library tables [skip ci]"
-          git push 
+            }) 
