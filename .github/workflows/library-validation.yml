@@ -39,11 +39,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install git+https://github.com/Aharoni-Lab/kicad-library-validator.git
 
-  check-structure:
+  validate-and-update:
     needs: setup
     runs-on: ubuntu-latest
     outputs:
-      structure_generated: ${{ steps.check_structure.outputs.structure_generated }}
+      structure_generated: ${{ steps.validate.outputs.structure_generated }}
+      tables_updated: ${{ steps.validate.outputs.tables_updated }}
+      changes_made: ${{ steps.validate.outputs.changes_made }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -60,9 +62,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install git+https://github.com/Aharoni-Lab/kicad-library-validator.git
 
-      - name: Check for Missing Directory Structure
-        id: check_structure
+      - name: Validate and Update Library
+        id: validate
         run: |
+          # Initialize variables
+          structure_generated=false
+          tables_updated=false
+          changes_made=false
+          
           # Check if expected directories exist
           expected_dirs=("symbols" "footprints" "3dmodels" "docs" "tables")
           missing=0
@@ -73,21 +80,49 @@ jobs:
             fi
           done
           
+          # Create directory structure if missing
           if [ $missing -eq 1 ]; then
             echo "Directory structure missing. Running create_library_structure.py..."
             python -m kicad_lib_validator.utils.create_library_structure structure.yaml
+            structure_generated=true
+            changes_made=true
+          fi
+          
+          # Generate tables
+          echo "Generating library tables..."
+          python -m kicad_lib_validator.utils.generate_library_tables structure.yaml --verbose > tables_output.txt
+          
+          # Check if tables were modified
+          if git diff --quiet tables/; then
+            echo "No changes to tables"
+          else
+            tables_updated=true
+            changes_made=true
+          fi
+          
+          # If any changes were made, commit them
+          if [ "$changes_made" = true ]; then
             git config --local user.email "github-actions[bot]@users.noreply.github.com"
             git config --local user.name "github-actions[bot]"
             git add .
-            git commit -m "Initialize KiCad library directory structure from structure.yaml [skip ci]"
+            git commit -m "Update library structure and tables [skip ci]"
             git push origin HEAD:${{ github.head_ref }}
-            echo "structure_generated=true" >> $GITHUB_OUTPUT
-          else
-            echo "structure_generated=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Set outputs
+          echo "structure_generated=$structure_generated" >> $GITHUB_OUTPUT
+          echo "tables_updated=$tables_updated" >> $GITHUB_OUTPUT
+          echo "changes_made=$changes_made" >> $GITHUB_OUTPUT
+          
+          # Save tables output for PR comment
+          if [ "$tables_updated" = true ]; then
+            echo "tables_output<<EOF" >> $GITHUB_OUTPUT
+            cat tables_output.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
           fi
 
   generate-report:
-    needs: check-structure
+    needs: validate-and-update
     runs-on: ubuntu-latest
     outputs:
       report_content: ${{ steps.report.outputs.report_content }}
@@ -115,76 +150,9 @@ jobs:
           cat report_output.txt >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-  generate-tables:
-    needs: generate-report
-    runs-on: ubuntu-latest
-    outputs:
-      changes: ${{ steps.tables.outputs.changes }}
-      tables_output: ${{ steps.tables.outputs.tables_output }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install KiCad Library Validator
-        run: |
-          python -m pip install --upgrade pip
-          pip install git+https://github.com/Aharoni-Lab/kicad-library-validator.git
-
-      - name: Generate Library Tables
-        id: tables
-        run: |
-          # Create tables directory if it doesn't exist
-          mkdir -p tables
-          
-          # Run generate_library_tables and capture output
-          python -m kicad_lib_validator.utils.generate_library_tables structure.yaml --verbose > tables_output.txt
-          
-          # Add files to git index first
-          git add tables/
-          
-          # Check if any files were modified
-          if git diff --cached --quiet; then
-            echo "changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "changes=true" >> $GITHUB_OUTPUT
-            echo "tables_output<<EOF" >> $GITHUB_OUTPUT
-            cat tables_output.txt >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit Table Changes
-        if: steps.tables.outputs.changes == 'true'
-        run: |
-          # Configure git
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          
-          # Fetch the latest changes
-          git fetch origin ${{ github.head_ref }}
-          
-          # Create and checkout the branch
-          git checkout -b ${{ github.head_ref }}
-          
-          # Reset to the remote branch state
-          git reset --soft origin/${{ github.head_ref }}
-          
-          # Add and commit changes
-          git add tables/
-          git commit -m "Update library tables [skip ci]"
-          
-          # Force push to update the branch
-          git push -f origin HEAD:${{ github.head_ref }}
-
   comment-pr:
-    needs: [generate-report, generate-tables]
-    if: github.event_name == 'pull_request'
+    needs: [validate-and-update, generate-report]
+    if: github.event.name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Comment on PR
@@ -194,13 +162,13 @@ jobs:
           script: |
             let comment = '## Library Validation Report\n\n' + `${{ needs.generate-report.outputs.report_content }}`;
             
-            if ('${{ needs.generate-tables.outputs.changes }}' === 'true') {
+            if ('${{ needs.validate-and-update.outputs.tables_updated }}' === 'true') {
               comment += '\n\n## Library Tables Update\n\n';
               comment += 'The following changes were made to the library tables:\n\n';
-              comment += '${{ needs.generate-tables.outputs.tables_output }}';
+              comment += '${{ needs.validate-and-update.outputs.tables_output }}';
             }
             
-            if ('${{ needs.check-structure.outputs.structure_generated }}' === 'true') {
+            if ('${{ needs.validate-and-update.outputs.structure_generated }}' === 'true') {
               comment += '\n\n## Directory Structure Generated\n\n';
               comment += 'The KiCad library directory structure was automatically generated from structure.yaml.';
             }
