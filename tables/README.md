@@ -8,32 +8,32 @@ First, you need to set up the `.LAB_DIR` environment variable to point to your l
 
 ### Windows
 ```batch
-setx .LAB_DIR "C:\Users\dbaha\Documents\Projects\kicad-lab-library"
+setx .LAB_DIR "/home/runner/work/kicad-lab-library/kicad-lab-library"
 ```
 
 ### Linux/macOS
 ```bash
-echo 'export .LAB_DIR="C:\Users\dbaha\Documents\Projects\kicad-lab-library"' >> ~/.bashrc
+echo 'export .LAB_DIR="/home/runner/work/kicad-lab-library/kicad-lab-library"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
 ## 2. Add Symbol Libraries
 
 1. Locate KiCad's symbol library table file:
-   - Windows: `%APPDATA%\kicad\8.0\sym-lib-table`
-   - Linux/macOS: `~/.config/kicad/8.0/sym-lib-table`
+   - Windows: `%APPDATA%\kicad\9.0\sym-lib-table`
+   - Linux/macOS: `~/.config/kicad/9.0/sym-lib-table`
 2. Open the file in a text editor
 3. Find the closing parenthesis of the last library entry
-4. Copy all entries from `tables\sym-lib-table` and paste them before the final closing parenthesis
+4. Copy all entries from `tables/sym-lib-table` and paste them before the final closing parenthesis
 
 ## 3. Add Footprint Libraries
 
 1. Locate KiCad's footprint library table file:
-   - Windows: `%APPDATA%\kicad\8.0\fp-lib-table`
-   - Linux/macOS: `~/.config/kicad/8.0/fp-lib-table`
+   - Windows: `%APPDATA%\kicad\9.0\fp-lib-table`
+   - Linux/macOS: `~/.config/kicad/9.0/fp-lib-table`
 2. Open the file in a text editor
 3. Find the closing parenthesis of the last library entry
-4. Copy all entries from `tables\fp-lib-table` and paste them before the final closing parenthesis
+4. Copy all entries from `tables/fp-lib-table` and paste them before the final closing parenthesis
 
 ## 4. Verify Setup
 
