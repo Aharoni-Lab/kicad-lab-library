@@ -21,7 +21,7 @@ on:
       - '.github/workflows/library-validation.yml'
 
 jobs:
-  validate:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -39,56 +39,170 @@ jobs:
           python -m pip install --upgrade pip
           pip install git+https://github.com/Aharoni-Lab/kicad-library-validator.git
 
-      - name: Generate Library Report
-        id: report
-        run: |
-          python -m kicad_lib_validator.utils.generate_report . --verbose > report_output.txt
-          echo "report_content<<EOF" >> $GITHUB_OUTPUT
-          cat report_output.txt >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+  validate-and-update:
+    needs: setup
+    runs-on: ubuntu-latest
+    outputs:
+      structure_generated: ${{ steps.validate.outputs.structure_generated }}
+      tables_updated: ${{ steps.validate.outputs.tables_updated }}
+      changes_made: ${{ steps.validate.outputs.changes_made }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Generate Library Tables
-        id: tables
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install KiCad Library Validator
         run: |
-          # Run generate_library_tables and capture output
+          python -m pip install --upgrade pip
+          pip install git+https://github.com/Aharoni-Lab/kicad-library-validator.git
+
+      - name: Validate and Update Library
+        id: validate
+        run: |
+          # Initialize variables
+          structure_generated=false
+          tables_updated=false
+          changes_made=false
+          
+          # Check if expected directories exist
+          expected_dirs=("symbols" "footprints" "3dmodels" "docs" "tables")
+          missing=0
+          for dir in "${expected_dirs[@]}"; do
+            if [ ! -d "$dir" ]; then
+              missing=1
+              break
+            fi
+          done
+          
+          # Create directory structure if missing
+          if [ $missing -eq 1 ]; then
+            echo "Directory structure missing. Running create_library_structure.py..."
+            python -m kicad_lib_validator.utils.create_library_structure structure.yaml
+            structure_generated=true
+            changes_made=true
+          fi
+          
+          # Generate tables
+          echo "Generating library tables..."
           python -m kicad_lib_validator.utils.generate_library_tables structure.yaml --verbose > tables_output.txt
           
-          # Check if any files were modified
+          # Check if tables were modified
           if git diff --quiet tables/; then
-            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "No changes to tables"
           else
-            echo "changes=true" >> $GITHUB_OUTPUT
+            tables_updated=true
+            changes_made=true
+          fi
+          
+          # If any changes were made, commit them
+          if [ "$changes_made" = true ]; then
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git add .
+            git commit -m "Update library structure and tables [skip ci]"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
+          
+          # Set outputs
+          echo "structure_generated=$structure_generated" >> $GITHUB_OUTPUT
+          echo "tables_updated=$tables_updated" >> $GITHUB_OUTPUT
+          echo "changes_made=$changes_made" >> $GITHUB_OUTPUT
+          
+          # Save tables output for PR comment
+          if [ "$tables_updated" = true ]; then
             echo "tables_output<<EOF" >> $GITHUB_OUTPUT
             cat tables_output.txt >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
           fi
 
+  generate-report:
+    needs: validate-and-update
+    runs-on: ubuntu-latest
+    outputs:
+      report_content: ${{ steps.report.outputs.report_content }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install KiCad Library Validator
+        run: |
+          python -m pip install --upgrade pip
+          pip install git+https://github.com/Aharoni-Lab/kicad-library-validator.git
+
+      - name: Generate Library Report
+        id: report
+        run: |
+          # Set up flags based on outputs
+          tables_flag=""
+          structure_flag=""
+          if [ "${{ needs.validate-and-update.outputs.tables_updated }}" = "true" ]; then
+            tables_flag="--tables-updated"
+          fi
+          if [ "${{ needs.validate-and-update.outputs.structure_generated }}" = "true" ]; then
+            structure_flag="--structure-generated"
+          fi
+          
+          # Generate report with appropriate flags
+          report_content=$(python -m kicad_lib_validator.utils.generate_report . \
+            $tables_flag \
+            $structure_flag \
+            --verbose)
+            
+          # Set output
+          echo "report_content<<EOF" >> $GITHUB_OUTPUT
+          echo "$report_content" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  comment-pr:
+    needs: [validate-and-update, generate-report]
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug Report Content
+        run: |
+          echo "Raw report content:"
+          echo "${{ needs.generate-report.outputs.report_content }}"
+          echo "---"
+          echo "Content length:"
+          echo "${{ needs.generate-report.outputs.report_content }}" | wc -c
+          echo "---"
+          echo "Content preview (first few lines):"
+          echo "${{ needs.generate-report.outputs.report_content }}" | head -n 5
+
       - name: Comment on PR
-        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            let comment = '## Library Validation Report\n\n' + '${{ steps.report.outputs.report_content }}';
+            // Get the report content from the environment variable
+            const reportContent = process.env.REPORT_CONTENT;
+            console.log('Original content length:', reportContent.length);
+            console.log('First 100 chars:', reportContent.substring(0, 100));
             
-            if ('${{ steps.tables.outputs.changes }}' === 'true') {
-              comment += '\n\n## Library Tables Update\n\n';
-              comment += 'The following changes were made to the library tables:\n\n';
-              comment += '${{ steps.tables.outputs.tables_output }}';
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: reportContent
+              });
+              console.log('Comment created successfully');
+            } catch (error) {
+              console.error('Error creating comment:', error);
+              throw error;
             }
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
-
-      - name: Commit Table Changes
-        if: steps.tables.outputs.changes == 'true'
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add tables/
-          git commit -m "Update library tables [skip ci]"
-          git push 
+        env:
+          REPORT_CONTENT: ${{ needs.generate-report.outputs.report_content }} 
