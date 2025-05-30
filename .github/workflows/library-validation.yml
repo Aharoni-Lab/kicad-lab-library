@@ -177,9 +177,20 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const reportContent = `${{ needs.generate-report.outputs.report_content }}`;
+            const escapedContent = reportContent
+              .replace(/\\/g, '\\\\')
+              .replace(/\n/g, '\\n')
+              .replace(/\r/g, '\\r')
+              .replace(/\t/g, '\\t')
+              .replace(/\f/g, '\\f')
+              .replace(/\v/g, '\\v')
+              .replace(/\0/g, '\\0')
+              .replace(/'/g, "\\'")
+              .replace(/"/g, '\\"');
+            
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: reportContent
+              body: escapedContent
             }); 
