@@ -45,7 +45,7 @@ jobs:
 
       - name: Update Library Tables
         run: |
-          python -m kicad_lib_validator.utils.update_kicad_tables structure.yaml
+          python -m kicad_lib_validator.utils.update_kicad_tables library/structure.yaml --verbose --output-dir .
 
       - name: Comment on PR
         uses: actions/github-script@v7
