@@ -63,22 +63,6 @@ jobs:
             echo "EOF" >> $GITHUB_OUTPUT
           fi
 
-      - name: Render Images
-        id: render
-        run: |
-          # Create a directory for rendered images
-          mkdir -p rendered_images
-          
-          # Render symbols and footprints (you'll need to implement this)
-          python -m kicad_lib_validator.utils.render_components . rendered_images/
-          
-          # Convert images to base64 and store in outputs
-          echo "image_data<<EOF" >> $GITHUB_OUTPUT
-          for img in rendered_images/*.png; do
-            echo "$(basename $img):$(base64 -w 0 $img)" >> $GITHUB_OUTPUT
-          done
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Comment on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -91,17 +75,6 @@ jobs:
               comment += '\n\n## Library Tables Update\n\n';
               comment += 'The following changes were made to the library tables:\n\n';
               comment += '${{ steps.tables.outputs.tables_output }}';
-            }
-
-            // Add rendered images to the comment
-            const imageData = '${{ steps.render.outputs.image_data }}'.split('\n');
-            if (imageData.length > 0 && imageData[0] !== '') {
-              comment += '\n\n## Rendered Components\n\n';
-              for (const line of imageData) {
-                const [filename, base64] = line.split(':');
-                comment += `### ${filename}\n\n`;
-                comment += `![${filename}](data:image/png;base64,${base64})\n\n`;
-              }
             }
             
             github.rest.issues.createComment({
