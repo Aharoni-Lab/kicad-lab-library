@@ -187,7 +187,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const reportContent = JSON.stringify(`${{ needs.generate-report.outputs.report_content }}`);
+            const reportContent = '${{ needs.generate-report.outputs.report_content }}';
             console.log('Original content length:', reportContent.length);
             console.log('First 100 chars:', reportContent.substring(0, 100));
             
@@ -196,7 +196,7 @@ jobs:
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: JSON.parse(reportContent)
+                body: reportContent
               });
               console.log('Comment created successfully');
             } catch (error) {
