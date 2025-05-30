@@ -39,7 +39,7 @@ jobs:
 
       - name: Generate Library Report
         run: |
-          python -m kicad_lib_validator.utils.generate_report . --verbose
+          python -m kicad_lib_validator.utils.generate_report . --structure-file library/structure.yaml --output-path library_report.md --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
