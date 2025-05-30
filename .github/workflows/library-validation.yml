@@ -152,7 +152,7 @@ jobs:
 
   comment-pr:
     needs: [validate-and-update, generate-report]
-    if: github.event.name == 'pull_request'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Comment on PR
