@@ -87,6 +87,8 @@ jobs:
   generate-report:
     needs: check-structure
     runs-on: ubuntu-latest
+    outputs:
+      report_content: ${{ steps.report.outputs.report_content }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -133,6 +135,9 @@ jobs:
       - name: Generate Library Tables
         id: tables
         run: |
+          # Create tables directory if it doesn't exist
+          mkdir -p tables
+          
           # Run generate_library_tables and capture output
           python -m kicad_lib_validator.utils.generate_library_tables structure.yaml --verbose > tables_output.txt
           
@@ -152,6 +157,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add tables/
+          git status
           git commit -m "Update library tables [skip ci]"
           git push origin HEAD:${{ github.head_ref }}
 
@@ -165,7 +171,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            let comment = '## Library Validation Report\n\n' + '${{ needs.generate-report.outputs.report_content }}';
+            let comment = '## Library Validation Report\n\n' + `${{ needs.generate-report.outputs.report_content }}`;
             
             if ('${{ needs.generate-tables.outputs.changes }}' === 'true') {
               comment += '\n\n## Library Tables Update\n\n';
