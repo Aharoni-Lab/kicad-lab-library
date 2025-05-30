@@ -141,8 +141,11 @@ jobs:
           # Run generate_library_tables and capture output
           python -m kicad_lib_validator.utils.generate_library_tables structure.yaml --verbose > tables_output.txt
           
+          # Add files to git index first
+          git add tables/
+          
           # Check if any files were modified
-          if git diff --quiet tables/; then
+          if git diff --cached --quiet; then
             echo "changes=false" >> $GITHUB_OUTPUT
           else
             echo "changes=true" >> $GITHUB_OUTPUT
@@ -156,8 +159,6 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add tables/
-          git status
           git commit -m "Update library tables [skip ci]"
           git push origin HEAD:${{ github.head_ref }}
 
