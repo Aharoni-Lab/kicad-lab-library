@@ -160,14 +160,13 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const reportContent = JSON.stringify('${{ needs.generate-report.outputs.report_content }}').slice(1, -1);
-            let comment = '## Library Validation Report\n\n' + reportContent;
+            let comment = '## Library Validation Report\n\n';
+            comment += '${{ needs.generate-report.outputs.report_content }}';
             
             if ('${{ needs.validate-and-update.outputs.tables_updated }}' === 'true') {
-              const tablesOutput = JSON.stringify('${{ needs.validate-and-update.outputs.tables_output }}').slice(1, -1);
               comment += '\n\n## Library Tables Update\n\n';
               comment += 'The following changes were made to the library tables:\n\n';
-              comment += tablesOutput;
+              comment += '${{ needs.validate-and-update.outputs.tables_output }}';
             }
             
             if ('${{ needs.validate-and-update.outputs.structure_generated }}' === 'true') {
