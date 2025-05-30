@@ -59,7 +59,7 @@ jobs:
             git config --local user.name "github-actions[bot]"
             git add .
             git commit -m "Initialize KiCad library directory structure from structure.yaml [skip ci]"
-            git push
+            git push origin HEAD:${{ github.head_ref }}
             echo "structure_generated=true" >> $GITHUB_OUTPUT
           else
             echo "structure_generated=false" >> $GITHUB_OUTPUT
