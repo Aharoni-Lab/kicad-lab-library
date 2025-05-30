@@ -187,7 +187,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const reportContent = '${{ needs.generate-report.outputs.report_content }}';
+            // Get the report content from the environment variable
+            const reportContent = process.env.REPORT_CONTENT;
             console.log('Original content length:', reportContent.length);
             console.log('First 100 chars:', reportContent.substring(0, 100));
             
@@ -202,4 +203,6 @@ jobs:
             } catch (error) {
               console.error('Error creating comment:', error);
               throw error;
-            } 
+            }
+        env:
+          REPORT_CONTENT: ${{ needs.generate-report.outputs.report_content }} 
