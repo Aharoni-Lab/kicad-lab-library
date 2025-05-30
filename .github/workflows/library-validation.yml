@@ -176,9 +176,10 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const reportContent = `${{ needs.generate-report.outputs.report_content }}`;
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '${{ needs.generate-report.outputs.report_content }}'
+              body: reportContent
             }); 
