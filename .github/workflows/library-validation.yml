@@ -48,6 +48,7 @@ jobs:
           python -m kicad_lib_validator.utils.update_kicad_tables library/structure.yaml --verbose --output-dir .
 
       - name: Comment on PR
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
