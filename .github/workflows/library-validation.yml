@@ -42,6 +42,8 @@ jobs:
   check-structure:
     needs: setup
     runs-on: ubuntu-latest
+    outputs:
+      structure_generated: ${{ steps.check_structure.outputs.structure_generated }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -116,6 +118,9 @@ jobs:
   generate-tables:
     needs: generate-report
     runs-on: ubuntu-latest
+    outputs:
+      changes: ${{ steps.tables.outputs.changes }}
+      tables_output: ${{ steps.tables.outputs.tables_output }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
