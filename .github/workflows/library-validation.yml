@@ -187,30 +187,16 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const reportContent = `${{ needs.generate-report.outputs.report_content }}`;
+            const reportContent = JSON.stringify(`${{ needs.generate-report.outputs.report_content }}`);
             console.log('Original content length:', reportContent.length);
             console.log('First 100 chars:', reportContent.substring(0, 100));
-            
-            const escapedContent = reportContent
-              .replace(/\\/g, '\\\\')
-              .replace(/\n/g, '\\n')
-              .replace(/\r/g, '\\r')
-              .replace(/\t/g, '\\t')
-              .replace(/\f/g, '\\f')
-              .replace(/\v/g, '\\v')
-              .replace(/\0/g, '\\0')
-              .replace(/'/g, "\\'")
-              .replace(/"/g, '\\"');
-            
-            console.log('Escaped content length:', escapedContent.length);
-            console.log('First 100 chars of escaped:', escapedContent.substring(0, 100));
             
             try {
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: escapedContent
+                body: JSON.parse(reportContent)
               });
               console.log('Comment created successfully');
             } catch (error) {
