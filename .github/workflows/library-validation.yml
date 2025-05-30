@@ -160,12 +160,14 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            let comment = '## Library Validation Report\n\n' + `${{ needs.generate-report.outputs.report_content }}`;
+            const reportContent = `${{ needs.generate-report.outputs.report_content }}`;
+            let comment = '## Library Validation Report\n\n' + reportContent;
             
             if ('${{ needs.validate-and-update.outputs.tables_updated }}' === 'true') {
+              const tablesOutput = `${{ needs.validate-and-update.outputs.tables_output }}`;
               comment += '\n\n## Library Tables Update\n\n';
               comment += 'The following changes were made to the library tables:\n\n';
-              comment += '${{ needs.validate-and-update.outputs.tables_output }}';
+              comment += tablesOutput;
             }
             
             if ('${{ needs.validate-and-update.outputs.structure_generated }}' === 'true') {
@@ -173,9 +175,9 @@ jobs:
               comment += 'The KiCad library directory structure was automatically generated from structure.yaml.';
             }
             
-            github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: comment
-            }) 
+            }); 
