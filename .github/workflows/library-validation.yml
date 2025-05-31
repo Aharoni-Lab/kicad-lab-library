@@ -104,8 +104,15 @@ jobs:
           if [ "$changes_made" = true ]; then
             git config --local user.email "github-actions[bot]@users.noreply.github.com"
             git config --local user.name "github-actions[bot]"
+            
+            # Pull latest changes before committing
+            git pull origin ${{ github.head_ref }} --rebase
+            
+            # Add and commit changes
             git add .
             git commit -m "Update library structure and tables [skip ci]"
+            
+            # Push changes
             git push origin HEAD:${{ github.head_ref }}
           fi
           
