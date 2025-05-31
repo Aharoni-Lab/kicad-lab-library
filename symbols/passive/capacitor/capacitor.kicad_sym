@@ -57,6 +57,15 @@
 				(hide yes)
 			)
 		)
+		(property "Validated" "Yes"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(property "ki_keywords" "cap capacitor"
 			(at 0 0 0)
 			(effects
@@ -186,6 +195,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, rotated by 45°"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Validated" "Yes"
 			(at 0 0 0)
 			(effects
 				(font
@@ -350,6 +368,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Validated" "Yes"
 			(at 0 0 0)
 			(effects
 				(font
