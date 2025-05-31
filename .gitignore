@@ -7,7 +7,6 @@
 *.kicad_dru
 *.kicad_pcb
 *.kicad_sch
-*.kicad_mod
 *.kicad_mod-bak
 *.kicad_sym-bak
 *.kicad_wks-bak
