@@ -526,3 +526,128 @@ footprints:
         required_properties:
           Validated:
             type: "string"
+
+models_3d:
+  passive:
+    description: "Passive component 3D models"
+    entries:
+      capacitor_smd:
+        description: "SMD capacitor 3D models"
+        naming:
+          pattern: "^C_[0-9]{4}_[0-9]{4}Metric$"
+          description_pattern: "^3D model for [0-9]{4} metric SMD capacitor$"
+      resistor_smd:
+        description: "SMD resistor 3D models"
+        naming:
+          pattern: "^R_[0-9]{4}_[0-9]{4}Metric$"
+          description_pattern: "^3D model for [0-9]{4} metric SMD resistor$"
+      inductor_smd:
+        description: "SMD inductor 3D models"
+        naming:
+          pattern: "^L_[0-9]{4}_[0-9]{4}Metric$"
+          description_pattern: "^3D model for [0-9]{4} metric SMD inductor$"
+      diode_smd:
+        description: "SMD diode 3D models"
+        naming:
+          pattern: "^D_[0-9]{4}_[0-9]{4}Metric$"
+          description_pattern: "^3D model for [0-9]{4} metric SMD diode$"
+
+  ic:
+    description: "IC package 3D models"
+    entries:
+      soic:
+        description: "SOIC package 3D models"
+        naming:
+          pattern: "^SOIC-[0-9]+_[0-9]+x[0-9]+mm_P[0-9]+mm$"
+          description_pattern: "^3D model for SOIC-[0-9]+ package$"
+      qfn:
+        description: "QFN package 3D models"
+        naming:
+          pattern: "^QFN-[0-9]+_[0-9]+x[0-9]+mm_P[0-9]+mm$"
+          description_pattern: "^3D model for QFN-[0-9]+ package$"
+      qfp:
+        description: "QFP package 3D models"
+        naming:
+          pattern: "^QFP-[0-9]+_[0-9]+x[0-9]+mm_P[0-9]+mm$"
+          description_pattern: "^3D model for QFP-[0-9]+ package$"
+
+documentation:
+  passive:
+    description: "Passive component datasheets"
+    entries:
+      resistor:
+        description: "Resistor datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+      capacitor:
+        description: "Capacitor datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+      inductor:
+        description: "Inductor datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+      diode:
+        description: "Diode datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+
+  active:
+    description: "Active component datasheets"
+    entries:
+      opamp:
+        description: "Op-amp datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+      comparator:
+        description: "Comparator datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+      transistor:
+        description: "Transistor datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+
+  power:
+    description: "Power management datasheets"
+    entries:
+      regulator:
+        description: "Regulator datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+      power_monitor:
+        description: "Power monitor datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+
+  memory:
+    description: "Memory component datasheets"
+    entries:
+      eeprom:
+        description: "EEPROM datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+      flash:
+        description: "Flash memory datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+      ram:
+        description: "RAM datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+
+  mcu:
+    description: "Microcontroller datasheets"
+    entries:
+      microchip:
+        description: "Microchip PIC/AVR datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+      st:
+        description: "ST STM32 datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
+      espressif:
+        description: "Espressif ESP32 datasheets"
+        naming:
+          pattern: "^[A-Z0-9-]+_datasheet\\.pdf$"
