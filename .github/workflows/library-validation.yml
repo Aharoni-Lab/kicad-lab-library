@@ -162,11 +162,11 @@ jobs:
             structure_flag="--structure-generated"
           fi
           
-          # Generate report with appropriate flags
+          # Generate report with appropriate flags and capture only stdout
           report_content=$(python -m kicad_lib_validator.utils.generate_report . \
             $tables_flag \
             $structure_flag \
-            --verbose)
+            --verbose 2>/dev/null)  # Redirect stderr to /dev/null
             
           # Set output
           echo "report_content<<EOF" >> $GITHUB_OUTPUT
@@ -178,37 +178,43 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - name: Debug Report Content
-        run: |
-          echo "Raw report content:"
-          echo "${{ needs.generate-report.outputs.report_content }}"
-          echo "---"
-          echo "Content length:"
-          echo "${{ needs.generate-report.outputs.report_content }}" | wc -c
-          echo "---"
-          echo "Content preview (first few lines):"
-          echo "${{ needs.generate-report.outputs.report_content }}" | head -n 5
-
       - name: Comment on PR
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            // Get the report content from the environment variable
             const reportContent = process.env.REPORT_CONTENT;
-            console.log('Original content length:', reportContent.length);
-            console.log('First 100 chars:', reportContent.substring(0, 100));
+            const formattedContent = `## Library Validation Report\n\n${reportContent}`;
             
             try {
+              // Get all comments on the PR
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number
+              });
+              
+              // Find and delete previous validation comments
+              for (const comment of comments.data) {
+                if (comment.user.login === 'github-actions[bot]' && 
+                    comment.body.startsWith('## Library Validation Report')) {
+                  await github.rest.issues.deleteComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: comment.id
+                  });
+                }
+              }
+              
+              // Post new comment
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: reportContent
+                body: formattedContent
               });
-              console.log('Comment created successfully');
             } catch (error) {
-              console.error('Error creating comment:', error);
+              console.error('Error managing comments:', error);
               throw error;
             }
         env:
