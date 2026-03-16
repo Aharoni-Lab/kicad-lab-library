@@ -1,90 +1,29 @@
-# KiCad specific
-*.kicad_pcb-bak
-*.kicad_sch-bak
+# KiCad backup/autosave files
+*-bak
+*.bak
+*~
+_autosave-*
+
+# KiCad project files (this is a library repo, not a project repo)
 *.kicad_pro
 *.kicad_prl
-*.kicad_wks
-*.kicad_dru
 *.kicad_pcb
 *.kicad_sch
-*.kicad_mod
-*.kicad_mod-bak
-*.kicad_sym-bak
-*.kicad_wks-bak
-*.kicad_dru-bak
-*.kicad_pro-bak
-*.kicad_prl-bak
 
-# Backup files
-*~
-*.bak
-*.swp
-*.swo
-*.orig
-*.rej
-
-# OS specific
+# OS files
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# IDE specific
-.idea/
-.vscode/
-*.sublime-workspace
-*.sublime-project
-
-# Python specific (if using any Python scripts)
+# Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Temporary files
-*.tmp
-*.temp
-*.log
-*.pid
-*.seed
-*.pid.lock
-
-# Documentation build
-docs/_build/
-site/
-
-# Test files
-*.test
-*.spec
-.coverage
-htmlcov/
-.pytest_cache/
-.mypy_cache/
-
-# Environment files
-.env
-.venv
-env/
+*.pyc
+.venv/
 venv/
-ENV/
 
-# Editor backup files
-*~
-*.swp
-*.swo
-*# 
+# Editor
+.vscode/
+.idea/
+
+# CI artifacts
+renders/

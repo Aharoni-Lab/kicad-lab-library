@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "AharoniLab_Capacitor_SMD")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Capacitor_SMD.pretty")(options "")(descr "SMD capacitor footprints"))
+)

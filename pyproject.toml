@@ -1,0 +1,11 @@
+[project]
+name = "kicad-lab-library"
+version = "1.0.0"
+description = "Aharoni Lab KiCad Component Library"
+requires-python = ">=3.8"
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,51 +1,31 @@
-## Description
-<!-- Describe your changes in detail -->
+## What component(s) are you adding or changing?
 
 ## Type of Change
-<!-- Put an `x` in all the boxes that apply -->
-
-- [ ] New component
-- [ ] Component update
+- [ ] New component(s)
+- [ ] Component update/fix
+- [ ] Validation status change (marking as Validated: Yes)
 - [ ] Documentation update
-- [ ] Bug fix
-- [ ] Other (please describe):
+- [ ] Other
 
 ## Component Details
-<!-- For new or updated components -->
 
-### Symbol
-- [ ] Symbol file added/updated
-- [ ] Symbol follows naming convention
-- [ ] Symbol has required properties
-- [ ] Symbol has documentation
+### Symbols (if applicable)
+- [ ] Added to correct library file (see docs/CONTRIBUTING.md)
+- [ ] Follows KLC naming conventions
+- [ ] Has required properties: Reference, Value, Footprint, Datasheet (URL), Description, ki_keywords
+- [ ] `Validated` property set to "No" (new) or "Yes" (with project reference)
 
-### Footprint
-- [ ] Footprint file added/updated
-- [ ] Footprint follows naming convention
-- [ ] Footprint has required properties
-- [ ] Footprint has documentation
+### Footprints (if applicable)
+- [ ] Added to correct .pretty directory
+- [ ] Follows KLC footprint design rules
+- [ ] Has courtyard, silkscreen, and fabrication layers
 
-### 3D Model
-- [ ] 3D model file added/updated
-- [ ] 3D model follows naming convention
-- [ ] 3D model has required properties
-- [ ] 3D model has documentation
+### 3D Models (if applicable)
+- [ ] STEP format in matching .3dshapes directory
 
-## Documentation
-<!-- For documentation changes -->
-
-- [ ] README updated
-- [ ] Component documentation added/updated
-- [ ] Usage examples provided
-- [ ] Screenshots included (if applicable)
+### Library Tables
+- [ ] `sym-lib-table` / `fp-lib-table` updated (only if new library file/dir created)
 
 ## Testing
-<!-- Describe how you tested your changes -->
-
-- [ ] Tested in KiCad
-- [ ] Verified symbol-footprint compatibility
-- [ ] Checked 3D model rendering
-- [ ] Validated documentation
-
-## Additional Notes
-<!-- Add any other information about the PR here --> 
+- [ ] Tested in KiCad 9: symbol loads, pins correct, footprint assigns
+- [ ] Ran `pytest` locally -- all tests pass
