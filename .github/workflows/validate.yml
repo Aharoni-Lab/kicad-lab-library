@@ -91,7 +91,7 @@ jobs:
           while IFS= read -r sym_file; do
             [ -z "$sym_file" ] && continue
             echo "::group::Checking $sym_file"
-            python /tmp/kicad-library-utils/symbol-check/check_symbol.py "$sym_file" || EXIT_CODE=1
+            python /tmp/kicad-library-utils/klc-check/check_symbol.py "$sym_file" || EXIT_CODE=1
             echo "::endgroup::"
           done <<< "${{ steps.changes.outputs.sym_files }}"
           exit $EXIT_CODE
@@ -103,7 +103,7 @@ jobs:
           while IFS= read -r fp_file; do
             [ -z "$fp_file" ] && continue
             echo "::group::Checking $fp_file"
-            python /tmp/kicad-library-utils/footprint-check/check_footprint.py "$fp_file" || EXIT_CODE=1
+            python /tmp/kicad-library-utils/klc-check/check_footprint.py "$fp_file" || EXIT_CODE=1
             echo "::endgroup::"
           done <<< "${{ steps.changes.outputs.fp_files }}"
           exit $EXIT_CODE
