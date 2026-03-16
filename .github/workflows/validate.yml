@@ -1,0 +1,236 @@
+name: Library Validation
+
+on:
+  pull_request:
+    paths:
+      - 'symbols/**'
+      - 'footprints/**'
+      - '3dmodels/**'
+      - '*-lib-table'
+      - 'scripts/**'
+      - 'tests/**'
+  push:
+    branches: [main]
+    paths:
+      - 'symbols/**'
+      - 'footprints/**'
+      - '3dmodels/**'
+      - '*-lib-table'
+      - 'scripts/**'
+      - 'tests/**'
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pytest
+        run: pip install pytest
+
+      - name: Run tests
+        run: pytest tests/ -v
+
+  klc-check:
+    name: KLC Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Detect changed library files
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+          fi
+
+          # Handle initial commit
+          if ! git cat-file -e "$BASE" 2>/dev/null; then
+            BASE=$(git rev-list --max-parents=0 HEAD)
+          fi
+
+          CHANGED_SYM=$(git diff --name-only --diff-filter=ACMR "$BASE" HEAD -- 'symbols/*.kicad_sym' || true)
+          CHANGED_FP=$(git diff --name-only --diff-filter=ACMR "$BASE" HEAD -- 'footprints/**/*.kicad_mod' || true)
+
+          echo "sym_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_SYM" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "fp_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FP" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          if [ -n "$CHANGED_SYM" ] || [ -n "$CHANGED_FP" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Clone kicad-library-utils
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git clone --depth 1 https://gitlab.com/kicad/libraries/kicad-library-utils.git /tmp/kicad-library-utils
+
+      - name: Run KLC checks on symbols
+        if: steps.changes.outputs.has_changes == 'true' && steps.changes.outputs.sym_files != ''
+        run: |
+          EXIT_CODE=0
+          while IFS= read -r sym_file; do
+            [ -z "$sym_file" ] && continue
+            echo "::group::Checking $sym_file"
+            python /tmp/kicad-library-utils/klc-check/check_symbol.py "$sym_file" || EXIT_CODE=1
+            echo "::endgroup::"
+          done <<< "${{ steps.changes.outputs.sym_files }}"
+          exit $EXIT_CODE
+
+      - name: Run KLC checks on footprints
+        if: steps.changes.outputs.has_changes == 'true' && steps.changes.outputs.fp_files != ''
+        run: |
+          EXIT_CODE=0
+          while IFS= read -r fp_file; do
+            [ -z "$fp_file" ] && continue
+            echo "::group::Checking $fp_file"
+            python /tmp/kicad-library-utils/klc-check/check_footprint.py "$fp_file" || EXIT_CODE=1
+            echo "::endgroup::"
+          done <<< "${{ steps.changes.outputs.fp_files }}"
+          exit $EXIT_CODE
+
+      - name: Run lab-specific validation
+        run: python scripts/validate.py --all --check-tables
+
+  render-and-report:
+    name: Render & Report
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: [test, klc-check]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Detect changed library files
+        id: changes
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          if ! git cat-file -e "$BASE" 2>/dev/null; then
+            BASE=$(git rev-list --max-parents=0 HEAD)
+          fi
+
+          CHANGED_SYM=$(git diff --name-only --diff-filter=ACMR "$BASE" HEAD -- 'symbols/*.kicad_sym' || true)
+          CHANGED_FP=$(git diff --name-only --diff-filter=ACMR "$BASE" HEAD -- 'footprints/**/*.kicad_mod' || true)
+
+          echo "sym_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_SYM" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "fp_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FP" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          if [ -n "$CHANGED_SYM" ] || [ -n "$CHANGED_FP" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Render symbols with KiCad CLI
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: docker://kicad/kicad:9.0
+        with:
+          entrypoint: /bin/bash
+          args: |
+            -c "
+            mkdir -p renders
+            while IFS= read -r sym_file; do
+              [ -z \"$sym_file\" ] && continue
+              echo \"Rendering $sym_file\"
+              kicad-cli sym export svg --output renders/ \"$sym_file\" || true
+            done <<< '${{ steps.changes.outputs.sym_files }}'
+            while IFS= read -r fp_file; do
+              [ -z \"$fp_file\" ] && continue
+              echo \"Rendering $fp_file\"
+              kicad-cli fp export svg --output renders/ \"$fp_file\" || true
+            done <<< '${{ steps.changes.outputs.fp_files }}'
+            "
+
+      - name: Upload rendered previews
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-previews
+          path: renders/
+          if-no-files-found: ignore
+
+      - name: Generate validation report
+        run: |
+          python scripts/validate.py --report > report.md
+          cat report.md
+
+      - name: Post PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let report = '';
+            try {
+              report = fs.readFileSync('report.md', 'utf8');
+            } catch (e) {
+              report = '## Library Validation Report\n\nNo validation report generated.';
+            }
+
+            const testResult = '${{ needs.test.result }}';
+            const klcResult = '${{ needs.klc-check.result }}';
+            const allPassed = testResult === 'success' && klcResult === 'success';
+            const statusIcon = allPassed ? ':white_check_mark:' : ':x:';
+            const statusText = allPassed ? 'PASS' : 'FAIL';
+
+            let body = `## Library Validation Report ${statusIcon}\n\n`;
+            body += `**Overall Status: ${statusText}**\n\n`;
+            body += `| Check | Result |\n|-------|--------|\n`;
+            body += `| Tests | ${testResult === 'success' ? ':white_check_mark: Passed' : ':x: Failed'} |\n`;
+            body += `| KLC Validation | ${klcResult === 'success' ? ':white_check_mark: Passed' : ':x: Failed'} |\n\n`;
+            body += report;
+            body += `\n\n---\n*[Download rendered previews](../actions/runs/${context.runId})*`;
+
+            // Find existing bot comment to update
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Library Validation Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }

@@ -1,0 +1,5 @@
+(kicad_symbol_lib
+	(version 20241209)
+	(symbol "Broken"
+		(property "Reference" "X"
+		MISSING CLOSING PARENS
