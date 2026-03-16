@@ -28,16 +28,12 @@ def parse_sexpr(text: str) -> list:
     list whose first element is the keyword token.
     """
     tokens = _tokenize(text)
-    # Check for unbalanced parentheses
-    depth = 0
-    for t in tokens:
-        if t == '(':
-            depth += 1
-        elif t == ')':
-            depth -= 1
-    if depth != 0:
+    open_count = tokens.count('(')
+    close_count = tokens.count(')')
+    if open_count != close_count:
         raise ValueError(
-            f"Malformed S-expression: unbalanced parentheses (depth {depth})"
+            f"Malformed S-expression: unbalanced parentheses "
+            f"({open_count} open, {close_count} close)"
         )
     result, _ = _parse_tokens(tokens, 0)
     # If top-level produced a single group, return it directly.
@@ -134,22 +130,6 @@ def _extract_properties(sexpr_node: list) -> Dict[str, str]:
         if isinstance(child, list) and len(child) >= 3 and child[0] == 'property':
             props[child[1]] = child[2]
     return props
-
-
-def _is_top_level_symbol(node: list) -> bool:
-    """Return True if *node* is a top-level symbol definition.
-
-    Top-level symbols have a name like ``"C"``; sub-symbols contain an
-    underscore-digit suffix such as ``"C_0_1"`` or ``"C_1_1"``.
-    KiCad uses the convention ``<ParentName>_<unit>_<style>`` for child
-    symbols.  We detect children by checking whether the name starts
-    with any sibling symbol name followed by ``_`` and digits.
-    """
-    if not isinstance(node, list) or len(node) < 2:
-        return False
-    if node[0] != 'symbol':
-        return False
-    return True
 
 
 def parse_kicad_sym(filepath: str | Path) -> List[SymbolInfo]:
@@ -251,6 +231,8 @@ def check_symbol_properties(filepath: str | Path) -> CheckResult:
 # Library-table helpers
 # ---------------------------------------------------------------------------
 
+ENV_VAR_PLACEHOLDER = '${AHARONI_LAB_KICAD_LIB}'
+
 class LibTableEntry(NamedTuple):
     """A single entry from a KiCad library table file."""
     name: str
@@ -296,7 +278,7 @@ def parse_lib_table(filepath: str | Path) -> List[LibTableEntry]:
 def resolve_table_uri(uri: str, repo_root: str | Path) -> Path:
     """Replace ``${AHARONI_LAB_KICAD_LIB}`` in *uri* with *repo_root*."""
     repo_root = Path(repo_root)
-    resolved = uri.replace('${AHARONI_LAB_KICAD_LIB}', str(repo_root))
+    resolved = uri.replace(ENV_VAR_PLACEHOLDER, str(repo_root))
     return Path(resolved)
 
 
@@ -334,7 +316,7 @@ def check_library_tables(repo_root: str | Path) -> CheckResult:
 
         # 3 & 4. URI checks
         for entry in sym_entries:
-            if '${AHARONI_LAB_KICAD_LIB}' not in entry.uri:
+            if ENV_VAR_PLACEHOLDER not in entry.uri:
                 errors.append(
                     f"sym-lib-table entry '{entry.name}': URI does not use "
                     "${{AHARONI_LAB_KICAD_LIB}}"
@@ -367,7 +349,7 @@ def check_library_tables(repo_root: str | Path) -> CheckResult:
 
         # 3 & 4. URI checks
         for entry in fp_entries:
-            if '${AHARONI_LAB_KICAD_LIB}' not in entry.uri:
+            if ENV_VAR_PLACEHOLDER not in entry.uri:
                 errors.append(
                     f"fp-lib-table entry '{entry.name}': URI does not use "
                     "${{AHARONI_LAB_KICAD_LIB}}"

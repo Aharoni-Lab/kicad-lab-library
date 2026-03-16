@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from validate import parse_lib_table, resolve_table_uri
+from validate import ENV_VAR_PLACEHOLDER, parse_lib_table, resolve_table_uri
 
 
 class TestSymLibTableConsistency:
@@ -35,7 +35,7 @@ class TestSymLibTableConsistency:
         """All URIs in sym-lib-table must use ${AHARONI_LAB_KICAD_LIB}."""
         table_entries = parse_lib_table(repo_root / "sym-lib-table")
         for entry in table_entries:
-            assert "${AHARONI_LAB_KICAD_LIB}" in entry.uri, (
+            assert ENV_VAR_PLACEHOLDER in entry.uri, (
                 f"Entry '{entry.name}' does not use ${{AHARONI_LAB_KICAD_LIB}}"
             )
 
@@ -68,6 +68,6 @@ class TestFpLibTableConsistency:
         """All URIs must use ${AHARONI_LAB_KICAD_LIB}."""
         table_entries = parse_lib_table(repo_root / "fp-lib-table")
         for entry in table_entries:
-            assert "${AHARONI_LAB_KICAD_LIB}" in entry.uri, (
+            assert ENV_VAR_PLACEHOLDER in entry.uri, (
                 f"Entry '{entry.name}' does not use ${{AHARONI_LAB_KICAD_LIB}}"
             )

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import re
 import shutil
@@ -35,7 +36,6 @@ def get_kicad_config_dir() -> Path:
     if system == "Windows":
         appdata = Path.home() / "AppData" / "Roaming"
         # Also honour %APPDATA% when set (it almost always is).
-        import os
         appdata_env = os.environ.get("APPDATA")
         if appdata_env:
             appdata = Path(appdata_env)
@@ -208,13 +208,6 @@ def parse_lib_table(text: str) -> list[LibEntry]:
                 )
             )
     return entries
-
-
-def _detect_table_kind(entries_or_path: str) -> str:
-    """Return ``sym_lib_table`` or ``fp_lib_table`` based on file content."""
-    if "sym_lib_table" in entries_or_path:
-        return "sym_lib_table"
-    return "fp_lib_table"
 
 
 def serialize_lib_table(kind: str, entries: list[LibEntry]) -> str:

@@ -62,44 +62,79 @@ class TestLibTableParsing:
 
 
 class TestMergeLogic:
-    def test_merge_entries_skips_duplicates(self, tmp_path):
+    def test_install_skips_duplicates(self, tmp_path, monkeypatch):
         """Should not add duplicate entries if library is already installed."""
+        # Set up a fake KiCad config dir with an existing table
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
         existing = [
-            LibEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", ""),
+            LibEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", "Passive"),
         ]
         global_text = serialize_lib_table("sym_lib_table", existing)
-        global_path = tmp_path / "sym-lib-table"
-        global_path.write_text(global_text)
+        (config_dir / "sym-lib-table").write_text(global_text)
 
-        # The repo also has AharoniLab_Passive -- it should be skipped
-        repo_entries = parse_lib_table(global_text)
-        existing_names = {e.name for e in repo_entries}
+        # Set up a fake repo with the same entry
+        repo_dir = tmp_path / "repo"
+        repo_dir.mkdir()
+        (repo_dir / "sym-lib-table").write_text(global_text)
+        # fp-lib-table not in repo, so it will be skipped
+        (repo_dir / "symbols").mkdir()
 
-        # Simulate merge
-        new_entry = LibEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", "")
-        assert new_entry.name in existing_names  # Would be skipped
+        install_mod.install(config_dir, repo_dir, dry_run=False)
 
-    def test_merge_adds_new_entries(self, tmp_path):
+        result = parse_lib_table((config_dir / "sym-lib-table").read_text())
+        assert len(result) == 1
+        assert result[0].name == "AharoniLab_Passive"
+
+    def test_install_adds_new_entries(self, tmp_path):
         """Should add entries that don't exist yet."""
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
         existing = [
             LibEntry("OtherLib", "KiCad", "/some/path", "", ""),
         ]
-        new = LibEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", "")
+        (config_dir / "sym-lib-table").write_text(
+            serialize_lib_table("sym_lib_table", existing)
+        )
 
-        existing_names = {e.name for e in existing}
-        assert new.name not in existing_names  # Would be added
+        repo_dir = tmp_path / "repo"
+        repo_dir.mkdir()
+        new_entries = [
+            LibEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", "Passive"),
+        ]
+        (repo_dir / "sym-lib-table").write_text(
+            serialize_lib_table("sym_lib_table", new_entries)
+        )
+
+        install_mod.install(config_dir, repo_dir, dry_run=False)
+
+        result = parse_lib_table((config_dir / "sym-lib-table").read_text())
+        names = {e.name for e in result}
+        assert "OtherLib" in names
+        assert "AharoniLab_Passive" in names
 
 
 class TestUninstall:
-    def test_uninstall_removes_entries(self, tmp_path):
-        """--uninstall should remove all AharoniLab_ entries."""
+    def test_uninstall_removes_aharoni_entries(self, tmp_path):
+        """--uninstall should remove all AharoniLab_ entries and keep others."""
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
         entries = [
             LibEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", ""),
             LibEntry("SomeOther", "KiCad", "/other/path", "", "Other lib"),
         ]
-        kept = [e for e in entries if not e.name.startswith("AharoniLab_")]
-        assert len(kept) == 1
-        assert kept[0].name == "SomeOther"
+        (config_dir / "sym-lib-table").write_text(
+            serialize_lib_table("sym_lib_table", entries)
+        )
+        # kicad_common.json with env var
+        common = {"environment": {"vars": {"AHARONI_LAB_KICAD_LIB": "/some/path"}}}
+        (config_dir / "kicad_common.json").write_text(json.dumps(common))
+
+        install_mod.uninstall(config_dir, dry_run=False)
+
+        result = parse_lib_table((config_dir / "sym-lib-table").read_text())
+        assert len(result) == 1
+        assert result[0].name == "SomeOther"
 
 
 class TestKicadCommon:
