@@ -17,10 +17,11 @@ import argparse
 import json
 import os
 import platform
-import re
 import shutil
 import sys
 from pathlib import Path
+
+from sexpr import parse_sexpr
 
 
 # ---------------------------------------------------------------------------
@@ -74,80 +75,6 @@ def get_repo_root() -> Path:
         current = parent
 
 
-# ---------------------------------------------------------------------------
-# Minimal S-expression parser for KiCad library tables
-# ---------------------------------------------------------------------------
-
-def _tokenize(text: str) -> list[str]:
-    """Tokenize an S-expression string into a flat list of tokens."""
-    tokens: list[str] = []
-    i = 0
-    length = len(text)
-    while i < length:
-        ch = text[i]
-        if ch in (" ", "\t", "\n", "\r"):
-            i += 1
-        elif ch == "(":
-            tokens.append("(")
-            i += 1
-        elif ch == ")":
-            tokens.append(")")
-            i += 1
-        elif ch == '"':
-            # Quoted string
-            j = i + 1
-            while j < length and text[j] != '"':
-                if text[j] == "\\":
-                    j += 1  # skip escaped char
-                j += 1
-            tokens.append(text[i : j + 1])  # include quotes
-            i = j + 1
-        else:
-            # Bare token
-            j = i
-            while j < length and text[j] not in (" ", "\t", "\n", "\r", "(", ")"):
-                j += 1
-            tokens.append(text[i:j])
-            i = j
-    return tokens
-
-
-def _parse_tokens(tokens: list[str], pos: int) -> tuple[list, int]:
-    """Recursively parse tokens into a nested list structure.
-
-    Returns ``(parsed_node, new_position)``.
-    """
-    if tokens[pos] != "(":
-        raise ValueError(f"Expected '(' at position {pos}, got {tokens[pos]!r}")
-    pos += 1  # skip '('
-    node: list = []
-    while pos < len(tokens) and tokens[pos] != ")":
-        if tokens[pos] == "(":
-            child, pos = _parse_tokens(tokens, pos)
-            node.append(child)
-        else:
-            node.append(tokens[pos])
-            pos += 1
-    pos += 1  # skip ')'
-    return node, pos
-
-
-def parse_sexpr(text: str) -> list:
-    """Parse a KiCad S-expression string into nested Python lists."""
-    tokens = _tokenize(text)
-    if not tokens:
-        raise ValueError("Empty S-expression")
-    node, _ = _parse_tokens(tokens, 0)
-    return node
-
-
-def _unquote(s: str) -> str:
-    """Remove surrounding double-quotes if present."""
-    if s.startswith('"') and s.endswith('"'):
-        return s[1:-1]
-    return s
-
-
 def _quote(s: str) -> str:
     """Wrap a string in double-quotes."""
     return f'"{s}"'
@@ -188,7 +115,7 @@ def _extract_field(node: list, field_name: str) -> str:
     """Extract a named field value from a parsed ``(lib ...)`` node."""
     for item in node:
         if isinstance(item, list) and len(item) >= 2 and item[0] == field_name:
-            return _unquote(item[1])
+            return item[1]
     return ""
 
 

@@ -6,8 +6,11 @@ These tests ensure:
 - AharoniLab_ prefix on all library files
 - 3dshapes dirs match .pretty dirs
 - No backup or project files committed
+- No duplicate symbol names across library files
 """
 from __future__ import annotations
+
+from validate import check_duplicate_symbols
 
 
 class TestDirectoryStructure:
@@ -65,3 +68,29 @@ class TestDirectoryStructure:
                 if ".git" not in str(p)
             ]
             assert len(matches) == 0, f"Project file found: {matches}"
+
+
+class TestDuplicateSymbols:
+    def test_no_duplicate_symbols_in_repo(self, repo_root):
+        """No two .kicad_sym files should define the same symbol name."""
+        result = check_duplicate_symbols(repo_root)
+        assert result.passed, f"Duplicate symbols found: {result.errors}"
+
+    def test_duplicate_detection(self, tmp_path):
+        """Should detect when two files define the same symbol."""
+        symbols_dir = tmp_path / "symbols"
+        symbols_dir.mkdir()
+
+        # Two files with the same symbol name
+        for name in ["AharoniLab_A.kicad_sym", "AharoniLab_B.kicad_sym"]:
+            (symbols_dir / name).write_text(
+                '(kicad_symbol_lib (version 20241209)'
+                ' (symbol "DuplicatePart"'
+                '  (property "Reference" "U")'
+                '  (property "Value" "DuplicatePart")'
+                ' ))'
+            )
+
+        result = check_duplicate_symbols(tmp_path)
+        assert not result.passed
+        assert any("DuplicatePart" in e for e in result.errors)

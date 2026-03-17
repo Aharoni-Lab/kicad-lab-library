@@ -51,6 +51,45 @@ class TestValidatedProperty:
         assert not result.passed
 
 
+class TestReferenceProperty:
+    def test_valid_symbol_has_reference(self, valid_symbol_path):
+        """Every symbol MUST have a Reference property."""
+        result = check_symbol_properties(valid_symbol_path)
+        assert result.passed
+
+    def test_missing_reference_fails(self, invalid_no_reference_path):
+        """Symbol without Reference property should fail validation."""
+        result = check_symbol_properties(invalid_no_reference_path)
+        assert not result.passed
+        assert any("Reference" in e for e in result.errors)
+
+
+class TestDescriptionProperty:
+    def test_valid_symbol_has_description(self, valid_symbol_path):
+        """Every symbol MUST have a Description property."""
+        result = check_symbol_properties(valid_symbol_path)
+        assert result.passed
+
+    def test_missing_description_fails(self, invalid_no_description_path):
+        """Symbol without Description property should fail validation."""
+        result = check_symbol_properties(invalid_no_description_path)
+        assert not result.passed
+        assert any("Description" in e for e in result.errors)
+
+
+class TestKeywordsProperty:
+    def test_valid_symbol_has_keywords(self, valid_symbol_path):
+        """Every symbol MUST have a ki_keywords property."""
+        result = check_symbol_properties(valid_symbol_path)
+        assert result.passed
+
+    def test_missing_keywords_fails(self, invalid_no_keywords_path):
+        """Symbol without ki_keywords property should fail validation."""
+        result = check_symbol_properties(invalid_no_keywords_path)
+        assert not result.passed
+        assert any("ki_keywords" in e for e in result.errors)
+
+
 class TestSymbolParsing:
     def test_can_parse_valid_symbol(self, valid_symbol_path):
         """Should be able to parse a valid KiCad 9 .kicad_sym file."""

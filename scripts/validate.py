@@ -12,105 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional
 
-
-# ---------------------------------------------------------------------------
-# S-expression parser
-# ---------------------------------------------------------------------------
-
-def parse_sexpr(text: str) -> list:
-    """Parse a KiCad S-expression string into a nested list structure.
-
-    KiCad files use well-structured S-expressions of the form
-    ``(keyword args... (children...))``.  Quoted strings (including
-    escaped quotes) and unquoted tokens are both supported.
-
-    Returns a nested list where each ``(...)`` group becomes a Python
-    list whose first element is the keyword token.
-    """
-    tokens = _tokenize(text)
-    open_count = tokens.count('(')
-    close_count = tokens.count(')')
-    if open_count != close_count:
-        raise ValueError(
-            f"Malformed S-expression: unbalanced parentheses "
-            f"({open_count} open, {close_count} close)"
-        )
-    result, _ = _parse_tokens(tokens, 0)
-    # If top-level produced a single group, return it directly.
-    if len(result) == 1:
-        return result[0]
-    return result
-
-
-def _tokenize(text: str) -> List[str]:
-    """Tokenize an S-expression string into a flat list of tokens.
-
-    Tokens are ``(``, ``)``, quoted strings, or bare words.
-    """
-    tokens: List[str] = []
-    i = 0
-    length = len(text)
-    while i < length:
-        ch = text[i]
-
-        # Skip whitespace
-        if ch in (' ', '\t', '\n', '\r'):
-            i += 1
-            continue
-
-        # Open / close parens
-        if ch == '(':
-            tokens.append('(')
-            i += 1
-            continue
-        if ch == ')':
-            tokens.append(')')
-            i += 1
-            continue
-
-        # Quoted string
-        if ch == '"':
-            j = i + 1
-            while j < length:
-                if text[j] == '\\':
-                    j += 2  # skip escaped character
-                    continue
-                if text[j] == '"':
-                    break
-                j += 1
-            # Extract content between quotes (unescaping inner quotes)
-            raw = text[i + 1 : j]
-            tokens.append(raw.replace('\\"', '"'))
-            i = j + 1
-            continue
-
-        # Bare token (unquoted)
-        j = i
-        while j < length and text[j] not in ('(', ')', ' ', '\t', '\n', '\r', '"'):
-            j += 1
-        tokens.append(text[i:j])
-        i = j
-
-    return tokens
-
-
-def _parse_tokens(tokens: List[str], pos: int) -> tuple:
-    """Recursively parse tokens starting at *pos*.
-
-    Returns ``(result_list, new_pos)``.
-    """
-    result: list = []
-    while pos < len(tokens):
-        tok = tokens[pos]
-        if tok == '(':
-            child, pos = _parse_tokens(tokens, pos + 1)
-            result.append(child)
-        elif tok == ')':
-            return result, pos + 1
-        else:
-            result.append(tok)
-            pos += 1
-    return result, pos
+from sexpr import parse_sexpr
 
 
 # ---------------------------------------------------------------------------
@@ -194,6 +96,9 @@ def check_symbol_properties(filepath: str | Path) -> CheckResult:
     """Validate lab-specific property requirements for a ``.kicad_sym`` file.
 
     Rules checked for every symbol:
+    * ``Reference`` must exist and be non-empty.
+    * ``Description`` must exist and be non-empty.
+    * ``ki_keywords`` must exist and be non-empty.
     * ``Datasheet`` must exist and be non-empty and not ``~``.
     * ``Validated`` must exist and equal ``"Yes"`` or ``"No"``.
     """
@@ -209,6 +114,27 @@ def check_symbol_properties(filepath: str | Path) -> CheckResult:
         )
 
     for sym in symbols:
+        # Reference check
+        ref = sym.properties.get('Reference')
+        if ref is None or ref.strip() == '':
+            errors.append(
+                f"Symbol '{sym.name}': Reference property is missing or empty"
+            )
+
+        # Description check
+        desc = sym.properties.get('Description')
+        if desc is None or desc.strip() == '':
+            errors.append(
+                f"Symbol '{sym.name}': Description property is missing or empty"
+            )
+
+        # ki_keywords check
+        kw = sym.properties.get('ki_keywords')
+        if kw is None or kw.strip() == '':
+            errors.append(
+                f"Symbol '{sym.name}': ki_keywords property is missing or empty"
+            )
+
         # Datasheet check
         ds = sym.properties.get('Datasheet')
         if ds is None or ds.strip() == '' or ds.strip() == '~':
@@ -222,6 +148,82 @@ def check_symbol_properties(filepath: str | Path) -> CheckResult:
             errors.append(
                 f"Symbol '{sym.name}': Validated property must be 'Yes' or 'No'"
                 + (f" (got '{val}')" if val is not None else " (missing)")
+            )
+
+    return CheckResult(passed=len(errors) == 0, errors=errors)
+
+
+# ---------------------------------------------------------------------------
+# Duplicate symbol detection
+# ---------------------------------------------------------------------------
+
+def check_duplicate_symbols(repo_root: str | Path) -> CheckResult:
+    """Check that no two ``.kicad_sym`` files define the same symbol name."""
+    repo_root = Path(repo_root)
+    symbols_dir = repo_root / 'symbols'
+    errors: List[str] = []
+
+    if not symbols_dir.is_dir():
+        return CheckResult(passed=True, errors=[])
+
+    seen: Dict[str, str] = {}  # symbol_name -> filename
+    for sym_file in sorted(symbols_dir.glob('*.kicad_sym')):
+        try:
+            symbols = parse_kicad_sym(sym_file)
+        except Exception:
+            continue  # parse errors are caught by check_symbol_properties
+        for sym in symbols:
+            if sym.name in seen:
+                errors.append(
+                    f"Duplicate symbol '{sym.name}' found in "
+                    f"'{sym_file.name}' and '{seen[sym.name]}'"
+                )
+            else:
+                seen[sym.name] = sym_file.name
+
+    return CheckResult(passed=len(errors) == 0, errors=errors)
+
+
+# ---------------------------------------------------------------------------
+# Footprint cross-reference check
+# ---------------------------------------------------------------------------
+
+def check_footprint_references(filepath: str | Path, repo_root: str | Path) -> CheckResult:
+    """Validate that non-empty Footprint properties reference existing footprints.
+
+    Footprint format is ``LibName:FootprintName`` which maps to
+    ``footprints/LibName.pretty/FootprintName.kicad_mod``.
+    """
+    filepath = Path(filepath)
+    repo_root = Path(repo_root)
+    errors: List[str] = []
+
+    try:
+        symbols = parse_kicad_sym(filepath)
+    except Exception as exc:
+        return CheckResult(
+            passed=False,
+            errors=[f"Failed to parse file (format/parse error): {exc}"],
+        )
+
+    for sym in symbols:
+        fp = sym.properties.get('Footprint', '')
+        if not fp or fp.strip() == '':
+            continue  # Empty footprint is allowed for generic symbols
+
+        if ':' not in fp:
+            errors.append(
+                f"Symbol '{sym.name}': Footprint '{fp}' has invalid format "
+                f"(expected 'LibName:FootprintName')"
+            )
+            continue
+
+        lib_name, fp_name = fp.split(':', 1)
+        fp_path = repo_root / 'footprints' / f'{lib_name}.pretty' / f'{fp_name}.kicad_mod'
+        if not fp_path.exists():
+            errors.append(
+                f"Symbol '{sym.name}': Footprint '{fp}' not found "
+                f"(expected {fp_path.relative_to(repo_root)})"
             )
 
     return CheckResult(passed=len(errors) == 0, errors=errors)
@@ -463,7 +465,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         if symbols_dir.is_dir():
             files_to_check.extend(sorted(symbols_dir.glob('*.kicad_sym')))
 
-    # Run symbol property checks
+    # Run symbol property checks and cross-reference checks
     for fpath in files_to_check:
         result = check_symbol_properties(fpath)
         results[str(fpath)] = result
@@ -473,6 +475,28 @@ def main(argv: Optional[List[str]] = None) -> int:
             else:
                 print(f"FAIL: {fpath}")
                 for err in result.errors:
+                    print(f"  - {err}")
+
+        # Cross-reference check (footprint references)
+        xref_result = check_footprint_references(fpath, repo_root)
+        if not xref_result.passed:
+            xref_key = f"{fpath} [cross-ref]"
+            results[xref_key] = xref_result
+            if not args.report:
+                print(f"FAIL: {xref_key}")
+                for err in xref_result.errors:
+                    print(f"  - {err}")
+
+    # Run duplicate symbol check
+    if args.check_all or args.report:
+        dup_result = check_duplicate_symbols(repo_root)
+        results['duplicate-symbols'] = dup_result
+        if not args.report:
+            if dup_result.passed:
+                print("PASS: duplicate-symbols")
+            else:
+                print("FAIL: duplicate-symbols")
+                for err in dup_result.errors:
                     print(f"  - {err}")
 
     # Run table consistency check
