@@ -10,7 +10,7 @@ These tests ensure:
 """
 from __future__ import annotations
 
-from validate import check_duplicate_symbols
+from validator.checks import check_duplicate_symbols
 
 
 class TestDirectoryStructure:

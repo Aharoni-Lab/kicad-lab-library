@@ -1,15 +1,13 @@
 """Shared fixtures for kicad-lab-library tests."""
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import pytest
 
-# Ensure scripts/ is importable
-REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO_ROOT / "scripts"))
+from validator.config import load_rules
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
 
@@ -23,6 +21,12 @@ def repo_root() -> Path:
 def fixtures_dir() -> Path:
     """Return the test fixtures directory."""
     return FIXTURES_DIR
+
+
+@pytest.fixture
+def rules(repo_root):
+    """Load the real library_rules.yaml from repo root."""
+    return load_rules(repo_root / "library_rules.yaml")
 
 
 @pytest.fixture

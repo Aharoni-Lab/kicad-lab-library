@@ -1,0 +1,57 @@
+version: "1.0"
+
+library:
+  prefix: "AharoniLab_"
+  env_var: "AHARONI_LAB_KICAD_LIB"
+
+# Global required properties for ALL symbols
+global_symbol_properties:
+  Reference:
+    required: true
+  Value:
+    required: true
+  Footprint:
+    required: false       # Can be empty for generic symbols
+  Datasheet:
+    required: true
+    pattern: "^https?://.+"
+  Description:
+    required: true
+  ki_keywords:
+    required: true
+  Validated:
+    required: true
+    pattern: "^(Yes|No)$"
+
+# Per-library-file rules (keyed by filename stem)
+# Additive to global_symbol_properties
+categories:
+  AharoniLab_Passive:
+    subcategories:
+      resistor:  { reference_prefix: "R", pins: { min: 2, max: 2 } }
+      capacitor: { reference_prefix: "C", pins: { min: 2, max: 2 } }
+      inductor:  { reference_prefix: "L", pins: { min: 2, max: 2 } }
+      diode:     { reference_prefix: "D", pins: { min: 2, max: 3 } }
+  AharoniLab_Connector:
+    reference_prefix: "J"
+    pins: { min: 2 }
+  AharoniLab_MCU:
+    reference_prefix: "U"
+    pins: { min: 8 }
+  AharoniLab_Power:
+    reference_prefix: "U"
+    pins: { min: 3 }
+  AharoniLab_Sensor:
+    reference_prefix: "U"
+    pins: { min: 3 }
+
+# Footprint validation
+footprint_required_layers:
+  - "F.Cu"
+  - "F.CrtYd"
+  - "F.Fab"
+
+# Naming conventions
+naming:
+  symbol_file_pattern: "^AharoniLab_[A-Za-z0-9_]+\\.kicad_sym$"
+  footprint_dir_pattern: "^AharoniLab_[A-Za-z0-9_]+\\.pretty$"

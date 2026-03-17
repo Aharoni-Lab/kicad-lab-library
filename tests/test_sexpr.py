@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from sexpr import parse_sexpr
+from validator.sexpr import parse_sexpr
 
 
 class TestBasicParsing:

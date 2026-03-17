@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from validate import ENV_VAR_PLACEHOLDER, parse_lib_table, resolve_table_uri
+from validator.checks import ENV_VAR_PLACEHOLDER, parse_lib_table, resolve_table_uri
 
 
 class TestSymLibTableConsistency:
