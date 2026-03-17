@@ -50,34 +50,7 @@ jobs:
 
       - name: Detect changed library files
         id: changes
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE="${{ github.event.pull_request.base.sha }}"
-          else
-            BASE="${{ github.event.before }}"
-          fi
-
-          # Handle initial commit
-          if ! git cat-file -e "$BASE" 2>/dev/null; then
-            BASE=$(git rev-list --max-parents=0 HEAD)
-          fi
-
-          CHANGED_SYM=$(git diff --name-only --diff-filter=ACMR "$BASE" HEAD -- 'symbols/*.kicad_sym' || true)
-          CHANGED_FP=$(git diff --name-only --diff-filter=ACMR "$BASE" HEAD -- 'footprints/**/*.kicad_mod' || true)
-
-          echo "sym_files<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGED_SYM" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-          echo "fp_files<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGED_FP" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-          if [ -n "$CHANGED_SYM" ] || [ -n "$CHANGED_FP" ]; then
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          fi
+        uses: ./.github/actions/detect-changes
 
       - name: Clone kicad-library-utils
         if: steps.changes.outputs.has_changes == 'true'
@@ -127,28 +100,7 @@ jobs:
 
       - name: Detect changed library files
         id: changes
-        run: |
-          BASE="${{ github.event.pull_request.base.sha }}"
-          if ! git cat-file -e "$BASE" 2>/dev/null; then
-            BASE=$(git rev-list --max-parents=0 HEAD)
-          fi
-
-          CHANGED_SYM=$(git diff --name-only --diff-filter=ACMR "$BASE" HEAD -- 'symbols/*.kicad_sym' || true)
-          CHANGED_FP=$(git diff --name-only --diff-filter=ACMR "$BASE" HEAD -- 'footprints/**/*.kicad_mod' || true)
-
-          echo "sym_files<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGED_SYM" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-          echo "fp_files<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGED_FP" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-          if [ -n "$CHANGED_SYM" ] || [ -n "$CHANGED_FP" ]; then
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          fi
+        uses: ./.github/actions/detect-changes
 
       - name: Render symbols with KiCad CLI
         if: steps.changes.outputs.has_changes == 'true'

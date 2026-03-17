@@ -1,0 +1,47 @@
+name: Detect Changed Library Files
+description: Detect changed symbol and footprint files using git diff
+
+outputs:
+  sym_files:
+    description: Newline-separated list of changed .kicad_sym files
+    value: ${{ steps.detect.outputs.sym_files }}
+  fp_files:
+    description: Newline-separated list of changed .kicad_mod files
+    value: ${{ steps.detect.outputs.fp_files }}
+  has_changes:
+    description: "'true' if any library files changed"
+    value: ${{ steps.detect.outputs.has_changes }}
+
+runs:
+  using: composite
+  steps:
+    - id: detect
+      shell: bash
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          BASE="${{ github.event.pull_request.base.sha }}"
+        else
+          BASE="${{ github.event.before }}"
+        fi
+
+        # Handle initial commit
+        if ! git cat-file -e "$BASE" 2>/dev/null; then
+          BASE=$(git rev-list --max-parents=0 HEAD)
+        fi
+
+        CHANGED_SYM=$(git diff --name-only --diff-filter=ACMR "$BASE" HEAD -- 'symbols/*.kicad_sym' || true)
+        CHANGED_FP=$(git diff --name-only --diff-filter=ACMR "$BASE" HEAD -- 'footprints/**/*.kicad_mod' || true)
+
+        echo "sym_files<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGED_SYM" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+        echo "fp_files<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGED_FP" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+        if [ -n "$CHANGED_SYM" ] || [ -n "$CHANGED_FP" ]; then
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+        fi

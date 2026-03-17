@@ -36,11 +36,6 @@ def valid_symbol_unvalidated_path() -> Path:
 
 
 @pytest.fixture
-def valid_footprint_path() -> Path:
-    return FIXTURES_DIR / "valid_footprint.kicad_mod"
-
-
-@pytest.fixture
 def invalid_no_datasheet_path() -> Path:
     return FIXTURES_DIR / "invalid_no_datasheet.kicad_sym"
 
@@ -63,3 +58,18 @@ def invalid_bad_validated_path() -> Path:
 @pytest.fixture
 def invalid_malformed_path() -> Path:
     return FIXTURES_DIR / "invalid_malformed.kicad_sym"
+
+
+@pytest.fixture
+def invalid_no_reference_path() -> Path:
+    return FIXTURES_DIR / "invalid_no_reference.kicad_sym"
+
+
+@pytest.fixture
+def invalid_no_description_path() -> Path:
+    return FIXTURES_DIR / "invalid_no_description.kicad_sym"
+
+
+@pytest.fixture
+def invalid_no_keywords_path() -> Path:
+    return FIXTURES_DIR / "invalid_no_keywords.kicad_sym"
