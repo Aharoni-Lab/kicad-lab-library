@@ -61,7 +61,7 @@ Tracks whether a component has been proven in a real, fabricated project. This g
 
 ### CI Enforcement
 
-CI checks that every symbol has a `Validated` property set to exactly `"Yes"` or `"No"`. Any other value (or a missing field) fails validation.
+CI checks that every symbol has a `Validated` property set to exactly `"Yes"` or `"No"`. Any other value (or a missing field) fails validation. All validation rules (required properties, regex patterns, reference prefixes, pin counts) are defined in `library_rules.yaml` at the repo root.
 
 ## Environment Variable
 
