@@ -24,12 +24,6 @@ from validator.config import (
 )
 
 
-@pytest.fixture
-def rules(repo_root):
-    """Load the real library_rules.yaml from repo root."""
-    return load_rules(repo_root / "library_rules.yaml")
-
-
 class TestLoadValidConfig:
     def test_load_valid_config(self, rules):
         """Should load library_rules.yaml into LibraryRules dataclass."""

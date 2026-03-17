@@ -27,7 +27,7 @@ from validator.config import (
     load_rules,
 )
 from validator.report import generate_report
-from validator.sexpr import parse_sexpr
+from validator.sexpr import extract_properties, parse_sexpr
 
 __all__ = [
     "ENV_VAR_PLACEHOLDER",
@@ -46,6 +46,7 @@ __all__ = [
     "check_pin_counts",
     "check_reference_prefix",
     "check_symbol_properties",
+    "extract_properties",
     "generate_report",
     "load_rules",
     "parse_kicad_sym",

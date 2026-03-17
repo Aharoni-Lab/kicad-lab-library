@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Set
 
 from validator.checks import CheckResult
 from validator.config import LibraryRules
-from validator.sexpr import parse_sexpr
+from validator.sexpr import extract_properties, parse_sexpr
 
 
 # ---------------------------------------------------------------------------
@@ -55,15 +55,6 @@ def _count_pads(tree: list) -> int:
     return count
 
 
-def _extract_properties(tree: list) -> Dict[str, str]:
-    """Extract property name->value from a footprint tree."""
-    props: Dict[str, str] = {}
-    for child in tree:
-        if isinstance(child, list) and len(child) >= 3 and child[0] == 'property':
-            props[child[1]] = child[2]
-    return props
-
-
 def parse_kicad_mod(filepath: str | Path) -> FootprintInfo:
     """Parse a ``.kicad_mod`` file into a :class:`FootprintInfo`.
 
@@ -77,7 +68,7 @@ def parse_kicad_mod(filepath: str | Path) -> FootprintInfo:
     name = tree[1] if len(tree) >= 2 else ""
     layers = _collect_layers(tree)
     pad_count = _count_pads(tree)
-    properties = _extract_properties(tree)
+    properties = extract_properties(tree)
 
     return FootprintInfo(
         name=name,
@@ -94,15 +85,18 @@ def parse_kicad_mod(filepath: str | Path) -> FootprintInfo:
 def check_footprint_layers(
     filepath: str | Path,
     rules: LibraryRules,
+    *,
+    info: Optional[FootprintInfo] = None,
 ) -> CheckResult:
     """Check that a footprint uses all required layers."""
     filepath = Path(filepath)
     errors: List[str] = []
 
-    try:
-        info = parse_kicad_mod(filepath)
-    except Exception as exc:
-        return CheckResult(errors=[f"Failed to parse footprint: {exc}"])
+    if info is None:
+        try:
+            info = parse_kicad_mod(filepath)
+        except Exception as exc:
+            return CheckResult(errors=[f"Failed to parse footprint: {exc}"])
 
     for required_layer in rules.footprint_required_layers:
         if required_layer not in info.layers:
@@ -113,15 +107,20 @@ def check_footprint_layers(
     return CheckResult(errors=errors)
 
 
-def check_footprint_pads(filepath: str | Path) -> CheckResult:
+def check_footprint_pads(
+    filepath: str | Path,
+    *,
+    info: Optional[FootprintInfo] = None,
+) -> CheckResult:
     """Check that a footprint has at least one pad."""
     filepath = Path(filepath)
     errors: List[str] = []
 
-    try:
-        info = parse_kicad_mod(filepath)
-    except Exception as exc:
-        return CheckResult(errors=[f"Failed to parse footprint: {exc}"])
+    if info is None:
+        try:
+            info = parse_kicad_mod(filepath)
+        except Exception as exc:
+            return CheckResult(errors=[f"Failed to parse footprint: {exc}"])
 
     if info.pad_count == 0:
         errors.append(

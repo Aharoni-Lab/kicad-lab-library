@@ -4,13 +4,12 @@ All check functions return a :class:`CheckResult`.
 """
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional
 
 from validator.config import LibraryRules
-from validator.sexpr import parse_sexpr
+from validator.sexpr import extract_properties, parse_sexpr
 
 
 # ---------------------------------------------------------------------------
@@ -22,15 +21,6 @@ class SymbolInfo(NamedTuple):
     name: str
     properties: Dict[str, str]
     pin_count: int = 0
-
-
-def _extract_properties(sexpr_node: list) -> Dict[str, str]:
-    """Return a dict of property name -> value from a symbol S-expression node."""
-    props: Dict[str, str] = {}
-    for child in sexpr_node:
-        if isinstance(child, list) and len(child) >= 3 and child[0] == 'property':
-            props[child[1]] = child[2]
-    return props
 
 
 def _count_pins(sexpr_node: list) -> int:
@@ -83,7 +73,7 @@ def parse_kicad_sym(filepath: str | Path) -> List[SymbolInfo]:
         name = node[1]
         if name in children:
             continue
-        props = _extract_properties(node)
+        props = extract_properties(node)
         pin_count = _count_pins(node)
         symbols.append(SymbolInfo(name=name, properties=props, pin_count=pin_count))
 
@@ -286,8 +276,16 @@ def check_pin_counts(
 # Duplicate symbol detection
 # ---------------------------------------------------------------------------
 
-def check_duplicate_symbols(repo_root: str | Path) -> CheckResult:
-    """Check that no two ``.kicad_sym`` files define the same symbol name."""
+def check_duplicate_symbols(
+    repo_root: str | Path,
+    *,
+    parsed_symbols: Optional[Dict[Path, List[SymbolInfo]]] = None,
+) -> CheckResult:
+    """Check that no two ``.kicad_sym`` files define the same symbol name.
+
+    If *parsed_symbols* is provided (a mapping of filepath to parsed symbols),
+    those are used directly to avoid re-parsing files.
+    """
     repo_root = Path(repo_root)
     symbols_dir = repo_root / 'symbols'
     errors: List[str] = []
@@ -296,19 +294,32 @@ def check_duplicate_symbols(repo_root: str | Path) -> CheckResult:
         return CheckResult()
 
     seen: Dict[str, str] = {}  # symbol_name -> filename
-    for sym_file in sorted(symbols_dir.glob('*.kicad_sym')):
-        try:
-            symbols = parse_kicad_sym(sym_file)
-        except Exception:
-            continue  # parse errors are caught by check_symbol_properties
-        for sym in symbols:
-            if sym.name in seen:
-                errors.append(
-                    f"Duplicate symbol '{sym.name}' found in "
-                    f"'{sym_file.name}' and '{seen[sym.name]}'"
-                )
-            else:
-                seen[sym.name] = sym_file.name
+
+    if parsed_symbols is not None:
+        # Use pre-parsed data
+        for sym_file, symbols in sorted(parsed_symbols.items(), key=lambda t: t[0]):
+            for sym in symbols:
+                if sym.name in seen:
+                    errors.append(
+                        f"Duplicate symbol '{sym.name}' found in "
+                        f"'{sym_file.name}' and '{seen[sym.name]}'"
+                    )
+                else:
+                    seen[sym.name] = sym_file.name
+    else:
+        for sym_file in sorted(symbols_dir.glob('*.kicad_sym')):
+            try:
+                symbols = parse_kicad_sym(sym_file)
+            except Exception:
+                continue  # parse errors are caught by check_symbol_properties
+            for sym in symbols:
+                if sym.name in seen:
+                    errors.append(
+                        f"Duplicate symbol '{sym.name}' found in "
+                        f"'{sym_file.name}' and '{seen[sym.name]}'"
+                    )
+                else:
+                    seen[sym.name] = sym_file.name
 
     return CheckResult(errors=errors)
 

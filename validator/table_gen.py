@@ -8,9 +8,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List
 
-from validator.checks import CheckResult
-
-ENV_VAR = "${AHARONI_LAB_KICAD_LIB}"
+from validator.checks import ENV_VAR_PLACEHOLDER, CheckResult
 
 
 def generate_sym_lib_table(repo_root: str | Path) -> str:
@@ -23,7 +21,7 @@ def generate_sym_lib_table(repo_root: str | Path) -> str:
     if symbols_dir.is_dir():
         for sym_file in sorted(symbols_dir.glob("*.kicad_sym")):
             name = sym_file.stem
-            uri = f"{ENV_VAR}/symbols/{sym_file.name}"
+            uri = f"{ENV_VAR_PLACEHOLDER}/symbols/{sym_file.name}"
             lines.append(
                 f'  (lib (name "{name}")(type "KiCad")'
                 f'(uri "{uri}")(options "")(descr ""))'
@@ -44,7 +42,7 @@ def generate_fp_lib_table(repo_root: str | Path) -> str:
         for fp_dir in sorted(footprints_dir.iterdir()):
             if fp_dir.is_dir() and fp_dir.suffix == ".pretty":
                 name = fp_dir.stem
-                uri = f"{ENV_VAR}/footprints/{fp_dir.name}"
+                uri = f"{ENV_VAR_PLACEHOLDER}/footprints/{fp_dir.name}"
                 lines.append(
                     f'  (lib (name "{name}")(type "KiCad")'
                     f'(uri "{uri}")(options "")(descr ""))'

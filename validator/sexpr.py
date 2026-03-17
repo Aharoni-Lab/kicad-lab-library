@@ -8,7 +8,7 @@ This module provides a single ``parse_sexpr()`` function used by both
 """
 from __future__ import annotations
 
-from typing import List
+from typing import Dict, List
 
 
 def parse_sexpr(text: str) -> list:
@@ -88,6 +88,19 @@ def _tokenize(text: str) -> List[str]:
         i = j
 
     return tokens
+
+
+def extract_properties(sexpr_node: list) -> Dict[str, str]:
+    """Return a dict of property name -> value from an S-expression node.
+
+    Works for both symbol and footprint nodes — any node containing
+    ``(property "name" "value" ...)`` children.
+    """
+    props: Dict[str, str] = {}
+    for child in sexpr_node:
+        if isinstance(child, list) and len(child) >= 3 and child[0] == 'property':
+            props[child[1]] = child[2]
+    return props
 
 
 def _parse_tokens(tokens: List[str], pos: int) -> tuple:

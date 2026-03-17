@@ -122,6 +122,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             files_to_check.extend(sorted(symbols_dir.glob('*.kicad_sym')))
 
     # Run symbol property checks and cross-reference checks
+    all_parsed: Dict[Path, list] = {}  # accumulate for duplicate check
     for fpath in files_to_check:
         # Parse once, reuse for all checks
         try:
@@ -134,6 +135,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             if not args.report:
                 _print_result(str(fpath), result)
             continue
+
+        all_parsed[fpath] = symbols
 
         result = check_symbol_properties(fpath, rules, symbols=symbols)
         results[str(fpath)] = result
@@ -166,7 +169,9 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # Run duplicate symbol check
     if args.check_all or args.report:
-        dup_result = check_duplicate_symbols(repo_root)
+        dup_result = check_duplicate_symbols(
+            repo_root, parsed_symbols=all_parsed or None,
+        )
         results['duplicate-symbols'] = dup_result
         if not args.report:
             _print_result('duplicate-symbols', dup_result)
@@ -180,19 +185,34 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # Run footprint checks
     if args.check_footprints:
-        from validator.footprint_checks import check_footprint_layers, check_footprint_pads
+        from validator.footprint_checks import (
+            check_footprint_layers, check_footprint_pads, parse_kicad_mod,
+        )
         footprints_dir = repo_root / 'footprints'
         if footprints_dir.is_dir():
             for pretty_dir in sorted(footprints_dir.iterdir()):
                 if pretty_dir.is_dir() and pretty_dir.suffix == '.pretty':
                     for fp_file in sorted(pretty_dir.glob('*.kicad_mod')):
-                        layer_result = check_footprint_layers(fp_file, rules)
+                        try:
+                            fp_info = parse_kicad_mod(fp_file)
+                        except Exception as exc:
+                            err_result = CheckResult(
+                                errors=[f"Failed to parse footprint: {exc}"],
+                            )
+                            results[f"{fp_file}"] = err_result
+                            if not args.report:
+                                _print_result(str(fp_file), err_result)
+                            continue
+
+                        layer_result = check_footprint_layers(
+                            fp_file, rules, info=fp_info,
+                        )
                         if not layer_result.passed:
                             results[f"{fp_file} [layers]"] = layer_result
                             if not args.report:
                                 _print_result(f"{fp_file} [layers]", layer_result)
 
-                        pad_result = check_footprint_pads(fp_file)
+                        pad_result = check_footprint_pads(fp_file, info=fp_info)
                         if not pad_result.passed:
                             results[f"{fp_file} [pads]"] = pad_result
                             if not args.report:
