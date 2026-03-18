@@ -8,6 +8,8 @@ on:
       - '3dmodels/**'
       - '*-lib-table'
       - 'scripts/**'
+      - 'validator/**'
+      - 'library_rules.yaml'
       - 'tests/**'
   push:
     branches: [main]
@@ -17,6 +19,8 @@ on:
       - '3dmodels/**'
       - '*-lib-table'
       - 'scripts/**'
+      - 'validator/**'
+      - 'library_rules.yaml'
       - 'tests/**'
 
 jobs:
@@ -30,8 +34,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install pytest
-        run: pip install pytest
+      - name: Install dependencies
+        run: pip install pytest pyyaml
 
       - name: Run tests
         run: pytest tests/ -v
@@ -81,8 +85,11 @@ jobs:
           done <<< "${{ steps.changes.outputs.fp_files }}"
           exit $EXIT_CODE
 
+      - name: Install pyyaml
+        run: pip install pyyaml
+
       - name: Run lab-specific validation
-        run: python scripts/validate.py --all --check-tables
+        run: python -m validator --all --check-tables --check-footprints
 
   render-and-report:
     name: Render & Report
@@ -130,9 +137,12 @@ jobs:
           path: renders/
           if-no-files-found: ignore
 
+      - name: Install pyyaml for report
+        run: pip install pyyaml
+
       - name: Generate validation report
         run: |
-          python scripts/validate.py --report > report.md
+          python -m validator --report > report.md
           cat report.md
 
       - name: Post PR comment

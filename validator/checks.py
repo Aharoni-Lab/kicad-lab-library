@@ -1,18 +1,15 @@
-#!/usr/bin/env python3
-"""Core validation script for the Aharoni Lab KiCad library.
+"""Validation checks for KiCad library files.
 
-Standalone (stdlib only). Validates symbol properties, library table
-consistency, and generates markdown reports.
+All check functions return a :class:`CheckResult`.
 """
 from __future__ import annotations
 
-import argparse
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional
 
-from sexpr import parse_sexpr
+from validator.config import LibraryRules
+from validator.sexpr import extract_properties, parse_sexpr
 
 
 # ---------------------------------------------------------------------------
@@ -23,15 +20,20 @@ class SymbolInfo(NamedTuple):
     """Lightweight container for a parsed KiCad symbol."""
     name: str
     properties: Dict[str, str]
+    pin_count: int = 0
 
 
-def _extract_properties(sexpr_node: list) -> Dict[str, str]:
-    """Return a dict of property name -> value from a symbol S-expression node."""
-    props: Dict[str, str] = {}
+def _count_pins(sexpr_node: list) -> int:
+    """Count the number of ``pin`` nodes in a symbol and all its child symbols."""
+    count = 0
     for child in sexpr_node:
-        if isinstance(child, list) and len(child) >= 3 and child[0] == 'property':
-            props[child[1]] = child[2]
-    return props
+        if isinstance(child, list) and len(child) >= 1:
+            if child[0] == 'pin':
+                count += 1
+            # Recurse into child symbols (e.g. TestResistor_1_1)
+            elif child[0] == 'symbol':
+                count += _count_pins(child)
+    return count
 
 
 def parse_kicad_sym(filepath: str | Path) -> List[SymbolInfo]:
@@ -71,8 +73,9 @@ def parse_kicad_sym(filepath: str | Path) -> List[SymbolInfo]:
         name = node[1]
         if name in children:
             continue
-        props = _extract_properties(node)
-        symbols.append(SymbolInfo(name=name, properties=props))
+        props = extract_properties(node)
+        pin_count = _count_pins(node)
+        symbols.append(SymbolInfo(name=name, properties=props, pin_count=pin_count))
 
     return symbols
 
@@ -92,24 +95,21 @@ class CheckResult:
 
 
 # ---------------------------------------------------------------------------
-# Symbol property checks
+# Symbol property checks (YAML-driven)
 # ---------------------------------------------------------------------------
 
 def check_symbol_properties(
     filepath: str | Path,
+    rules: LibraryRules,
     *,
     symbols: Optional[List[SymbolInfo]] = None,
 ) -> CheckResult:
-    """Validate lab-specific property requirements for a ``.kicad_sym`` file.
+    """Validate symbol properties against rules from ``library_rules.yaml``.
 
-    Rules checked for every symbol:
-    * ``Reference`` must exist and be non-empty.
-    * ``Description`` must exist and be non-empty.
-    * ``ki_keywords`` must exist and be non-empty.
-    * ``Datasheet`` must exist and be non-empty and not ``~``.
-    * ``Validated`` must exist and equal ``"Yes"`` or ``"No"``.
-
-    Pass pre-parsed *symbols* to avoid re-reading the file.
+    Every property in ``rules.global_symbol_properties`` is checked:
+    - If ``required`` is True, the property must exist and be non-empty
+      (also rejects ``~`` for Datasheet).
+    - If ``pattern`` is set, the value must match the regex.
     """
     filepath = Path(filepath)
     errors: List[str] = []
@@ -123,40 +123,150 @@ def check_symbol_properties(
             )
 
     for sym in symbols:
-        # Reference check
-        ref = sym.properties.get('Reference')
-        if ref is None or ref.strip() == '':
-            errors.append(
-                f"Symbol '{sym.name}': Reference property is missing or empty"
+        for prop_name, rule in rules.global_symbol_properties.items():
+            value = sym.properties.get(prop_name)
+
+            if rule.required:
+                if value is None or value.strip() == '':
+                    errors.append(
+                        f"Symbol '{sym.name}': {prop_name} property is missing or empty"
+                    )
+                    continue
+                # Special case: Datasheet '~' means empty in KiCad
+                if prop_name == 'Datasheet' and value.strip() == '~':
+                    errors.append(
+                        f"Symbol '{sym.name}': {prop_name} property is missing or empty"
+                    )
+                    continue
+
+            # Pattern check (only if value is present and non-empty)
+            if rule.compiled_pattern is not None and value and value.strip():
+                if not rule.compiled_pattern.match(value):
+                    errors.append(
+                        f"Symbol '{sym.name}': {prop_name} property must match "
+                        f"'{rule.pattern}' (got '{value}')"
+                    )
+
+    return CheckResult(errors=errors)
+
+
+# ---------------------------------------------------------------------------
+# Reference prefix checks
+# ---------------------------------------------------------------------------
+
+def check_reference_prefix(
+    filepath: str | Path,
+    rules: LibraryRules,
+    *,
+    symbols: Optional[List[SymbolInfo]] = None,
+) -> CheckResult:
+    """Check that symbol Reference prefixes match category rules.
+
+    For categories with subcategories, the symbol is matched by its
+    Reference prefix against subcategory rules.
+    """
+    filepath = Path(filepath)
+    errors: List[str] = []
+
+    # Determine category from filename stem
+    stem = filepath.stem
+    category = rules.categories.get(stem)
+    if category is None:
+        return CheckResult()  # No rules for this file
+
+    if symbols is None:
+        try:
+            symbols = parse_kicad_sym(filepath)
+        except Exception as exc:
+            return CheckResult(
+                errors=[f"Failed to parse file (format/parse error): {exc}"],
             )
 
-        # Description check
-        desc = sym.properties.get('Description')
-        if desc is None or desc.strip() == '':
-            errors.append(
-                f"Symbol '{sym.name}': Description property is missing or empty"
+    for sym in symbols:
+        ref = sym.properties.get('Reference', '')
+
+        if category.subcategories:
+            # Check if ref matches any subcategory prefix
+            matched = False
+            for sub_name, sub in category.subcategories.items():
+                if sub.reference_prefix and ref == sub.reference_prefix:
+                    matched = True
+                    break
+            if not matched:
+                valid_prefixes = [
+                    s.reference_prefix
+                    for s in category.subcategories.values()
+                    if s.reference_prefix
+                ]
+                errors.append(
+                    f"Symbol '{sym.name}': Reference prefix '{ref}' does not match "
+                    f"any subcategory in {stem} (expected one of {valid_prefixes})"
+                )
+        elif category.reference_prefix:
+            if ref != category.reference_prefix:
+                errors.append(
+                    f"Symbol '{sym.name}': Reference prefix '{ref}' does not match "
+                    f"expected '{category.reference_prefix}' for {stem}"
+                )
+
+    return CheckResult(errors=errors)
+
+
+# ---------------------------------------------------------------------------
+# Pin count checks
+# ---------------------------------------------------------------------------
+
+def check_pin_counts(
+    filepath: str | Path,
+    rules: LibraryRules,
+    *,
+    symbols: Optional[List[SymbolInfo]] = None,
+) -> CheckResult:
+    """Check that symbol pin counts are within allowed ranges.
+
+    Uses category/subcategory rules from ``library_rules.yaml``.
+    """
+    filepath = Path(filepath)
+    errors: List[str] = []
+
+    stem = filepath.stem
+    category = rules.categories.get(stem)
+    if category is None:
+        return CheckResult()
+
+    if symbols is None:
+        try:
+            symbols = parse_kicad_sym(filepath)
+        except Exception as exc:
+            return CheckResult(
+                errors=[f"Failed to parse file (format/parse error): {exc}"],
             )
 
-        # ki_keywords check
-        kw = sym.properties.get('ki_keywords')
-        if kw is None or kw.strip() == '':
-            errors.append(
-                f"Symbol '{sym.name}': ki_keywords property is missing or empty"
-            )
+    for sym in symbols:
+        ref = sym.properties.get('Reference', '')
+        pin_range = None
 
-        # Datasheet check
-        ds = sym.properties.get('Datasheet')
-        if ds is None or ds.strip() == '' or ds.strip() == '~':
-            errors.append(
-                f"Symbol '{sym.name}': Datasheet property is missing or empty"
-            )
+        if category.subcategories:
+            # Find matching subcategory by reference prefix
+            for sub_name, sub in category.subcategories.items():
+                if sub.reference_prefix and ref == sub.reference_prefix:
+                    pin_range = sub.pins
+                    break
+        else:
+            pin_range = category.pins
 
-        # Validated check
-        val = sym.properties.get('Validated')
-        if val is None or val not in ('Yes', 'No'):
+        if pin_range is None:
+            continue
+
+        if pin_range.min is not None and sym.pin_count < pin_range.min:
             errors.append(
-                f"Symbol '{sym.name}': Validated property must be 'Yes' or 'No'"
-                + (f" (got '{val}')" if val is not None else " (missing)")
+                f"Symbol '{sym.name}': has {sym.pin_count} pins, "
+                f"minimum is {pin_range.min}"
+            )
+        if pin_range.max is not None and sym.pin_count > pin_range.max:
+            errors.append(
+                f"Symbol '{sym.name}': has {sym.pin_count} pins, "
+                f"maximum is {pin_range.max}"
             )
 
     return CheckResult(errors=errors)
@@ -166,8 +276,16 @@ def check_symbol_properties(
 # Duplicate symbol detection
 # ---------------------------------------------------------------------------
 
-def check_duplicate_symbols(repo_root: str | Path) -> CheckResult:
-    """Check that no two ``.kicad_sym`` files define the same symbol name."""
+def check_duplicate_symbols(
+    repo_root: str | Path,
+    *,
+    parsed_symbols: Optional[Dict[Path, List[SymbolInfo]]] = None,
+) -> CheckResult:
+    """Check that no two ``.kicad_sym`` files define the same symbol name.
+
+    If *parsed_symbols* is provided (a mapping of filepath to parsed symbols),
+    those are used directly to avoid re-parsing files.
+    """
     repo_root = Path(repo_root)
     symbols_dir = repo_root / 'symbols'
     errors: List[str] = []
@@ -176,19 +294,32 @@ def check_duplicate_symbols(repo_root: str | Path) -> CheckResult:
         return CheckResult()
 
     seen: Dict[str, str] = {}  # symbol_name -> filename
-    for sym_file in sorted(symbols_dir.glob('*.kicad_sym')):
-        try:
-            symbols = parse_kicad_sym(sym_file)
-        except Exception:
-            continue  # parse errors are caught by check_symbol_properties
-        for sym in symbols:
-            if sym.name in seen:
-                errors.append(
-                    f"Duplicate symbol '{sym.name}' found in "
-                    f"'{sym_file.name}' and '{seen[sym.name]}'"
-                )
-            else:
-                seen[sym.name] = sym_file.name
+
+    if parsed_symbols is not None:
+        # Use pre-parsed data
+        for sym_file, symbols in sorted(parsed_symbols.items(), key=lambda t: t[0]):
+            for sym in symbols:
+                if sym.name in seen:
+                    errors.append(
+                        f"Duplicate symbol '{sym.name}' found in "
+                        f"'{sym_file.name}' and '{seen[sym.name]}'"
+                    )
+                else:
+                    seen[sym.name] = sym_file.name
+    else:
+        for sym_file in sorted(symbols_dir.glob('*.kicad_sym')):
+            try:
+                symbols = parse_kicad_sym(sym_file)
+            except Exception:
+                continue  # parse errors are caught by check_symbol_properties
+            for sym in symbols:
+                if sym.name in seen:
+                    errors.append(
+                        f"Duplicate symbol '{sym.name}' found in "
+                        f"'{sym_file.name}' and '{seen[sym.name]}'"
+                    )
+                else:
+                    seen[sym.name] = sym_file.name
 
     return CheckResult(errors=errors)
 
@@ -207,8 +338,6 @@ def check_footprint_references(
 
     Footprint format is ``LibName:FootprintName`` which maps to
     ``footprints/LibName.pretty/FootprintName.kicad_mod``.
-
-    Pass pre-parsed *symbols* to avoid re-reading the file.
     """
     filepath = Path(filepath)
     repo_root = Path(repo_root)
@@ -250,6 +379,7 @@ def check_footprint_references(
 # ---------------------------------------------------------------------------
 
 ENV_VAR_PLACEHOLDER = '${AHARONI_LAB_KICAD_LIB}'
+
 
 class LibTableEntry(NamedTuple):
     """A single entry from a KiCad library table file."""
@@ -382,172 +512,3 @@ def check_library_tables(repo_root: str | Path) -> CheckResult:
         errors.append("fp-lib-table not found at repository root")
 
     return CheckResult(errors=errors)
-
-
-# ---------------------------------------------------------------------------
-# Report generation
-# ---------------------------------------------------------------------------
-
-def generate_report(results: Dict[str, CheckResult]) -> str:
-    """Format *results* as a Markdown report.
-
-    Parameters
-    ----------
-    results:
-        Mapping of check name / filename to its :class:`CheckResult`.
-    """
-    all_passed = all(r.passed for r in results.values())
-    lines: List[str] = []
-
-    if all_passed:
-        lines.append("# Validation Report: PASS")
-    else:
-        lines.append("# Validation Report: FAIL")
-
-    lines.append("")
-
-    for name, result in results.items():
-        status = "PASS" if result.passed else "FAIL"
-        lines.append(f"## {name}: {status}")
-        if result.errors:
-            lines.append("")
-            for err in result.errors:
-                lines.append(f"- {err}")
-        lines.append("")
-
-    return "\n".join(lines)
-
-
-# ---------------------------------------------------------------------------
-# Repo-root discovery
-# ---------------------------------------------------------------------------
-
-def _find_repo_root() -> Path:
-    """Walk up from the script directory until ``sym-lib-table`` is found."""
-    current = Path(__file__).resolve().parent
-    while True:
-        if (current / 'sym-lib-table').exists():
-            return current
-        parent = current.parent
-        if parent == current:
-            break
-        current = parent
-    # Fallback: assume we're already at the root
-    return Path.cwd()
-
-
-# ---------------------------------------------------------------------------
-# CLI helpers
-# ---------------------------------------------------------------------------
-
-def _print_result(label: str, result: CheckResult) -> None:
-    """Print a single check result in PASS/FAIL format."""
-    if result.passed:
-        print(f"PASS: {label}")
-    else:
-        print(f"FAIL: {label}")
-        for err in result.errors:
-            print(f"  - {err}")
-
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
-
-def main(argv: Optional[List[str]] = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate Aharoni Lab KiCad library files.",
-    )
-    parser.add_argument(
-        'files',
-        nargs='*',
-        help="One or more .kicad_sym files to validate.",
-    )
-    parser.add_argument(
-        '--all',
-        action='store_true',
-        dest='check_all',
-        help="Check all .kicad_sym files in the symbols/ directory.",
-    )
-    parser.add_argument(
-        '--check-tables',
-        action='store_true',
-        help="Check library table consistency.",
-    )
-    parser.add_argument(
-        '--report',
-        action='store_true',
-        help="Output a Markdown report (implies --all and --check-tables).",
-    )
-
-    args = parser.parse_args(argv)
-    repo_root = _find_repo_root()
-
-    results: Dict[str, CheckResult] = {}
-
-    # Collect files to check
-    files_to_check: List[Path] = []
-    if args.files:
-        files_to_check.extend(Path(f) for f in args.files)
-
-    if args.check_all or args.report:
-        symbols_dir = repo_root / 'symbols'
-        if symbols_dir.is_dir():
-            files_to_check.extend(sorted(symbols_dir.glob('*.kicad_sym')))
-
-    # Run symbol property checks and cross-reference checks
-    for fpath in files_to_check:
-        # Parse once, reuse for both checks
-        try:
-            symbols = parse_kicad_sym(fpath)
-        except Exception as exc:
-            result = CheckResult(
-                errors=[f"Failed to parse file (format/parse error): {exc}"],
-            )
-            results[str(fpath)] = result
-            if not args.report:
-                _print_result(str(fpath), result)
-            continue
-
-        result = check_symbol_properties(fpath, symbols=symbols)
-        results[str(fpath)] = result
-        if not args.report:
-            _print_result(str(fpath), result)
-
-        # Cross-reference check (footprint references)
-        xref_result = check_footprint_references(fpath, repo_root, symbols=symbols)
-        if not xref_result.passed:
-            xref_key = f"{fpath} [cross-ref]"
-            results[xref_key] = xref_result
-            if not args.report:
-                _print_result(xref_key, xref_result)
-
-    # Run duplicate symbol check
-    if args.check_all or args.report:
-        dup_result = check_duplicate_symbols(repo_root)
-        results['duplicate-symbols'] = dup_result
-        if not args.report:
-            _print_result('duplicate-symbols', dup_result)
-
-    # Run table consistency check
-    if args.check_tables or args.report:
-        table_result = check_library_tables(repo_root)
-        results['library-tables'] = table_result
-        if not args.report:
-            _print_result('library-tables', table_result)
-
-    # Report mode
-    if args.report:
-        print(generate_report(results))
-
-    # Exit code
-    if not results:
-        # Nothing was checked -- show help
-        parser.print_help()
-        return 0
-
-    return 0 if all(r.passed for r in results.values()) else 1
-
-
-if __name__ == '__main__':
-    sys.exit(main())

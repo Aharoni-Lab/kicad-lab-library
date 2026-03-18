@@ -5,7 +5,7 @@
 1. Fork the repository (or create a branch if you have write access)
 2. Create a feature branch: `git checkout -b add-<component-name>`
 3. Add your component(s)
-4. Run tests: `pip install pytest && pytest tests/ -v`
+4. Run tests: `pip install pytest pyyaml && pytest tests/ -v`
 5. Commit and push
 6. Open a pull request -- CI will validate automatically
 
@@ -69,21 +69,30 @@ CI runs the official KLC checker on every PR.
 ## Running Tests Locally
 
 ```bash
-pip install pytest
+pip install pytest pyyaml
 pytest tests/ -v
+```
+
+You can also run the validator directly:
+
+```bash
+python -m validator --all --check-tables --check-footprints --report
 ```
 
 Tests check:
 - Directory structure (flat layout, correct prefixes)
-- Symbol properties (Datasheet URL, Validated field)
+- Symbol properties (Datasheet URL, Validated field, and all rules from `library_rules.yaml`)
+- Reference prefix and pin count validation (per-category rules)
+- Footprint layer and pad validation
 - Library table consistency (every file has an entry, all URIs use the env variable)
+- Library table generation (tables match what's on disk)
 
 ## What CI Checks
 
 When you open a PR, three CI jobs run:
 
 1. **Tests** -- `pytest tests/ -v`
-2. **KLC Validation** -- official KLC checks on changed symbols and footprints
+2. **KLC Validation** -- official KLC checks on changed symbols and footprints, plus lab-specific validation via `python -m validator`
 3. **Render & Report** -- renders symbol/footprint SVGs and posts a validation report as a PR comment
 
 All three must pass to merge.

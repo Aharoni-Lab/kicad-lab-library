@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from validate import check_footprint_references, parse_kicad_sym
+from validator.checks import check_footprint_references, parse_kicad_sym
 
 
 class TestFootprintCrossReference:

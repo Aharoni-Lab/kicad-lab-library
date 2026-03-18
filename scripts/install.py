@@ -21,7 +21,13 @@ import shutil
 import sys
 from pathlib import Path
 
-from sexpr import parse_sexpr
+# Ensure repo root is on sys.path so validator package is importable
+_SCRIPT_DIR = Path(__file__).resolve().parent
+_REPO_ROOT = _SCRIPT_DIR.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from validator.sexpr import parse_sexpr
 
 
 # ---------------------------------------------------------------------------
