@@ -15,6 +15,7 @@ from validator.table_gen import (
     check_tables_match_generated,
     generate_fp_lib_table,
     generate_sym_lib_table,
+    write_generated_tables,
 )
 
 
@@ -106,7 +107,44 @@ class TestTablesMatchDisk:
         assert not result.passed
         assert any("sym-lib-table" in e for e in result.errors)
 
-    def test_real_repo_tables_match(self, repo_root):
+    def test_real_repo_tables_match(self, repo_root, rules):
         """The actual repo tables should match generated content."""
-        result = check_tables_match_generated(repo_root)
+        result = check_tables_match_generated(repo_root, rules=rules)
         assert result.passed, f"Tables don't match: {result.errors}"
+
+
+class TestWriteGeneratedTables:
+    def test_write_generated_tables(self, tmp_path):
+        (tmp_path / "symbols").mkdir()
+        (tmp_path / "symbols" / "AharoniLab_Test.kicad_sym").write_text("(kicad_symbol_lib)")
+        (tmp_path / "footprints").mkdir()
+        (tmp_path / "footprints" / "AharoniLab_Test.pretty").mkdir()
+        write_generated_tables(tmp_path)
+        assert (tmp_path / "sym-lib-table").exists()
+        assert "AharoniLab_Test" in (tmp_path / "sym-lib-table").read_text()
+
+    def test_write_generated_tables_overwrites(self, tmp_path):
+        (tmp_path / "symbols").mkdir()
+        (tmp_path / "footprints").mkdir()
+        (tmp_path / "sym-lib-table").write_text("old content")
+        (tmp_path / "fp-lib-table").write_text("old content")
+        write_generated_tables(tmp_path)
+        assert "old content" not in (tmp_path / "sym-lib-table").read_text()
+
+
+class TestTableDescriptions:
+    def test_description_from_rules(self, tmp_path, rules):
+        """Generated table should include descriptions from rules."""
+        sym_dir = tmp_path / "symbols"
+        sym_dir.mkdir()
+        (sym_dir / "AharoniLab_Passive.kicad_sym").write_text("(kicad_symbol_lib)")
+        result = generate_sym_lib_table(tmp_path, rules=rules)
+        assert "Passive components" in result
+
+    def test_no_rules_empty_descr(self, tmp_path):
+        """Without rules, descriptions should be empty."""
+        sym_dir = tmp_path / "symbols"
+        sym_dir.mkdir()
+        (sym_dir / "AharoniLab_Passive.kicad_sym").write_text("(kicad_symbol_lib)")
+        result = generate_sym_lib_table(tmp_path)
+        assert '(descr "")' in result

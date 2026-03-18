@@ -74,6 +74,20 @@ class TestErrorHandling:
             parse_sexpr('   \n\t  ')
 
 
+class TestEscapeHandling:
+    def test_escaped_backslash(self):
+        result = parse_sexpr(r'(path "C:\\Users\\foo")')
+        assert result == ['path', 'C:\\Users\\foo']
+
+    def test_escaped_backslash_before_quote(self):
+        result = parse_sexpr(r'(val "end\\\"")')
+        assert result == ['val', 'end\\"']
+
+    def test_backslash_at_end(self):
+        result = parse_sexpr(r'(val "trailing\\")')
+        assert result == ['val', 'trailing\\']
+
+
 class TestKicadFormats:
     def test_library_table(self):
         """Should parse a minimal KiCad library table."""

@@ -6,12 +6,18 @@ based on on-disk files, then compares against the actual tables.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from validator.checks import ENV_VAR_PLACEHOLDER, CheckResult
+from validator.config import LibraryRules
+from validator.lib_table import serialize_lib_table  # noqa: F401
 
 
-def generate_sym_lib_table(repo_root: str | Path) -> str:
+def generate_sym_lib_table(
+    repo_root: str | Path,
+    *,
+    rules: Optional[LibraryRules] = None,
+) -> str:
     """Generate the expected ``sym-lib-table`` content from symbol files on disk."""
     repo_root = Path(repo_root)
     symbols_dir = repo_root / "symbols"
@@ -22,9 +28,14 @@ def generate_sym_lib_table(repo_root: str | Path) -> str:
         for sym_file in sorted(symbols_dir.glob("*.kicad_sym")):
             name = sym_file.stem
             uri = f"{ENV_VAR_PLACEHOLDER}/symbols/{sym_file.name}"
+            descr = ""
+            if rules and name in rules.categories:
+                cat = rules.categories[name]
+                if cat.description:
+                    descr = cat.description
             lines.append(
                 f'  (lib (name "{name}")(type "KiCad")'
-                f'(uri "{uri}")(options "")(descr ""))'
+                f'(uri "{uri}")(options "")(descr "{descr}"))'
             )
 
     lines.append(")")
@@ -52,7 +63,26 @@ def generate_fp_lib_table(repo_root: str | Path) -> str:
     return "\n".join(lines) + "\n"
 
 
-def check_tables_match_generated(repo_root: str | Path) -> CheckResult:
+def write_generated_tables(
+    repo_root: str | Path,
+    *,
+    rules: Optional[LibraryRules] = None,
+) -> None:
+    """Write auto-generated library tables to disk."""
+    repo_root = Path(repo_root)
+    (repo_root / "sym-lib-table").write_text(
+        generate_sym_lib_table(repo_root, rules=rules), encoding="utf-8",
+    )
+    (repo_root / "fp-lib-table").write_text(
+        generate_fp_lib_table(repo_root), encoding="utf-8",
+    )
+
+
+def check_tables_match_generated(
+    repo_root: str | Path,
+    *,
+    rules: Optional[LibraryRules] = None,
+) -> CheckResult:
     """Verify that on-disk library tables match what would be generated.
 
     Reports mismatches rather than overwriting.
@@ -62,7 +92,7 @@ def check_tables_match_generated(repo_root: str | Path) -> CheckResult:
 
     # sym-lib-table
     sym_table_path = repo_root / "sym-lib-table"
-    expected_sym = generate_sym_lib_table(repo_root)
+    expected_sym = generate_sym_lib_table(repo_root, rules=rules)
     if sym_table_path.exists():
         actual_sym = sym_table_path.read_text(encoding="utf-8")
         if _normalize(actual_sym) != _normalize(expected_sym):

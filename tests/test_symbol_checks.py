@@ -11,6 +11,7 @@ from __future__ import annotations
 from validator.checks import (
     check_pin_counts,
     check_reference_prefix,
+    check_symbol_flags,
     check_symbol_properties,
     parse_kicad_sym,
 )
@@ -146,6 +147,73 @@ class TestMissingRequiredProperty:
         assert not result.passed
         # Should report multiple missing properties
         assert len(result.errors) >= 3
+
+
+class TestTildeHandling:
+    def test_tilde_description_fails(self, tmp_path, rules):
+        """Symbol with Description='~' should fail."""
+        sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
+        sym_file.write_text(
+            '(kicad_symbol_lib (version 20241209) (symbol "TildeDesc"'
+            '  (property "Reference" "R")(property "Value" "TildeDesc")'
+            '  (property "Footprint" "")(property "Datasheet" "https://example.com")'
+            '  (property "Description" "~")(property "Validated" "No")'
+            '  (property "ki_keywords" "test")))')
+        result = check_symbol_properties(sym_file, rules)
+        assert not result.passed
+        assert any("Description" in e for e in result.errors)
+
+    def test_tilde_validated_fails(self, tmp_path, rules):
+        """Symbol with Validated='~' should fail."""
+        sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
+        sym_file.write_text(
+            '(kicad_symbol_lib (version 20241209) (symbol "TildeVal"'
+            '  (property "Reference" "R")(property "Value" "TildeVal")'
+            '  (property "Footprint" "")(property "Datasheet" "https://example.com")'
+            '  (property "Description" "Test")(property "Validated" "~")'
+            '  (property "ki_keywords" "test")))')
+        result = check_symbol_properties(sym_file, rules)
+        assert not result.passed
+
+    def test_tilde_datasheet_still_fails(self, tmp_path, rules):
+        """Regression: Datasheet='~' should still fail."""
+        sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
+        sym_file.write_text(
+            '(kicad_symbol_lib (version 20241209) (symbol "TildeDS"'
+            '  (property "Reference" "R")(property "Value" "TildeDS")'
+            '  (property "Footprint" "")(property "Datasheet" "~")'
+            '  (property "Description" "Test")(property "Validated" "No")'
+            '  (property "ki_keywords" "test")))')
+        result = check_symbol_properties(sym_file, rules)
+        assert not result.passed
+        assert any("Datasheet" in e for e in result.errors)
+
+
+class TestManufacturerMPN:
+    def test_symbol_without_mpn_passes(self, tmp_path, rules):
+        sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
+        sym_file.write_text('(kicad_symbol_lib (version 20241209) (symbol "NoMPN" (property "Reference" "R")(property "Value" "NoMPN")(property "Footprint" "")(property "Datasheet" "https://example.com")(property "Description" "Test")(property "Validated" "No")(property "ki_keywords" "test")))')
+        result = check_symbol_properties(sym_file, rules)
+        assert result.passed
+
+    def test_symbol_with_placeholder_mpn_fails(self, tmp_path, rules):
+        sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
+        sym_file.write_text('(kicad_symbol_lib (version 20241209) (symbol "BadMPN" (property "Reference" "R")(property "Value" "BadMPN")(property "Footprint" "")(property "Datasheet" "https://example.com")(property "Description" "Test")(property "Validated" "No")(property "ki_keywords" "test")(property "MPN" "TBD")))')
+        result = check_symbol_properties(sym_file, rules)
+        assert not result.passed
+        assert any("MPN" in e for e in result.errors)
+
+    def test_symbol_with_na_mpn_fails(self, tmp_path, rules):
+        sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
+        sym_file.write_text('(kicad_symbol_lib (version 20241209) (symbol "NAMPN" (property "Reference" "R")(property "Value" "NAMPN")(property "Footprint" "")(property "Datasheet" "https://example.com")(property "Description" "Test")(property "Validated" "No")(property "ki_keywords" "test")(property "MPN" "N/A")))')
+        result = check_symbol_properties(sym_file, rules)
+        assert not result.passed
+
+    def test_symbol_with_valid_mpn_passes(self, tmp_path, rules):
+        sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
+        sym_file.write_text('(kicad_symbol_lib (version 20241209) (symbol "GoodMPN" (property "Reference" "R")(property "Value" "GoodMPN")(property "Footprint" "")(property "Datasheet" "https://example.com")(property "Description" "Test")(property "Validated" "No")(property "ki_keywords" "test")(property "Manufacturer" "TI")(property "MPN" "LM1117-3.3")))')
+        result = check_symbol_properties(sym_file, rules)
+        assert result.passed
 
 
 class TestSymbolParsing:
@@ -319,3 +387,34 @@ class TestPinCounts:
         )
         result = check_pin_counts(sym_file, rules)
         assert result.passed
+
+
+class TestSymbolFlags:
+    def test_correct_flags_pass(self, tmp_path, rules):
+        sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
+        sym_file.write_text('(kicad_symbol_lib (version 20241209) (symbol "Good" (in_bom yes) (on_board yes) (property "Reference" "R")(property "Value" "Good")))')
+        assert check_symbol_flags(sym_file, rules).passed
+
+    def test_wrong_in_bom_fails(self, tmp_path, rules):
+        sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
+        sym_file.write_text('(kicad_symbol_lib (version 20241209) (symbol "Bad" (in_bom no) (on_board yes) (property "Reference" "R")(property "Value" "Bad")))')
+        result = check_symbol_flags(sym_file, rules)
+        assert not result.passed
+        assert any("in_bom" in e for e in result.errors)
+
+    def test_wrong_on_board_fails(self, tmp_path, rules):
+        sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
+        sym_file.write_text('(kicad_symbol_lib (version 20241209) (symbol "Bad" (in_bom yes) (on_board no) (property "Reference" "R")(property "Value" "Bad")))')
+        result = check_symbol_flags(sym_file, rules)
+        assert not result.passed
+
+    def test_missing_flags_skip(self, tmp_path, rules):
+        sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
+        sym_file.write_text('(kicad_symbol_lib (version 20241209) (symbol "NoFlags" (property "Reference" "R")(property "Value" "NoFlags")))')
+        assert check_symbol_flags(sym_file, rules).passed
+
+    def test_no_flag_rules_passes(self, tmp_path):
+        from validator.config import LibraryRules
+        sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
+        sym_file.write_text('(kicad_symbol_lib (version 20241209) (symbol "X" (in_bom no) (property "Reference" "R")(property "Value" "X")))')
+        assert check_symbol_flags(sym_file, LibraryRules()).passed

@@ -53,11 +53,20 @@ class Subcategory:
 
 
 @dataclass
+class SymbolFlagRules:
+    """Expected in_bom / on_board flag values."""
+    in_bom: Optional[bool] = None
+    on_board: Optional[bool] = None
+
+
+@dataclass
 class Category:
     """Rules for a single library file (keyed by filename stem)."""
     reference_prefix: Optional[str] = None
     pins: Optional[PinRange] = None
     subcategories: Optional[Dict[str, Subcategory]] = None
+    flags: Optional[SymbolFlagRules] = None
+    description: Optional[str] = None
 
 
 @dataclass
@@ -65,6 +74,14 @@ class NamingRules:
     """Naming convention patterns."""
     symbol_file_pattern: Optional[str] = None
     footprint_dir_pattern: Optional[str] = None
+
+
+@dataclass
+class FootprintLayerRules:
+    """Attribute-aware layer requirements for footprints."""
+    common: List[str] = field(default_factory=list)
+    smd: List[str] = field(default_factory=list)
+    through_hole: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -76,6 +93,9 @@ class LibraryRules:
     categories: Dict[str, Category] = field(default_factory=dict)
     footprint_required_layers: List[str] = field(default_factory=list)
     naming: Optional[NamingRules] = None
+    symbol_flags: Optional[SymbolFlagRules] = None
+    global_footprint_properties: Dict[str, PropertyRule] = field(default_factory=dict)
+    footprint_layer_rules: Optional[FootprintLayerRules] = None
 
 
 # ---------------------------------------------------------------------------
@@ -114,10 +134,20 @@ def _parse_category(data: dict) -> Category:
             for name, sub in data["subcategories"].items()
         }
 
+    flags = None
+    if "flags" in data:
+        fd = data["flags"]
+        flags = SymbolFlagRules(
+            in_bom=fd.get("in_bom"),
+            on_board=fd.get("on_board"),
+        )
+
     return Category(
         reference_prefix=data.get("reference_prefix"),
         pins=pins,
         subcategories=subcategories,
+        flags=flags,
+        description=data.get("description"),
     )
 
 
@@ -171,6 +201,37 @@ def load_rules(path: str | Path) -> LibraryRules:
             footprint_dir_pattern=naming_raw.get("footprint_dir_pattern"),
         )
 
+    # --- symbol_flags ---
+    symbol_flags = None
+    sf_raw = raw.get("symbol_flags")
+    if sf_raw:
+        symbol_flags = SymbolFlagRules(
+            in_bom=sf_raw.get("in_bom"),
+            on_board=sf_raw.get("on_board"),
+        )
+
+    # --- global_footprint_properties ---
+    gfp_raw = raw.get("global_footprint_properties", {})
+    global_fp_props: Dict[str, PropertyRule] = {}
+    if gfp_raw:
+        for prop_name, prop_data in gfp_raw.items():
+            if prop_data is None:
+                prop_data = {}
+            global_fp_props[prop_name] = PropertyRule(
+                required=prop_data.get("required", True),
+                pattern=prop_data.get("pattern"),
+            )
+
+    # --- footprint_layer_rules ---
+    footprint_layer_rules = None
+    flr_raw = raw.get("footprint_layer_rules")
+    if flr_raw:
+        footprint_layer_rules = FootprintLayerRules(
+            common=flr_raw.get("common", []),
+            smd=flr_raw.get("smd", []),
+            through_hole=flr_raw.get("through_hole", []),
+        )
+
     return LibraryRules(
         prefix=prefix,
         env_var=env_var,
@@ -178,4 +239,7 @@ def load_rules(path: str | Path) -> LibraryRules:
         categories=categories,
         footprint_required_layers=fp_layers,
         naming=naming,
+        symbol_flags=symbol_flags,
+        global_footprint_properties=global_fp_props,
+        footprint_layer_rules=footprint_layer_rules,
     )

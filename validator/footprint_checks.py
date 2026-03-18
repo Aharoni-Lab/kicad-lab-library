@@ -21,6 +21,9 @@ class FootprintInfo:
     layers: Set[str]
     pad_count: int
     properties: Dict[str, str]
+    pad_numbers: List[str] = field(default_factory=list)
+    pad_types: List[str] = field(default_factory=list)
+    attribute: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -55,6 +58,32 @@ def _count_pads(tree: list) -> int:
     return count
 
 
+def _collect_pad_numbers(tree: list) -> List[str]:
+    """Collect pad number strings from a footprint tree."""
+    numbers: List[str] = []
+    for child in tree:
+        if isinstance(child, list) and len(child) >= 2 and child[0] == 'pad':
+            numbers.append(child[1])
+    return numbers
+
+
+def _collect_pad_types(tree: list) -> List[str]:
+    """Collect pad type strings (smd, thru_hole, np_thru_hole, connect) from a footprint tree."""
+    types: List[str] = []
+    for child in tree:
+        if isinstance(child, list) and len(child) >= 3 and child[0] == 'pad':
+            types.append(child[2])
+    return types
+
+
+def _extract_attribute(tree: list) -> Optional[str]:
+    """Extract footprint attribute (smd, through_hole, etc.) from the tree."""
+    for child in tree:
+        if isinstance(child, list) and len(child) >= 2 and child[0] == 'attr':
+            return child[1]
+    return None
+
+
 def parse_kicad_mod(filepath: str | Path) -> FootprintInfo:
     """Parse a ``.kicad_mod`` file into a :class:`FootprintInfo`.
 
@@ -69,12 +98,18 @@ def parse_kicad_mod(filepath: str | Path) -> FootprintInfo:
     layers = _collect_layers(tree)
     pad_count = _count_pads(tree)
     properties = extract_properties(tree)
+    pad_numbers = _collect_pad_numbers(tree)
+    pad_types = _collect_pad_types(tree)
+    attribute = _extract_attribute(tree)
 
     return FootprintInfo(
         name=name,
         layers=layers,
         pad_count=pad_count,
         properties=properties,
+        pad_numbers=pad_numbers,
+        pad_types=pad_types,
+        attribute=attribute,
     )
 
 
@@ -88,7 +123,11 @@ def check_footprint_layers(
     *,
     info: Optional[FootprintInfo] = None,
 ) -> CheckResult:
-    """Check that a footprint uses all required layers."""
+    """Check that a footprint uses all required layers.
+
+    Uses attribute-aware ``footprint_layer_rules`` when available,
+    falling back to the flat ``footprint_required_layers`` list.
+    """
     filepath = Path(filepath)
     errors: List[str] = []
 
@@ -98,11 +137,25 @@ def check_footprint_layers(
         except Exception as exc:
             return CheckResult(errors=[f"Failed to parse footprint: {exc}"])
 
-    for required_layer in rules.footprint_required_layers:
-        if required_layer not in info.layers:
-            errors.append(
-                f"Footprint '{info.name}': missing required layer '{required_layer}'"
-            )
+    if rules.footprint_layer_rules is not None:
+        # Attribute-aware checking
+        required: List[str] = list(rules.footprint_layer_rules.common)
+        if info.attribute == 'smd':
+            required.extend(rules.footprint_layer_rules.smd)
+        elif info.attribute == 'through_hole':
+            required.extend(rules.footprint_layer_rules.through_hole)
+        for layer in required:
+            if layer not in info.layers:
+                errors.append(
+                    f"Footprint '{info.name}': missing required layer '{layer}'"
+                )
+    else:
+        # Fallback to flat list
+        for required_layer in rules.footprint_required_layers:
+            if required_layer not in info.layers:
+                errors.append(
+                    f"Footprint '{info.name}': missing required layer '{required_layer}'"
+                )
 
     return CheckResult(errors=errors)
 
@@ -128,3 +181,75 @@ def check_footprint_pads(
         )
 
     return CheckResult(errors=errors)
+
+
+def check_duplicate_pad_numbers(
+    filepath: str | Path,
+    *,
+    info: Optional[FootprintInfo] = None,
+) -> CheckResult:
+    """Check that no two pads share the same pad number (excluding empty strings)."""
+    filepath = Path(filepath)
+    errors: List[str] = []
+
+    if info is None:
+        try:
+            info = parse_kicad_mod(filepath)
+        except Exception as exc:
+            return CheckResult(errors=[f"Failed to parse footprint: {exc}"])
+
+    seen: Dict[str, int] = {}
+    for num in info.pad_numbers:
+        if num == "":
+            continue  # skip unnamed pads (e.g. mounting holes)
+        seen[num] = seen.get(num, 0) + 1
+
+    for num, count in seen.items():
+        if count > 1:
+            errors.append(
+                f"Footprint '{info.name}': pad number '{num}' is used {count} times"
+            )
+
+    return CheckResult(errors=errors)
+
+
+def check_footprint_properties(
+    filepath: str | Path,
+    rules: LibraryRules,
+    *,
+    info: Optional[FootprintInfo] = None,
+) -> CheckResult:
+    """Validate footprint properties against rules from ``library_rules.yaml``."""
+    filepath = Path(filepath)
+    errors: List[str] = []
+
+    if info is None:
+        try:
+            info = parse_kicad_mod(filepath)
+        except Exception as exc:
+            return CheckResult(errors=[f"Failed to parse footprint: {exc}"])
+
+    import re
+    for prop_name, rule in rules.global_footprint_properties.items():
+        value = info.properties.get(prop_name)
+
+        if rule.required:
+            if value is None or value.strip() == '' or value.strip() == '~':
+                errors.append(
+                    f"Footprint '{info.name}': {prop_name} property is missing or empty"
+                )
+                continue
+
+        if rule.compiled_pattern is not None and value and value.strip():
+            if not rule.compiled_pattern.match(value):
+                errors.append(
+                    f"Footprint '{info.name}': {prop_name} property must match "
+                    f"'{rule.pattern}' (got '{value}')"
+                )
+
+    return CheckResult(errors=errors)
+
+
+def _get_electrical_pad_count(info: FootprintInfo) -> int:
+    """Count electrical pads (excluding np_thru_hole)."""
+    return sum(1 for t in info.pad_types if t != 'np_thru_hole')
