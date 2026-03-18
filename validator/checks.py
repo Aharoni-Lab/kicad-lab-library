@@ -4,6 +4,7 @@ All check functions return a :class:`CheckResult`.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -148,12 +149,7 @@ def check_symbol_properties(
             value = sym.properties.get(prop_name)
 
             if rule.required:
-                if value is None or value.strip() == '':
-                    errors.append(
-                        f"Symbol '{sym.name}': {prop_name} property is missing or empty"
-                    )
-                    continue
-                if value.strip() == '~':
+                if value is None or value.strip() in ('', '~'):
                     errors.append(
                         f"Symbol '{sym.name}': {prop_name} property is missing or empty"
                     )
@@ -403,6 +399,16 @@ def check_duplicate_symbols(
 
 
 # ---------------------------------------------------------------------------
+# Footprint helpers
+# ---------------------------------------------------------------------------
+
+def _resolve_footprint_path(fp_ref: str, repo_root: Path) -> Path:
+    """Resolve ``LibName:FootprintName`` to a filesystem path."""
+    lib_name, fp_name = fp_ref.split(':', 1)
+    return repo_root / 'footprints' / f'{lib_name}.pretty' / f'{fp_name}.kicad_mod'
+
+
+# ---------------------------------------------------------------------------
 # Footprint cross-reference check
 # ---------------------------------------------------------------------------
 
@@ -441,8 +447,7 @@ def check_footprint_references(
             )
             continue
 
-        lib_name, fp_name = fp.split(':', 1)
-        fp_path = repo_root / 'footprints' / f'{lib_name}.pretty' / f'{fp_name}.kicad_mod'
+        fp_path = _resolve_footprint_path(fp, repo_root)
         if not fp_path.exists():
             errors.append(
                 f"Symbol '{sym.name}': Footprint '{fp}' not found "
@@ -486,8 +491,7 @@ def check_pin_pad_cross_validation(
         if not fp or ':' not in fp:
             continue
 
-        lib_name, fp_name = fp.split(':', 1)
-        fp_path = repo_root / 'footprints' / f'{lib_name}.pretty' / f'{fp_name}.kicad_mod'
+        fp_path = _resolve_footprint_path(fp, repo_root)
         if not fp_path.exists():
             continue  # Missing footprints are caught by check_footprint_references
 
@@ -522,7 +526,6 @@ def check_naming_conventions(
     errors: List[str] = []
     if rules.naming is None:
         return CheckResult()
-    import re
     if rules.naming.symbol_file_pattern:
         pattern = re.compile(rules.naming.symbol_file_pattern)
         symbols_dir = repo_root / 'symbols'

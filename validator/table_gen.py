@@ -10,7 +10,7 @@ from typing import List, Optional
 
 from validator.checks import ENV_VAR_PLACEHOLDER, CheckResult
 from validator.config import LibraryRules
-from validator.lib_table import serialize_lib_table  # noqa: F401
+from validator.lib_table import LibTableEntry, serialize_lib_table
 
 
 def generate_sym_lib_table(
@@ -22,24 +22,23 @@ def generate_sym_lib_table(
     repo_root = Path(repo_root)
     symbols_dir = repo_root / "symbols"
 
-    lines = ["(sym_lib_table", "  (version 7)"]
-
+    entries: List[LibTableEntry] = []
     if symbols_dir.is_dir():
         for sym_file in sorted(symbols_dir.glob("*.kicad_sym")):
             name = sym_file.stem
-            uri = f"{ENV_VAR_PLACEHOLDER}/symbols/{sym_file.name}"
             descr = ""
             if rules and name in rules.categories:
                 cat = rules.categories[name]
                 if cat.description:
                     descr = cat.description
-            lines.append(
-                f'  (lib (name "{name}")(type "KiCad")'
-                f'(uri "{uri}")(options "")(descr "{descr}"))'
-            )
+            entries.append(LibTableEntry(
+                name=name,
+                type="KiCad",
+                uri=f"{ENV_VAR_PLACEHOLDER}/symbols/{sym_file.name}",
+                descr=descr,
+            ))
 
-    lines.append(")")
-    return "\n".join(lines) + "\n"
+    return serialize_lib_table("sym_lib_table", entries)
 
 
 def generate_fp_lib_table(repo_root: str | Path) -> str:
@@ -47,20 +46,17 @@ def generate_fp_lib_table(repo_root: str | Path) -> str:
     repo_root = Path(repo_root)
     footprints_dir = repo_root / "footprints"
 
-    lines = ["(fp_lib_table", "  (version 7)"]
-
+    entries: List[LibTableEntry] = []
     if footprints_dir.is_dir():
         for fp_dir in sorted(footprints_dir.iterdir()):
             if fp_dir.is_dir() and fp_dir.suffix == ".pretty":
-                name = fp_dir.stem
-                uri = f"{ENV_VAR_PLACEHOLDER}/footprints/{fp_dir.name}"
-                lines.append(
-                    f'  (lib (name "{name}")(type "KiCad")'
-                    f'(uri "{uri}")(options "")(descr ""))'
-                )
+                entries.append(LibTableEntry(
+                    name=fp_dir.stem,
+                    type="KiCad",
+                    uri=f"{ENV_VAR_PLACEHOLDER}/footprints/{fp_dir.name}",
+                ))
 
-    lines.append(")")
-    return "\n".join(lines) + "\n"
+    return serialize_lib_table("fp_lib_table", entries)
 
 
 def write_generated_tables(

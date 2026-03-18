@@ -19,11 +19,14 @@ class FootprintInfo:
     """Parsed footprint metadata."""
     name: str
     layers: Set[str]
-    pad_count: int
     properties: Dict[str, str]
     pad_numbers: List[str] = field(default_factory=list)
     pad_types: List[str] = field(default_factory=list)
     attribute: Optional[str] = None
+
+    @property
+    def pad_count(self) -> int:
+        return len(self.pad_numbers)
 
 
 # ---------------------------------------------------------------------------
@@ -49,31 +52,17 @@ def _collect_layers(node: list) -> Set[str]:
     return layers
 
 
-def _count_pads(tree: list) -> int:
-    """Count top-level pad nodes in a footprint tree."""
-    count = 0
-    for child in tree:
-        if isinstance(child, list) and len(child) >= 1 and child[0] == 'pad':
-            count += 1
-    return count
-
-
-def _collect_pad_numbers(tree: list) -> List[str]:
-    """Collect pad number strings from a footprint tree."""
+def _collect_pads(tree: list) -> tuple[List[str], List[str]]:
+    """Collect pad numbers and types in a single pass over the footprint tree."""
     numbers: List[str] = []
-    for child in tree:
-        if isinstance(child, list) and len(child) >= 2 and child[0] == 'pad':
-            numbers.append(child[1])
-    return numbers
-
-
-def _collect_pad_types(tree: list) -> List[str]:
-    """Collect pad type strings (smd, thru_hole, np_thru_hole, connect) from a footprint tree."""
     types: List[str] = []
     for child in tree:
         if isinstance(child, list) and len(child) >= 3 and child[0] == 'pad':
+            numbers.append(child[1])
             types.append(child[2])
-    return types
+        elif isinstance(child, list) and len(child) >= 2 and child[0] == 'pad':
+            numbers.append(child[1])
+    return numbers, types
 
 
 def _extract_attribute(tree: list) -> Optional[str]:
@@ -96,16 +85,13 @@ def parse_kicad_mod(filepath: str | Path) -> FootprintInfo:
     # tree: ['footprint', name, ...]
     name = tree[1] if len(tree) >= 2 else ""
     layers = _collect_layers(tree)
-    pad_count = _count_pads(tree)
     properties = extract_properties(tree)
-    pad_numbers = _collect_pad_numbers(tree)
-    pad_types = _collect_pad_types(tree)
+    pad_numbers, pad_types = _collect_pads(tree)
     attribute = _extract_attribute(tree)
 
     return FootprintInfo(
         name=name,
         layers=layers,
-        pad_count=pad_count,
         properties=properties,
         pad_numbers=pad_numbers,
         pad_types=pad_types,
@@ -229,7 +215,6 @@ def check_footprint_properties(
         except Exception as exc:
             return CheckResult(errors=[f"Failed to parse footprint: {exc}"])
 
-    import re
     for prop_name, rule in rules.global_footprint_properties.items():
         value = info.properties.get(prop_name)
 
