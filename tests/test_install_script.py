@@ -12,13 +12,11 @@ import pytest
 
 import install as install_mod
 from install import (
-    LibEntry,
-    parse_lib_table,
-    serialize_lib_table,
     read_kicad_common,
     set_env_var,
     remove_env_var,
 )
+from validator.lib_table import LibTableEntry, parse_lib_table, serialize_lib_table
 
 
 class TestKicadConfigDetection:
@@ -51,7 +49,7 @@ class TestLibTableParsing:
     def test_roundtrip_serialize(self):
         """Serializing and re-parsing should preserve entries."""
         entries = [
-            LibEntry("TestLib", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/TestLib.kicad_sym", "", "Test"),
+            LibTableEntry("TestLib", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/TestLib.kicad_sym", "", "Test"),
         ]
         text = serialize_lib_table("sym_lib_table", entries)
         parsed = parse_lib_table(text)
@@ -67,7 +65,7 @@ class TestMergeLogic:
         config_dir = tmp_path / "config"
         config_dir.mkdir()
         existing = [
-            LibEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", "Passive"),
+            LibTableEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", "Passive"),
         ]
         global_text = serialize_lib_table("sym_lib_table", existing)
         (config_dir / "sym-lib-table").write_text(global_text)
@@ -90,7 +88,7 @@ class TestMergeLogic:
         config_dir = tmp_path / "config"
         config_dir.mkdir()
         existing = [
-            LibEntry("OtherLib", "KiCad", "/some/path", "", ""),
+            LibTableEntry("OtherLib", "KiCad", "/some/path", "", ""),
         ]
         (config_dir / "sym-lib-table").write_text(
             serialize_lib_table("sym_lib_table", existing)
@@ -99,7 +97,7 @@ class TestMergeLogic:
         repo_dir = tmp_path / "repo"
         repo_dir.mkdir()
         new_entries = [
-            LibEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", "Passive"),
+            LibTableEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", "Passive"),
         ]
         (repo_dir / "sym-lib-table").write_text(
             serialize_lib_table("sym_lib_table", new_entries)
@@ -119,8 +117,8 @@ class TestUninstall:
         config_dir = tmp_path / "config"
         config_dir.mkdir()
         entries = [
-            LibEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", ""),
-            LibEntry("SomeOther", "KiCad", "/other/path", "", "Other lib"),
+            LibTableEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", ""),
+            LibTableEntry("SomeOther", "KiCad", "/other/path", "", "Other lib"),
         ]
         (config_dir / "sym-lib-table").write_text(
             serialize_lib_table("sym_lib_table", entries)
@@ -177,3 +175,20 @@ class TestDryRun:
 
         install_mod.write_file(test_file, "modified", dry_run=True)
         assert test_file.read_text() == "original"
+
+
+class TestDryRunUninstall:
+    def test_dry_run_uninstall_makes_no_changes(self, tmp_path):
+        from validator.lib_table import LibTableEntry, serialize_lib_table
+        import json
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        entries = [LibTableEntry("AharoniLab_Passive", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym", "", "")]
+        original_content = serialize_lib_table("sym_lib_table", entries)
+        (config_dir / "sym-lib-table").write_text(original_content)
+        common = {"environment": {"vars": {"AHARONI_LAB_KICAD_LIB": "/some/path"}}}
+        (config_dir / "kicad_common.json").write_text(json.dumps(common))
+        import install as install_mod
+        install_mod.uninstall(config_dir, dry_run=True)
+        assert (config_dir / "sym-lib-table").read_text() == original_content
+        assert "AHARONI_LAB_KICAD_LIB" in (config_dir / "kicad_common.json").read_text()

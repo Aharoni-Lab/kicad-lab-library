@@ -27,7 +27,7 @@ _REPO_ROOT = _SCRIPT_DIR.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from validator.sexpr import parse_sexpr
+from validator.lib_table import LibTableEntry, parse_lib_table, serialize_lib_table
 
 
 # ---------------------------------------------------------------------------
@@ -79,77 +79,6 @@ def get_repo_root() -> Path:
                 "in any parent directory of the script)."
             )
         current = parent
-
-
-def _quote(s: str) -> str:
-    """Wrap a string in double-quotes."""
-    return f'"{s}"'
-
-
-# ---------------------------------------------------------------------------
-# Library entry helpers
-# ---------------------------------------------------------------------------
-
-class LibEntry:
-    """One ``(lib ...)`` row inside a KiCad library table."""
-
-    __slots__ = ("name", "type", "uri", "options", "descr")
-
-    def __init__(
-        self,
-        name: str,
-        type: str,
-        uri: str,
-        options: str = "",
-        descr: str = "",
-    ) -> None:
-        self.name = name
-        self.type = type
-        self.uri = uri
-        self.options = options
-        self.descr = descr
-
-    def to_sexpr(self) -> str:
-        return (
-            f'  (lib (name {_quote(self.name)})(type {_quote(self.type)})'
-            f'(uri {_quote(self.uri)})(options {_quote(self.options)})'
-            f'(descr {_quote(self.descr)}))'
-        )
-
-
-def _extract_field(node: list, field_name: str) -> str:
-    """Extract a named field value from a parsed ``(lib ...)`` node."""
-    for item in node:
-        if isinstance(item, list) and len(item) >= 2 and item[0] == field_name:
-            return item[1]
-    return ""
-
-
-def parse_lib_table(text: str) -> list[LibEntry]:
-    """Parse a ``sym-lib-table`` or ``fp-lib-table`` file into LibEntry list."""
-    root = parse_sexpr(text)
-    entries: list[LibEntry] = []
-    for item in root:
-        if isinstance(item, list) and item and item[0] == "lib":
-            entries.append(
-                LibEntry(
-                    name=_extract_field(item, "name"),
-                    type=_extract_field(item, "type"),
-                    uri=_extract_field(item, "uri"),
-                    options=_extract_field(item, "options"),
-                    descr=_extract_field(item, "descr"),
-                )
-            )
-    return entries
-
-
-def serialize_lib_table(kind: str, entries: list[LibEntry]) -> str:
-    """Serialize a list of LibEntry objects back into a KiCad table file."""
-    lines = [f"({kind}", "  (version 7)"]
-    for entry in entries:
-        lines.append(entry.to_sexpr())
-    lines.append(")")
-    return "\n".join(lines) + "\n"
 
 
 # ---------------------------------------------------------------------------
@@ -309,7 +238,7 @@ def uninstall(config_dir: Path, *, dry_run: bool) -> None:
             global_table_path.read_text(encoding="utf-8")
         )
 
-        kept: list[LibEntry] = []
+        kept: list[LibTableEntry] = []
         removed_names: list[str] = []
         for entry in global_entries:
             if entry.name.startswith(AHARONI_PREFIX):
@@ -336,17 +265,10 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         description="Install or remove the Aharoni Lab KiCad library.",
     )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Preview changes without modifying any files.",
-    )
-    group.add_argument(
-        "--uninstall",
-        action="store_true",
-        help="Remove all AharoniLab entries and the environment variable.",
-    )
+    parser.add_argument("--dry-run", action="store_true",
+        help="Preview changes without modifying any files.")
+    parser.add_argument("--uninstall", action="store_true",
+        help="Remove all AharoniLab entries and the environment variable.")
     args = parser.parse_args(argv)
 
     try:

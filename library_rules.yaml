@@ -22,26 +22,36 @@ global_symbol_properties:
   Validated:
     required: true
     pattern: "^(Yes|No)$"
+  Manufacturer:
+    required: false
+  MPN:
+    required: false
+    pattern: "^(?!N/?A$|TBD$|TODO$).+"
 
 # Per-library-file rules (keyed by filename stem)
 # Additive to global_symbol_properties
 categories:
   AharoniLab_Passive:
+    description: "Passive components (resistors, capacitors, inductors, diodes)"
     subcategories:
       resistor:  { reference_prefix: "R", pins: { min: 2, max: 2 } }
       capacitor: { reference_prefix: "C", pins: { min: 2, max: 2 } }
       inductor:  { reference_prefix: "L", pins: { min: 2, max: 2 } }
       diode:     { reference_prefix: "D", pins: { min: 2, max: 3 } }
   AharoniLab_Connector:
+    description: "Connectors and headers"
     reference_prefix: "J"
     pins: { min: 2 }
   AharoniLab_MCU:
+    description: "Microcontrollers"
     reference_prefix: "U"
     pins: { min: 8 }
   AharoniLab_Power:
+    description: "Power management ICs"
     reference_prefix: "U"
     pins: { min: 3 }
   AharoniLab_Sensor:
+    description: "Sensors and transducers"
     reference_prefix: "U"
     pins: { min: 3 }
 
@@ -50,6 +60,25 @@ footprint_required_layers:
   - "F.Cu"
   - "F.CrtYd"
   - "F.Fab"
+
+global_footprint_properties:
+  Reference:
+    required: true
+  Value:
+    required: true
+  Validated:
+    required: true
+    pattern: "^(Yes|No)$"
+
+footprint_layer_rules:
+  common: ["F.CrtYd", "F.Fab"]
+  smd: ["F.Cu"]
+  through_hole: ["F.Cu", "B.Cu"]
+
+# Symbol flag defaults
+symbol_flags:
+  in_bom: true
+  on_board: true
 
 # Naming conventions
 naming:

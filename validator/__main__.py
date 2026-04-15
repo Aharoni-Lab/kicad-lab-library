@@ -11,9 +11,13 @@ from validator.checks import (
     check_duplicate_symbols,
     check_footprint_references,
     check_library_tables,
+    check_naming_conventions,
     check_pin_counts,
+    check_pin_pad_cross_validation,
     check_reference_prefix,
+    check_symbol_flags,
     check_symbol_properties,
+    check_uncategorized_files,
     parse_kicad_sym,
 )
 from validator.config import load_rules
@@ -83,18 +87,17 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument(
         '--report',
         action='store_true',
-        help="Output a Markdown report (implies --all and --check-tables).",
+        help="Output a Markdown report (implies --all, --check-tables, --check-footprints, --check-generated-tables).",
     )
     parser.add_argument(
         '--config',
         default=None,
         help="Path to library_rules.yaml (default: auto-detect from repo root).",
     )
-    parser.add_argument(
-        '--generate-tables',
-        action='store_true',
-        help="Generate library tables and check they match on-disk versions.",
-    )
+    parser.add_argument('--check-generated-tables', action='store_true',
+        help="Check that library tables match auto-generated content.")
+    parser.add_argument('--generate-tables', action='store_true',
+        help="Write auto-generated library tables to disk.")
 
     args = parser.parse_args(argv)
     repo_root = _find_repo_root()
@@ -144,28 +147,39 @@ def main(argv: Optional[List[str]] = None) -> int:
             _print_result(str(fpath), result)
 
         # Cross-reference check (footprint references)
+        xref_key = f"{fpath} [cross-ref]"
         xref_result = check_footprint_references(fpath, repo_root, symbols=symbols)
-        if not xref_result.passed:
-            xref_key = f"{fpath} [cross-ref]"
-            results[xref_key] = xref_result
-            if not args.report:
-                _print_result(xref_key, xref_result)
+        results[xref_key] = xref_result
+        if not args.report:
+            _print_result(xref_key, xref_result)
 
         # Reference prefix check
+        prefix_key = f"{fpath} [ref-prefix]"
         prefix_result = check_reference_prefix(fpath, rules, symbols=symbols)
-        if not prefix_result.passed:
-            prefix_key = f"{fpath} [ref-prefix]"
-            results[prefix_key] = prefix_result
-            if not args.report:
-                _print_result(prefix_key, prefix_result)
+        results[prefix_key] = prefix_result
+        if not args.report:
+            _print_result(prefix_key, prefix_result)
 
         # Pin count check
+        pin_key = f"{fpath} [pin-count]"
         pin_result = check_pin_counts(fpath, rules, symbols=symbols)
-        if not pin_result.passed:
-            pin_key = f"{fpath} [pin-count]"
-            results[pin_key] = pin_result
-            if not args.report:
-                _print_result(pin_key, pin_result)
+        results[pin_key] = pin_result
+        if not args.report:
+            _print_result(pin_key, pin_result)
+
+        # Symbol flags check
+        flags_key = f"{fpath} [flags]"
+        flags_result = check_symbol_flags(fpath, rules, symbols=symbols)
+        results[flags_key] = flags_result
+        if not args.report:
+            _print_result(flags_key, flags_result)
+
+        # Pin/pad cross-validation
+        pp_key = f"{fpath} [pin-pad]"
+        pp_result = check_pin_pad_cross_validation(fpath, repo_root, symbols=symbols)
+        results[pp_key] = pp_result
+        if not args.report:
+            _print_result(pp_key, pp_result)
 
     # Run duplicate symbol check
     if args.check_all or args.report:
@@ -183,10 +197,26 @@ def main(argv: Optional[List[str]] = None) -> int:
         if not args.report:
             _print_result('library-tables', table_result)
 
+    # Run naming convention checks
+    if args.check_all or args.report:
+        naming_result = check_naming_conventions(repo_root, rules)
+        results['naming-conventions'] = naming_result
+        if not args.report:
+            _print_result('naming-conventions', naming_result)
+
+    # Run uncategorized file checks
+    if args.check_all or args.report:
+        uncat_result = check_uncategorized_files(repo_root, rules)
+        results['uncategorized-files'] = uncat_result
+        if not args.report:
+            _print_result('uncategorized-files', uncat_result)
+
     # Run footprint checks
-    if args.check_footprints:
+    if args.check_footprints or args.report:
         from validator.footprint_checks import (
-            check_footprint_layers, check_footprint_pads, parse_kicad_mod,
+            check_duplicate_pad_numbers, check_footprint_layers,
+            check_footprint_pads, check_footprint_properties,
+            parse_kicad_mod,
         )
         footprints_dir = repo_root / 'footprints'
         if footprints_dir.is_dir():
@@ -207,24 +237,41 @@ def main(argv: Optional[List[str]] = None) -> int:
                         layer_result = check_footprint_layers(
                             fp_file, rules, info=fp_info,
                         )
-                        if not layer_result.passed:
-                            results[f"{fp_file} [layers]"] = layer_result
-                            if not args.report:
-                                _print_result(f"{fp_file} [layers]", layer_result)
+                        results[f"{fp_file} [layers]"] = layer_result
+                        if not args.report:
+                            _print_result(f"{fp_file} [layers]", layer_result)
 
                         pad_result = check_footprint_pads(fp_file, info=fp_info)
-                        if not pad_result.passed:
-                            results[f"{fp_file} [pads]"] = pad_result
-                            if not args.report:
-                                _print_result(f"{fp_file} [pads]", pad_result)
+                        results[f"{fp_file} [pads]"] = pad_result
+                        if not args.report:
+                            _print_result(f"{fp_file} [pads]", pad_result)
+
+                        dup_pad_result = check_duplicate_pad_numbers(
+                            fp_file, info=fp_info,
+                        )
+                        results[f"{fp_file} [dup-pads]"] = dup_pad_result
+                        if not args.report:
+                            _print_result(f"{fp_file} [dup-pads]", dup_pad_result)
+
+                        fp_prop_result = check_footprint_properties(
+                            fp_file, rules, info=fp_info,
+                        )
+                        results[f"{fp_file} [fp-props]"] = fp_prop_result
+                        if not args.report:
+                            _print_result(f"{fp_file} [fp-props]", fp_prop_result)
 
     # Run table generation check
-    if args.generate_tables:
+    if args.check_generated_tables or args.report:
         from validator.table_gen import check_tables_match_generated
-        gen_result = check_tables_match_generated(repo_root)
+        gen_result = check_tables_match_generated(repo_root, rules=rules)
         results['table-generation'] = gen_result
         if not args.report:
             _print_result('table-generation', gen_result)
+
+    if args.generate_tables:
+        from validator.table_gen import write_generated_tables
+        write_generated_tables(repo_root, rules=rules)
+        print("Library tables written to disk.")
 
     # Report mode
     if args.report:

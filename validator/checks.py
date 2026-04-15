@@ -4,11 +4,13 @@ All check functions return a :class:`CheckResult`.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional
+from typing import Dict, List, Optional
 
 from validator.config import LibraryRules
+from validator.lib_table import LibTableEntry, parse_lib_table
 from validator.sexpr import extract_properties, parse_sexpr
 
 
@@ -16,11 +18,14 @@ from validator.sexpr import extract_properties, parse_sexpr
 # Symbol file helpers
 # ---------------------------------------------------------------------------
 
-class SymbolInfo(NamedTuple):
+@dataclass
+class SymbolInfo:
     """Lightweight container for a parsed KiCad symbol."""
     name: str
     properties: Dict[str, str]
     pin_count: int = 0
+    in_bom: Optional[bool] = None
+    on_board: Optional[bool] = None
 
 
 def _count_pins(sexpr_node: list) -> int:
@@ -34,6 +39,16 @@ def _count_pins(sexpr_node: list) -> int:
             elif child[0] == 'symbol':
                 count += _count_pins(child)
     return count
+
+
+def _extract_flags(node: list) -> Dict[str, bool]:
+    """Extract boolean flags like ``(in_bom yes)`` from a symbol node."""
+    flags: Dict[str, bool] = {}
+    for child in node:
+        if isinstance(child, list) and len(child) == 2:
+            if child[0] in ('in_bom', 'on_board'):
+                flags[child[0]] = child[1] == 'yes'
+    return flags
 
 
 def parse_kicad_sym(filepath: str | Path) -> List[SymbolInfo]:
@@ -75,7 +90,14 @@ def parse_kicad_sym(filepath: str | Path) -> List[SymbolInfo]:
             continue
         props = extract_properties(node)
         pin_count = _count_pins(node)
-        symbols.append(SymbolInfo(name=name, properties=props, pin_count=pin_count))
+        flags = _extract_flags(node)
+        symbols.append(SymbolInfo(
+            name=name,
+            properties=props,
+            pin_count=pin_count,
+            in_bom=flags.get('in_bom'),
+            on_board=flags.get('on_board'),
+        ))
 
     return symbols
 
@@ -108,7 +130,7 @@ def check_symbol_properties(
 
     Every property in ``rules.global_symbol_properties`` is checked:
     - If ``required`` is True, the property must exist and be non-empty
-      (also rejects ``~`` for Datasheet).
+      (``~`` is treated as empty for any property).
     - If ``pattern`` is set, the value must match the regex.
     """
     filepath = Path(filepath)
@@ -127,13 +149,7 @@ def check_symbol_properties(
             value = sym.properties.get(prop_name)
 
             if rule.required:
-                if value is None or value.strip() == '':
-                    errors.append(
-                        f"Symbol '{sym.name}': {prop_name} property is missing or empty"
-                    )
-                    continue
-                # Special case: Datasheet '~' means empty in KiCad
-                if prop_name == 'Datasheet' and value.strip() == '~':
+                if value is None or value.strip() in ('', '~'):
                     errors.append(
                         f"Symbol '{sym.name}': {prop_name} property is missing or empty"
                     )
@@ -273,6 +289,64 @@ def check_pin_counts(
 
 
 # ---------------------------------------------------------------------------
+# Symbol flag checks (in_bom, on_board)
+# ---------------------------------------------------------------------------
+
+def check_symbol_flags(
+    filepath: str | Path,
+    rules: LibraryRules,
+    *,
+    symbols: Optional[List[SymbolInfo]] = None,
+) -> CheckResult:
+    """Check that symbol in_bom/on_board flags match rules.
+
+    Uses ``rules.symbol_flags`` for global defaults, with per-category
+    overrides via ``category.flags``.
+    """
+    filepath = Path(filepath)
+    errors: List[str] = []
+
+    if rules.symbol_flags is None:
+        return CheckResult()
+
+    if symbols is None:
+        try:
+            symbols = parse_kicad_sym(filepath)
+        except Exception as exc:
+            return CheckResult(
+                errors=[f"Failed to parse file (format/parse error): {exc}"],
+            )
+
+    stem = filepath.stem
+    category = rules.categories.get(stem)
+
+    for sym in symbols:
+        # Determine expected flags (category override > global)
+        expected_in_bom = rules.symbol_flags.in_bom
+        expected_on_board = rules.symbol_flags.on_board
+        if category and category.flags:
+            if category.flags.in_bom is not None:
+                expected_in_bom = category.flags.in_bom
+            if category.flags.on_board is not None:
+                expected_on_board = category.flags.on_board
+
+        if expected_in_bom is not None and sym.in_bom is not None:
+            if sym.in_bom != expected_in_bom:
+                errors.append(
+                    f"Symbol '{sym.name}': in_bom is {str(sym.in_bom).lower()}, "
+                    f"expected {str(expected_in_bom).lower()}"
+                )
+        if expected_on_board is not None and sym.on_board is not None:
+            if sym.on_board != expected_on_board:
+                errors.append(
+                    f"Symbol '{sym.name}': on_board is {str(sym.on_board).lower()}, "
+                    f"expected {str(expected_on_board).lower()}"
+                )
+
+    return CheckResult(errors=errors)
+
+
+# ---------------------------------------------------------------------------
 # Duplicate symbol detection
 # ---------------------------------------------------------------------------
 
@@ -325,6 +399,16 @@ def check_duplicate_symbols(
 
 
 # ---------------------------------------------------------------------------
+# Footprint helpers
+# ---------------------------------------------------------------------------
+
+def _resolve_footprint_path(fp_ref: str, repo_root: Path) -> Path:
+    """Resolve ``LibName:FootprintName`` to a filesystem path."""
+    lib_name, fp_name = fp_ref.split(':', 1)
+    return repo_root / 'footprints' / f'{lib_name}.pretty' / f'{fp_name}.kicad_mod'
+
+
+# ---------------------------------------------------------------------------
 # Footprint cross-reference check
 # ---------------------------------------------------------------------------
 
@@ -363,8 +447,7 @@ def check_footprint_references(
             )
             continue
 
-        lib_name, fp_name = fp.split(':', 1)
-        fp_path = repo_root / 'footprints' / f'{lib_name}.pretty' / f'{fp_name}.kicad_mod'
+        fp_path = _resolve_footprint_path(fp, repo_root)
         if not fp_path.exists():
             errors.append(
                 f"Symbol '{sym.name}': Footprint '{fp}' not found "
@@ -375,52 +458,117 @@ def check_footprint_references(
 
 
 # ---------------------------------------------------------------------------
+# Pin/pad cross-validation
+# ---------------------------------------------------------------------------
+
+def check_pin_pad_cross_validation(
+    filepath: str | Path,
+    repo_root: str | Path,
+    *,
+    symbols: Optional[List[SymbolInfo]] = None,
+) -> CheckResult:
+    """Cross-validate symbol pin counts against footprint pad counts.
+
+    For each symbol whose Footprint property points to an existing ``.kicad_mod``,
+    compare the number of electrical pins with the number of electrical pads.
+    """
+    from validator.footprint_checks import parse_kicad_mod, _get_electrical_pad_count
+
+    filepath = Path(filepath)
+    repo_root = Path(repo_root)
+    errors: List[str] = []
+
+    if symbols is None:
+        try:
+            symbols = parse_kicad_sym(filepath)
+        except Exception as exc:
+            return CheckResult(
+                errors=[f"Failed to parse file (format/parse error): {exc}"],
+            )
+
+    for sym in symbols:
+        fp = sym.properties.get('Footprint', '')
+        if not fp or ':' not in fp:
+            continue
+
+        fp_path = _resolve_footprint_path(fp, repo_root)
+        if not fp_path.exists():
+            continue  # Missing footprints are caught by check_footprint_references
+
+        try:
+            fp_info = parse_kicad_mod(fp_path)
+        except Exception:
+            continue
+
+        electrical_pads = _get_electrical_pad_count(fp_info)
+        if electrical_pads == 0:
+            continue  # No electrical pads to compare
+
+        if sym.pin_count != electrical_pads:
+            errors.append(
+                f"Symbol '{sym.name}': has {sym.pin_count} pins but footprint "
+                f"'{fp}' has {electrical_pads} electrical pads"
+            )
+
+    return CheckResult(errors=errors)
+
+
+# ---------------------------------------------------------------------------
+# Naming convention checks
+# ---------------------------------------------------------------------------
+
+def check_naming_conventions(
+    repo_root: str | Path,
+    rules: LibraryRules,
+) -> CheckResult:
+    """Check that symbol files and footprint dirs follow naming conventions from rules."""
+    repo_root = Path(repo_root)
+    errors: List[str] = []
+    if rules.naming is None:
+        return CheckResult()
+    if rules.naming.symbol_file_pattern:
+        pattern = re.compile(rules.naming.symbol_file_pattern)
+        symbols_dir = repo_root / 'symbols'
+        if symbols_dir.is_dir():
+            for sym_file in sorted(symbols_dir.glob('*.kicad_sym')):
+                if not pattern.match(sym_file.name):
+                    errors.append(f"Symbol file '{sym_file.name}' does not match naming pattern '{rules.naming.symbol_file_pattern}'")
+    if rules.naming.footprint_dir_pattern:
+        pattern = re.compile(rules.naming.footprint_dir_pattern)
+        footprints_dir = repo_root / 'footprints'
+        if footprints_dir.is_dir():
+            for fp_dir in sorted(footprints_dir.iterdir()):
+                if fp_dir.is_dir() and fp_dir.suffix == '.pretty':
+                    if not pattern.match(fp_dir.name):
+                        errors.append(f"Footprint dir '{fp_dir.name}' does not match naming pattern '{rules.naming.footprint_dir_pattern}'")
+    return CheckResult(errors=errors)
+
+
+# ---------------------------------------------------------------------------
+# Uncategorized file checks
+# ---------------------------------------------------------------------------
+
+def check_uncategorized_files(
+    repo_root: str | Path,
+    rules: LibraryRules,
+) -> CheckResult:
+    """Check that all symbol files have a corresponding category in rules."""
+    repo_root = Path(repo_root)
+    errors: List[str] = []
+    symbols_dir = repo_root / 'symbols'
+    if symbols_dir.is_dir():
+        for sym_file in sorted(symbols_dir.glob('*.kicad_sym')):
+            stem = sym_file.stem
+            if stem not in rules.categories:
+                errors.append(f"Symbol file '{sym_file.name}' has no category defined in library_rules.yaml (stem '{stem}' not found in categories)")
+    return CheckResult(errors=errors)
+
+
+# ---------------------------------------------------------------------------
 # Library-table helpers
 # ---------------------------------------------------------------------------
 
 ENV_VAR_PLACEHOLDER = '${AHARONI_LAB_KICAD_LIB}'
-
-
-class LibTableEntry(NamedTuple):
-    """A single entry from a KiCad library table file."""
-    name: str
-    type: str
-    uri: str
-    options: str
-    descr: str
-
-
-def parse_lib_table(filepath: str | Path) -> List[LibTableEntry]:
-    """Parse a KiCad library table (sym-lib-table / fp-lib-table).
-
-    Returns a list of :class:`LibTableEntry`.
-    """
-    filepath = Path(filepath)
-    text = filepath.read_text(encoding='utf-8')
-    tree = parse_sexpr(text)
-
-    entries: List[LibTableEntry] = []
-    for node in tree:
-        if not isinstance(node, list):
-            continue
-        if node[0] != 'lib':
-            continue
-
-        # Each lib node: ['lib', ['name', 'X'], ['type', 'Y'], ...]
-        fields: Dict[str, str] = {}
-        for child in node[1:]:
-            if isinstance(child, list) and len(child) == 2:
-                fields[child[0]] = child[1]
-
-        entries.append(LibTableEntry(
-            name=fields.get('name', ''),
-            type=fields.get('type', ''),
-            uri=fields.get('uri', ''),
-            options=fields.get('options', ''),
-            descr=fields.get('descr', ''),
-        ))
-
-    return entries
 
 
 def resolve_table_uri(uri: str, repo_root: str | Path) -> Path:

@@ -76,7 +76,8 @@ def _tokenize(text: str) -> List[str]:
                 j += 1
             # Extract content between quotes (unescaping inner quotes)
             raw = text[i + 1 : j]
-            tokens.append(raw.replace('\\"', '"'))
+            unescaped = raw.replace('\\\\', '\x00').replace('\\"', '"').replace('\x00', '\\')
+            tokens.append(unescaped)
             i = j + 1
             continue
 

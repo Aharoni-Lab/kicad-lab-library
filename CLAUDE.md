@@ -17,8 +17,9 @@ validator/                # Python package: validation engine
   config.py               # YAML config loader + dataclasses
   checks.py               # Symbol validation checks
   footprint_checks.py     # Footprint-specific checks (layers, pads)
+  lib_table.py            # Library table parsing and serialization
   report.py               # Markdown report generation
-  table_gen.py            # Library table auto-generation
+  table_gen.py            # Library table auto-generation and verification
 scripts/install.py        # One-command install for lab members
 library_rules.yaml        # YAML-driven validation rules
 tests/                    # pytest test suite
@@ -46,9 +47,10 @@ pytest tests/ -v
 
 ```bash
 python -m validator --all --check-tables --check-footprints   # Check everything
-python -m validator --report                                   # Markdown report
+python -m validator --report                                   # Markdown report (implies all checks)
 python -m validator symbols/AharoniLab_Passive.kicad_sym       # Single file
-python -m validator --generate-tables                          # Verify tables match disk
+python -m validator --check-generated-tables                   # Verify tables match auto-generated
+python -m validator --generate-tables                          # Write auto-generated tables to disk
 ```
 
 ## Adding Components
