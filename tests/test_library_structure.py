@@ -100,16 +100,19 @@ class TestNamingConventions:
     def test_repo_follows_naming_conventions(self, repo_root, rules):
         result = check_naming_conventions(repo_root, rules)
         assert result.passed, f"Naming violations: {result.errors}"
+
     def test_bad_symbol_name_fails(self, tmp_path, rules):
         (tmp_path / "symbols").mkdir()
         (tmp_path / "symbols" / "BadName.kicad_sym").write_text("(kicad_symbol_lib)")
         result = check_naming_conventions(tmp_path, rules)
         assert not result.passed
+
     def test_bad_footprint_dir_fails(self, tmp_path, rules):
         (tmp_path / "footprints").mkdir()
         (tmp_path / "footprints" / "bad_name.pretty").mkdir()
         result = check_naming_conventions(tmp_path, rules)
         assert not result.passed
+
     def test_no_naming_rules_passes(self, tmp_path):
         from validator.config import LibraryRules
         result = check_naming_conventions(tmp_path, LibraryRules())
@@ -120,16 +123,19 @@ class TestUncategorizedFiles:
     def test_repo_has_no_uncategorized_files(self, repo_root, rules):
         result = check_uncategorized_files(repo_root, rules)
         assert result.passed, f"Uncategorized: {result.errors}"
+
     def test_uncategorized_file_fails(self, tmp_path, rules):
         (tmp_path / "symbols").mkdir()
         (tmp_path / "symbols" / "AharoniLab_Unknown.kicad_sym").write_text("(kicad_symbol_lib)")
         result = check_uncategorized_files(tmp_path, rules)
         assert not result.passed
+
     def test_categorized_file_passes(self, tmp_path, rules):
         (tmp_path / "symbols").mkdir()
         (tmp_path / "symbols" / "AharoniLab_Passive.kicad_sym").write_text("(kicad_symbol_lib)")
         result = check_uncategorized_files(tmp_path, rules)
         assert result.passed
+
     def test_empty_symbols_dir_passes(self, tmp_path, rules):
         (tmp_path / "symbols").mkdir()
         result = check_uncategorized_files(tmp_path, rules)
