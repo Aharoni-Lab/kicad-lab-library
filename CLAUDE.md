@@ -2,7 +2,7 @@
 
 ## Repository Purpose
 
-Shared KiCad 9 component library for the Aharoni Lab (UCLA). Contains symbols, footprints, and 3D models with CI validation on every PR.
+Shared KiCad 10 component library for the Aharoni Lab (UCLA). Contains symbols, footprints, and 3D models with CI validation on every PR.
 
 ## Structure
 

@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- **KiCad 9** -- launch it at least once to create the config directory
+- **KiCad 10 or 9** -- launch it at least once to create the config directory
 - **Git**
 - **Python 3.8+**
 
@@ -18,7 +18,7 @@ python scripts/install.py
 ```
 
 The script will:
-1. Detect your KiCad 9 config directory
+1. Detect your KiCad config directory (supports both 10 and 9)
 2. Set the `AHARONI_LAB_KICAD_LIB` environment variable in KiCad
 3. Add all library entries to KiCad's global symbol and footprint tables
 
@@ -34,7 +34,7 @@ If the script doesn't work for your setup:
 
 ### 1. Set Environment Variable
 
-Open KiCad 9 > **Preferences** > **Configure Paths**. Add:
+Open KiCad > **Preferences** > **Configure Paths**. Add:
 
 | Name | Path |
 |------|------|
@@ -42,11 +42,11 @@ Open KiCad 9 > **Preferences** > **Configure Paths**. Add:
 
 ### 2. Add Symbol Libraries
 
-Open KiCad 9 > **Preferences** > **Manage Symbol Libraries** > **Global Libraries** tab. Click **Add** (folder icon) and browse to each `.kicad_sym` file in `symbols/`.
+Open KiCad > **Preferences** > **Manage Symbol Libraries** > **Global Libraries** tab. Click **Add** (folder icon) and browse to each `.kicad_sym` file in `symbols/`.
 
 ### 3. Add Footprint Libraries
 
-Open KiCad 9 > **Preferences** > **Manage Footprint Libraries** > **Global Libraries** tab. Click **Add** (folder icon) and browse to each `.pretty` directory in `footprints/`.
+Open KiCad > **Preferences** > **Manage Footprint Libraries** > **Global Libraries** tab. Click **Add** (folder icon) and browse to each `.pretty` directory in `footprints/`.
 
 ## Updating
 
@@ -69,7 +69,7 @@ This removes all `AharoniLab_` entries from KiCad's global tables and removes th
 
 ## Verification
 
-After installing, open KiCad 9:
+After installing, open KiCad:
 1. Check **Preferences > Configure Paths** -- `AHARONI_LAB_KICAD_LIB` should point to the repo
 2. Check **Preferences > Manage Symbol Libraries** -- any `AharoniLab_*` entries should be listed
 3. Check **Preferences > Manage Footprint Libraries** -- any `AharoniLab_*` entries should be listed
@@ -77,12 +77,12 @@ After installing, open KiCad 9:
 
 ## Troubleshooting
 
-### "KiCad 9 config directory not found"
+### "No KiCad config directory found"
 
-Make sure you've launched KiCad 9 at least once. The config directory is created on first launch:
-- **Windows**: `%APPDATA%\kicad\9.0\`
-- **macOS**: `~/Library/Preferences/kicad/9.0/`
-- **Linux**: `~/.config/kicad/9.0/`
+Make sure you've launched KiCad at least once. The config directory is created on first launch:
+- **Windows**: `%APPDATA%\kicad\10.0\` (or `9.0`)
+- **macOS**: `~/Library/Preferences/kicad/10.0/` (or `9.0`)
+- **Linux**: `~/.config/kicad/10.0/` (or `9.0`)
 
 ### Libraries don't appear in KiCad
 

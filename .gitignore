@@ -25,5 +25,8 @@ venv/
 .vscode/
 .idea/
 
+# Vendor import staging area
+inbox/
+
 # CI artifacts
 renders/

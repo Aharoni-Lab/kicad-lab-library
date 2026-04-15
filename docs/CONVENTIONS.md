@@ -65,6 +65,6 @@ CI checks that every symbol has a `Validated` property set to exactly `"Yes"` or
 
 The `AHARONI_LAB_KICAD_LIB` environment variable is set in KiCad's configuration and points to the repository root. All library table URIs use `${AHARONI_LAB_KICAD_LIB}` instead of absolute paths, making the library portable across machines.
 
-## KiCad 9 Embedded Files
+## KiCad Embedded Files
 
-When sharing KiCad 9 projects that use lab library components, use KiCad 9's embedded files feature. This embeds the component data directly in the project file, so recipients don't need the library installed to open and edit the project.
+When sharing KiCad projects that use lab library components, use KiCad's embedded files feature. This embeds the component data directly in the project file, so recipients don't need the library installed to open and edit the project.

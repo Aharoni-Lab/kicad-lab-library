@@ -27,5 +27,5 @@
 - [ ] `sym-lib-table` / `fp-lib-table` updated (only if new library file/dir created)
 
 ## Testing
-- [ ] Tested in KiCad 9: symbol loads, pins correct, footprint assigns
+- [ ] Tested in KiCad: symbol loads, pins correct, footprint assigns
 - [ ] Ran `pytest` locally -- all tests pass
