@@ -70,10 +70,10 @@ This removes all `AharoniLab_` entries from KiCad's global tables and removes th
 ## Verification
 
 After installing, open KiCad 9:
-1. Open the **Symbol Chooser** (Place > Add Symbol in schematic editor)
-2. Search for `AharoniLab` -- you should see `AharoniLab_Passive`
-3. Place a capacitor symbol
-4. Assign a footprint from `AharoniLab_Capacitor_SMD`
+1. Check **Preferences > Configure Paths** -- `AHARONI_LAB_KICAD_LIB` should point to the repo
+2. Check **Preferences > Manage Symbol Libraries** -- any `AharoniLab_*` entries should be listed
+3. Check **Preferences > Manage Footprint Libraries** -- any `AharoniLab_*` entries should be listed
+4. Once components are added, search for `AharoniLab` in the Symbol Chooser to verify
 
 ## Troubleshooting
 

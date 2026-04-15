@@ -11,19 +11,19 @@
 
 ## Which Library File?
 
-| Component Type | Symbol Library | Footprint Library |
-|---|---|---|
-| Resistors, capacitors, inductors, diodes | `AharoniLab_Passive` | `AharoniLab_Resistor_SMD`, `AharoniLab_Capacitor_SMD`, etc. |
-| Connectors (headers, JST, USB, FPC) | `AharoniLab_Connector` | `AharoniLab_Connector` |
-| Op-amps, comparators | `AharoniLab_OpAmp` | `AharoniLab_Package_SO`, `AharoniLab_Package_QFP`, etc. |
-| BJT, MOSFET | `AharoniLab_Transistor` | Package-appropriate library |
-| Regulators, power monitors | `AharoniLab_Power` | Package-appropriate library |
-| ESP32, STM32, PIC/AVR | `AharoniLab_MCU` | Package-appropriate library |
-| Gates, muxes, level shifters | `AharoniLab_Logic` | Package-appropriate library |
-| EEPROM, flash, RAM | `AharoniLab_Memory` | Package-appropriate library |
-| Temperature, pressure, IMU | `AharoniLab_Sensor` | Package-appropriate library |
+Categories with validation rules in `library_rules.yaml`:
 
-If the library file doesn't exist yet, create it and add an entry to `sym-lib-table` or `fp-lib-table`.
+| Component Type | Symbol Library | Reference | Footprint Library |
+|---|---|---|---|
+| Resistors, capacitors, inductors, diodes | `AharoniLab_Passive` | R, C, L, D | `AharoniLab_Resistor_SMD`, `AharoniLab_Capacitor_SMD`, etc. |
+| Connectors (headers, JST, USB, FPC) | `AharoniLab_Connector` | J | `AharoniLab_Connector` |
+| Microcontrollers (ESP32, STM32, etc.) | `AharoniLab_MCU` | U | Package-appropriate library |
+| Regulators, power monitors | `AharoniLab_Power` | U | Package-appropriate library |
+| Temperature, pressure, IMU | `AharoniLab_Sensor` | U | Package-appropriate library |
+
+Need a category not listed above (op-amps, transistors, logic, memory, etc.)? Add the rules to `library_rules.yaml` first, then create the library file. See existing categories for the format.
+
+If the library file doesn't exist yet, create it and add an entry to `sym-lib-table` or `fp-lib-table`. You can also run `python -m validator --generate-tables` to auto-generate the table entries.
 
 ## Required Symbol Properties
 

@@ -16,13 +16,17 @@ This automatically configures KiCad 9 to find the library. See [docs/INSTALL.md]
 
 ## What's in the Library
 
-| Symbol Library | Contents |
-|---|---|
-| `AharoniLab_Passive` | Capacitors (more to come: resistors, inductors, diodes) |
+The library is ready for components. Libraries are created on demand as components are added. See [docs/CONVENTIONS.md](docs/CONVENTIONS.md) for naming and grouping rules.
 
-| Footprint Library | Contents |
-|---|---|
-| `AharoniLab_Capacitor_SMD` | SMD capacitor packages |
+**Defined categories** (in `library_rules.yaml`):
+
+| Category | Contents | Reference |
+|---|---|---|
+| `AharoniLab_Passive` | Resistors, capacitors, inductors, diodes | R, C, L, D |
+| `AharoniLab_Connector` | Connectors and headers | J |
+| `AharoniLab_MCU` | Microcontrollers | U |
+| `AharoniLab_Power` | Power management ICs | U |
+| `AharoniLab_Sensor` | Sensors and transducers | U |
 
 ## Contributing
 

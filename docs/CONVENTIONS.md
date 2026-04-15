@@ -6,17 +6,15 @@ All library files and directories use the `AharoniLab_` prefix to avoid name col
 
 ## Symbol Grouping
 
-Symbols are grouped by **function** into `.kicad_sym` files:
+Symbols are grouped by **function** into `.kicad_sym` files. Categories with validation rules in `library_rules.yaml`:
 
-- `AharoniLab_Passive` -- resistors, capacitors, inductors, ferrite beads, diodes
+- `AharoniLab_Passive` -- resistors, capacitors, inductors, diodes
 - `AharoniLab_Connector` -- headers, JST, Molex, USB, FPC
-- `AharoniLab_OpAmp` -- op-amps, comparators, instrumentation amps
-- `AharoniLab_Transistor` -- BJT, MOSFET
-- `AharoniLab_Power` -- regulators, supervisors, power monitors
 - `AharoniLab_MCU` -- ESP32, STM32, PIC/AVR
-- `AharoniLab_Logic` -- gates, muxes, flip-flops, level shifters
-- `AharoniLab_Memory` -- EEPROM, flash, RAM
+- `AharoniLab_Power` -- regulators, supervisors, power monitors
 - `AharoniLab_Sensor` -- temperature, pressure, IMU
+
+Additional categories can be added as needed (e.g., `AharoniLab_OpAmp`, `AharoniLab_Transistor`, `AharoniLab_Logic`, `AharoniLab_Memory`). Add the rules to `library_rules.yaml` before creating the library file.
 
 ## Footprint Grouping
 
