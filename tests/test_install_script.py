@@ -20,23 +20,44 @@ from validator.lib_table import LibTableEntry, parse_lib_table, serialize_lib_ta
 
 
 class TestKicadConfigDetection:
-    def test_detect_kicad_config_dir(self, monkeypatch, tmp_path):
-        """Should correctly detect KiCad config directory for each platform."""
+    def test_detect_kicad_9_config_dir(self, monkeypatch, tmp_path):
+        """Should detect KiCad 9 config directory."""
         config_dir = tmp_path / "kicad" / "9.0"
         config_dir.mkdir(parents=True)
 
-        # Patch platform.system to test Windows detection
         monkeypatch.setattr("install.platform.system", lambda: "Windows")
         monkeypatch.setenv("APPDATA", str(tmp_path))
-        result = install_mod.get_kicad_config_dir()
-        assert result == config_dir
+        result = install_mod.get_kicad_config_dirs()
+        assert result == [config_dir]
+
+    def test_detect_kicad_10_config_dir(self, monkeypatch, tmp_path):
+        """Should detect KiCad 10 config directory."""
+        config_dir = tmp_path / "kicad" / "10.0"
+        config_dir.mkdir(parents=True)
+
+        monkeypatch.setattr("install.platform.system", lambda: "Windows")
+        monkeypatch.setenv("APPDATA", str(tmp_path))
+        result = install_mod.get_kicad_config_dirs()
+        assert result == [config_dir]
+
+    def test_detect_both_versions(self, monkeypatch, tmp_path):
+        """Should detect both KiCad 9 and 10 config dirs, newest first."""
+        dir_9 = tmp_path / "kicad" / "9.0"
+        dir_10 = tmp_path / "kicad" / "10.0"
+        dir_9.mkdir(parents=True)
+        dir_10.mkdir(parents=True)
+
+        monkeypatch.setattr("install.platform.system", lambda: "Windows")
+        monkeypatch.setenv("APPDATA", str(tmp_path))
+        result = install_mod.get_kicad_config_dirs()
+        assert result == [dir_10, dir_9]
 
     def test_missing_config_raises(self, monkeypatch, tmp_path):
-        """Should raise RuntimeError if KiCad config dir doesn't exist."""
+        """Should raise RuntimeError if no KiCad config dir exists."""
         monkeypatch.setattr("install.platform.system", lambda: "Linux")
         monkeypatch.setattr("install.Path.home", lambda: tmp_path)
-        with pytest.raises(RuntimeError, match="not found"):
-            install_mod.get_kicad_config_dir()
+        with pytest.raises(RuntimeError, match="No KiCad config"):
+            install_mod.get_kicad_config_dirs()
 
 
 class TestLibTableParsing:
