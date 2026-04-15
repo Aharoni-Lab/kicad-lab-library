@@ -1,9 +1,18 @@
 """Markdown report generation for validation results."""
 from __future__ import annotations
 
+import re
 from typing import Dict, List
 
 from validator.checks import CheckResult
+
+# Strip absolute paths down to the repo-relative portion.
+_PATH_RE = re.compile(r"^.*?(?=symbols[/\\]|footprints[/\\]|3dmodels[/\\])")
+
+
+def _short_name(name: str) -> str:
+    """Shorten absolute paths to repo-relative paths for display."""
+    return _PATH_RE.sub("", name).replace("\\", "/")
 
 
 def generate_report(results: Dict[str, CheckResult]) -> str:
@@ -26,7 +35,7 @@ def generate_report(results: Dict[str, CheckResult]) -> str:
 
     for name, result in results.items():
         status = "PASS" if result.passed else "FAIL"
-        lines.append(f"## {name}: {status}")
+        lines.append(f"## {_short_name(name)}: {status}")
         if result.errors:
             lines.append("")
             for err in result.errors:

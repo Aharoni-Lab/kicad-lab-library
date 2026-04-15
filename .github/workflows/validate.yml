@@ -104,7 +104,7 @@ jobs:
   render-and-report:
     name: Render & Report
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && always()
     needs: [test, klc-check]
     steps:
       - uses: actions/checkout@v4
