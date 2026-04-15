@@ -24,7 +24,7 @@ Footprints are grouped by **package type** into `.pretty` directories:
 - `AharoniLab_Resistor_SMD.pretty` -- SMD resistor packages
 - `AharoniLab_Package_SO.pretty` -- SOIC, SSOP, TSSOP
 - `AharoniLab_Package_QFP.pretty` -- QFP, LQFP, TQFP
-- `AharoniLab_Package_QFN.pretty` -- QFN, DFN
+- `AharoniLab_Package_DFN_QFN.pretty` -- DFN, QFN
 - `AharoniLab_Connector.pretty` -- connector footprints
 
 ## 3D Models
