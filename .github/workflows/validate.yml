@@ -149,6 +149,28 @@ jobs:
             ls -la renders/ 2>/dev/null || echo 'No renders produced'
             "
 
+      - name: Generate HTML viewers for renders
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          for svg in renders/*.svg; do
+            [ -f "$svg" ] || continue
+            name=$(basename "$svg" .svg)
+            cat > "renders/${name}.html" <<HTMLEOF
+          <!DOCTYPE html>
+          <html><head>
+            <title>${name}</title>
+            <style>
+              body { margin: 0; display: flex; justify-content: center; align-items: center;
+                     min-height: 100vh; background: #f5f5f5; }
+              img { max-width: 95vw; max-height: 95vh; background: white;
+                    padding: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+            </style>
+          </head><body>
+            <img src="${name}.svg" alt="${name}">
+          </body></html>
+          HTMLEOF
+          done
+
       - name: Deploy renders to GitHub Pages
         if: steps.changes.outputs.has_changes == 'true'
         uses: peaceiris/actions-gh-pages@v4

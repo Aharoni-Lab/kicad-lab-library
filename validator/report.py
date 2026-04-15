@@ -113,7 +113,9 @@ def generate_report(
         filename = path.rsplit("/", 1)[-1]
         render = _find_render(filename, render_files) if render_files else None
         if render and renders_url:
-            return f"[`{filename}`]({renders_url}/{render})"
+            # Link to HTML viewer page for better display
+            html_page = render.rsplit(".", 1)[0] + ".html"
+            return f"[`{filename}`]({renders_url}/{html_page})"
         return f"`{filename}`"
 
     # --- Symbol table ---
@@ -156,14 +158,20 @@ def generate_report(
 
     # --- Rendered previews ---
     if render_files and renders_url:
-        lines.append("## Previews")
-        lines.append("")
-        for rf in sorted(render_files):
-            label = rf.rsplit(".", 1)[0]
-            lines.append(f"**{label}**")
+        svg_files = [rf for rf in render_files if rf.endswith(".svg")]
+        if svg_files:
+            lines.append("## Previews")
             lines.append("")
-            lines.append(f"![{label}]({renders_url}/{rf})")
-            lines.append("")
+            for rf in sorted(svg_files):
+                label = rf.rsplit(".", 1)[0]
+                html_page = label + ".html"
+                lines.append(f"**{label}**")
+                lines.append("")
+                lines.append(
+                    f"[![{label}]({renders_url}/{rf})]"
+                    f"({renders_url}/{html_page})"
+                )
+                lines.append("")
 
     # --- Structure table ---
     struct_items = [
