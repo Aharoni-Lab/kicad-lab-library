@@ -55,6 +55,39 @@ def _print_result(label: str, result: CheckResult) -> None:
             print(f"  - {err}")
 
 
+def _run_footprint_checks(
+    fp_files: List[Path], rules, results: Dict[str, CheckResult], *, quiet: bool,
+) -> None:
+    """Run all footprint checks on the given files."""
+    from validator.footprint_checks import (
+        check_duplicate_pad_numbers, check_footprint_layers,
+        check_footprint_pads, check_footprint_properties,
+        parse_kicad_mod,
+    )
+    for fp_file in fp_files:
+        try:
+            fp_info = parse_kicad_mod(fp_file)
+        except Exception as exc:
+            err_result = CheckResult(
+                errors=[f"Failed to parse footprint: {exc}"],
+            )
+            results[f"{fp_file}"] = err_result
+            if not quiet:
+                _print_result(str(fp_file), err_result)
+            continue
+
+        for check_fn, tag in [
+            (lambda f, i: check_footprint_layers(f, rules, info=i), "layers"),
+            (lambda f, i: check_footprint_pads(f, info=i), "pads"),
+            (lambda f, i: check_duplicate_pad_numbers(f, info=i), "dup-pads"),
+            (lambda f, i: check_footprint_properties(f, rules, info=i), "fp-props"),
+        ]:
+            result = check_fn(fp_file, fp_info)
+            results[f"{fp_file} [{tag}]"] = result
+            if not quiet:
+                _print_result(f"{fp_file} [{tag}]", result)
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -67,6 +100,12 @@ def main(argv: Optional[List[str]] = None) -> int:
         'files',
         nargs='*',
         help="One or more .kicad_sym files to validate.",
+    )
+    parser.add_argument(
+        '--footprint-files',
+        nargs='*',
+        default=[],
+        help="One or more .kicad_mod files to validate.",
     )
     parser.add_argument(
         '--all',
@@ -82,12 +121,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument(
         '--check-footprints',
         action='store_true',
-        help="Run footprint layer/pad validation.",
+        help="Run footprint layer/pad validation on all footprints.",
     )
     parser.add_argument(
         '--report',
         action='store_true',
-        help="Output a Markdown report (implies --all, --check-tables, --check-footprints, --check-generated-tables).",
+        help="Output a Markdown report. Runs structure checks (tables, "
+             "naming, duplicates) globally. Symbol and footprint checks "
+             "run on files passed via positional args / --footprint-files, "
+             "or on everything if --all / --check-footprints is also set.",
     )
     parser.add_argument(
         '--config',
@@ -114,12 +156,12 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     results: Dict[str, CheckResult] = {}
 
-    # Collect files to check
+    # Collect symbol files to check
     files_to_check: List[Path] = []
     if args.files:
         files_to_check.extend(Path(f) for f in args.files)
 
-    if args.check_all or args.report:
+    if args.check_all:
         symbols_dir = repo_root / 'symbols'
         if symbols_dir.is_dir():
             files_to_check.extend(sorted(symbols_dir.glob('*.kicad_sym')))
@@ -181,7 +223,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         if not args.report:
             _print_result(pp_key, pp_result)
 
-    # Run duplicate symbol check
+    # Run duplicate symbol check (always global)
     if args.check_all or args.report:
         dup_result = check_duplicate_symbols(
             repo_root, parsed_symbols=all_parsed or None,
@@ -190,77 +232,40 @@ def main(argv: Optional[List[str]] = None) -> int:
         if not args.report:
             _print_result('duplicate-symbols', dup_result)
 
-    # Run table consistency check
+    # Run table consistency check (always global)
     if args.check_tables or args.report:
         table_result = check_library_tables(repo_root)
         results['library-tables'] = table_result
         if not args.report:
             _print_result('library-tables', table_result)
 
-    # Run naming convention checks
+    # Run naming convention checks (always global)
     if args.check_all or args.report:
         naming_result = check_naming_conventions(repo_root, rules)
         results['naming-conventions'] = naming_result
         if not args.report:
             _print_result('naming-conventions', naming_result)
 
-    # Run uncategorized file checks
+    # Run uncategorized file checks (always global)
     if args.check_all or args.report:
         uncat_result = check_uncategorized_files(repo_root, rules)
         results['uncategorized-files'] = uncat_result
         if not args.report:
             _print_result('uncategorized-files', uncat_result)
 
-    # Run footprint checks
-    if args.check_footprints or args.report:
-        from validator.footprint_checks import (
-            check_duplicate_pad_numbers, check_footprint_layers,
-            check_footprint_pads, check_footprint_properties,
-            parse_kicad_mod,
-        )
+    # Run footprint checks — specific files or all
+    fp_files: List[Path] = [Path(f) for f in args.footprint_files]
+    if args.check_footprints:
         footprints_dir = repo_root / 'footprints'
         if footprints_dir.is_dir():
             for pretty_dir in sorted(footprints_dir.iterdir()):
                 if pretty_dir.is_dir() and pretty_dir.suffix == '.pretty':
-                    for fp_file in sorted(pretty_dir.glob('*.kicad_mod')):
-                        try:
-                            fp_info = parse_kicad_mod(fp_file)
-                        except Exception as exc:
-                            err_result = CheckResult(
-                                errors=[f"Failed to parse footprint: {exc}"],
-                            )
-                            results[f"{fp_file}"] = err_result
-                            if not args.report:
-                                _print_result(str(fp_file), err_result)
-                            continue
+                    fp_files.extend(sorted(pretty_dir.glob('*.kicad_mod')))
 
-                        layer_result = check_footprint_layers(
-                            fp_file, rules, info=fp_info,
-                        )
-                        results[f"{fp_file} [layers]"] = layer_result
-                        if not args.report:
-                            _print_result(f"{fp_file} [layers]", layer_result)
+    if fp_files:
+        _run_footprint_checks(fp_files, rules, results, quiet=args.report)
 
-                        pad_result = check_footprint_pads(fp_file, info=fp_info)
-                        results[f"{fp_file} [pads]"] = pad_result
-                        if not args.report:
-                            _print_result(f"{fp_file} [pads]", pad_result)
-
-                        dup_pad_result = check_duplicate_pad_numbers(
-                            fp_file, info=fp_info,
-                        )
-                        results[f"{fp_file} [dup-pads]"] = dup_pad_result
-                        if not args.report:
-                            _print_result(f"{fp_file} [dup-pads]", dup_pad_result)
-
-                        fp_prop_result = check_footprint_properties(
-                            fp_file, rules, info=fp_info,
-                        )
-                        results[f"{fp_file} [fp-props]"] = fp_prop_result
-                        if not args.report:
-                            _print_result(f"{fp_file} [fp-props]", fp_prop_result)
-
-    # Run table generation check
+    # Run table generation check (always global)
     if args.check_generated_tables or args.report:
         from validator.table_gen import check_tables_match_generated
         gen_result = check_tables_match_generated(repo_root, rules=rules)

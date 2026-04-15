@@ -152,7 +152,21 @@ jobs:
 
       - name: Generate validation report
         run: |
-          python -m validator --report > report.md
+          SYM_ARGS=""
+          FP_ARGS=""
+          if [ -n "${{ steps.changes.outputs.sym_files }}" ]; then
+            while IFS= read -r f; do
+              [ -z "$f" ] && continue
+              SYM_ARGS="$SYM_ARGS $f"
+            done <<< "${{ steps.changes.outputs.sym_files }}"
+          fi
+          if [ -n "${{ steps.changes.outputs.fp_files }}" ]; then
+            while IFS= read -r f; do
+              [ -z "$f" ] && continue
+              FP_ARGS="$FP_ARGS --footprint-files $f"
+            done <<< "${{ steps.changes.outputs.fp_files }}"
+          fi
+          python -m validator --report $SYM_ARGS $FP_ARGS > report.md
           cat report.md
 
       - name: Post PR comment
