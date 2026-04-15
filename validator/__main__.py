@@ -290,10 +290,15 @@ def main(argv: Optional[List[str]] = None) -> int:
             renders_path = Path(args.renders_dir)
             if renders_path.is_dir():
                 render_files = [f.name for f in sorted(renders_path.glob('*.svg'))]
+        # Build symbol names per file for per-symbol rows
+        symbol_names: Dict[str, List[str]] = {}
+        for fpath, syms in all_parsed.items():
+            symbol_names[str(fpath)] = [s.name for s in syms]
         print(generate_report(
             results,
             renders_url=args.renders_url,
             render_files=render_files,
+            symbol_names=symbol_names,
         ))
 
     # Exit code

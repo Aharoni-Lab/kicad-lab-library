@@ -35,6 +35,8 @@ _STRUCTURE_CHECKS = [
     ("table-generation", "Table generation"),
 ]
 
+_THUMB_HEIGHT = 96
+
 
 def _short_name(name: str) -> str:
     """Shorten absolute paths to repo-relative paths for display."""
@@ -53,17 +55,34 @@ def _parse_key(key: str) -> Tuple[str, str]:
     return key, ""
 
 
-def _find_render(filename: str, render_files: List[str]) -> Optional[str]:
-    """Find a render SVG that matches a source filename."""
-    stem = filename.rsplit(".", 1)[0]
-    # KiCad CLI names symbol renders like "symbolname_unit1.svg"
-    # and footprint renders like "footprintname.svg"
+def _find_render(name: str, render_files: List[str]) -> Optional[str]:
+    """Find a render SVG that matches a symbol or footprint name."""
+    name_lower = name.lower()
     for rf in render_files:
         rf_lower = rf.lower()
-        stem_lower = stem.lower()
-        if rf_lower.startswith(stem_lower):
+        # KiCad CLI names renders like "symbolname_unit1.svg" or "footprintname.svg"
+        rf_stem = rf_lower.rsplit(".", 1)[0]
+        # Exact match (footprints) or prefix match with _unit suffix (symbols)
+        if rf_stem == name_lower or rf_stem.startswith(name_lower + "_unit"):
             return rf
     return None
+
+
+def _render_cell(
+    name: str,
+    render_files: List[str],
+    renders_url: str,
+) -> str:
+    """Inline thumbnail linked to the HTML viewer."""
+    render = _find_render(name, render_files)
+    if render:
+        html_page = render.rsplit(".", 1)[0] + ".html"
+        return (
+            f'<a href="{renders_url}/{html_page}">'
+            f'<img src="{renders_url}/{render}" height="{_THUMB_HEIGHT}">'
+            f'</a>'
+        )
+    return ""
 
 
 def generate_report(
@@ -71,10 +90,12 @@ def generate_report(
     *,
     renders_url: Optional[str] = None,
     render_files: Optional[List[str]] = None,
+    symbol_names: Optional[Dict[str, List[str]]] = None,
 ) -> str:
     """Format *results* as a compact Markdown report."""
     all_passed = all(r.passed for r in results.values())
     render_files = render_files or []
+    symbol_names = symbol_names or {}
     lines: List[str] = []
 
     status = "PASS" if all_passed else "FAIL"
@@ -110,33 +131,18 @@ def generate_report(
 
     has_renders = bool(render_files and renders_url)
 
-    def _preview_cell(path: str) -> str:
-        """Inline thumbnail linked to the HTML viewer."""
-        filename = path.rsplit("/", 1)[-1]
-        render = _find_render(filename, render_files) if render_files else None
-        if render and renders_url:
-            html_page = render.rsplit(".", 1)[0] + ".html"
-            return (
-                f'<a href="{renders_url}/{html_page}">'
-                f'<img src="{renders_url}/{render}" height="48">'
-                f'</a>'
-            )
-        return ""
-
-    def _file_cell(path: str) -> str:
-        """Format a filename cell, with render link if available."""
-        filename = path.rsplit("/", 1)[-1]
-        render = _find_render(filename, render_files) if render_files else None
-        if render and renders_url:
-            html_page = render.rsplit(".", 1)[0] + ".html"
-            return f"[`{filename}`]({renders_url}/{html_page})"
-        return f"`{filename}`"
+    # Build mapping: short_path -> [symbol_name, ...]
+    # symbol_names keys are absolute paths; normalize to short paths
+    sym_names_by_short: Dict[str, List[str]] = {}
+    for abs_path, names in symbol_names.items():
+        short = _short_name(abs_path)
+        sym_names_by_short[short] = names
 
     # --- Symbol table ---
     if symbol_files:
         lines.append("## Symbols")
         lines.append("")
-        header_cols = ["File"] + [label for _, label in _SYMBOL_CHECKS]
+        header_cols = ["Symbol", "Library"] + [label for _, label in _SYMBOL_CHECKS]
         if has_renders:
             header_cols.append("Preview")
         lines.append("| " + " | ".join(header_cols) + " |")
@@ -144,22 +150,36 @@ def generate_report(
 
         for path in sorted(symbol_files):
             checks = symbol_files[path]
-            cols = [_file_cell(path)]
-            for tag, _ in _SYMBOL_CHECKS:
-                if tag in checks:
-                    cols.append(_icon(checks[tag]))
-                else:
-                    cols.append("-")
-            if has_renders:
-                cols.append(_preview_cell(path))
-            lines.append("| " + " | ".join(cols) + " |")
+            lib_name = path.rsplit("/", 1)[-1].rsplit(".", 1)[0]
+            names = sym_names_by_short.get(path, [])
+
+            if not names:
+                # Fallback: one row for the whole file
+                cols = [f"`{lib_name}`", f"`{lib_name}`"]
+                for tag, _ in _SYMBOL_CHECKS:
+                    cols.append(_icon(checks[tag]) if tag in checks else "-")
+                if has_renders:
+                    cols.append("")
+                lines.append("| " + " | ".join(cols) + " |")
+            else:
+                for sym_name in names:
+                    cols = [f"`{sym_name}`", f"`{lib_name}`"]
+                    for tag, _ in _SYMBOL_CHECKS:
+                        cols.append(
+                            _icon(checks[tag]) if tag in checks else "-"
+                        )
+                    if has_renders:
+                        cols.append(
+                            _render_cell(sym_name, render_files, renders_url)
+                        )
+                    lines.append("| " + " | ".join(cols) + " |")
         lines.append("")
 
     # --- Footprint table ---
     if footprint_files:
         lines.append("## Footprints")
         lines.append("")
-        header_cols = ["File"] + [label for _, label in _FOOTPRINT_CHECKS]
+        header_cols = ["Footprint"] + [label for _, label in _FOOTPRINT_CHECKS]
         if has_renders:
             header_cols.append("Preview")
         lines.append("| " + " | ".join(header_cols) + " |")
@@ -167,14 +187,14 @@ def generate_report(
 
         for path in sorted(footprint_files):
             checks = footprint_files[path]
-            cols = [_file_cell(path)]
+            fp_name = path.rsplit("/", 1)[-1].rsplit(".", 1)[0]
+            cols = [f"`{fp_name}`"]
             for tag, _ in _FOOTPRINT_CHECKS:
-                if tag in checks:
-                    cols.append(_icon(checks[tag]))
-                else:
-                    cols.append("-")
+                cols.append(_icon(checks[tag]) if tag in checks else "-")
             if has_renders:
-                cols.append(_preview_cell(path))
+                cols.append(
+                    _render_cell(fp_name, render_files, renders_url)
+                )
             lines.append("| " + " | ".join(cols) + " |")
         lines.append("")
 
