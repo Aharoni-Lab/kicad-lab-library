@@ -149,6 +149,14 @@ jobs:
             ls -la renders/ 2>/dev/null || echo 'No renders produced'
             "
 
+      - name: Fix SVG sizing for browser display
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          for svg in renders/*.svg; do
+            [ -f "$svg" ] || continue
+            sed -i 's/width="[0-9.]*mm"/width="100%"/; s/height="[0-9.]*mm"/height="100%"/' "$svg"
+          done
+
       - name: Generate HTML viewers for renders
         if: steps.changes.outputs.has_changes == 'true'
         run: |
