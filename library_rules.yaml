@@ -51,7 +51,27 @@ categories:
     reference_prefix: "U"
     pins: { min: 3 }
   AharoniLab_Sensor:
-    description: "Sensors and transducers"
+    description: "Sensors and transducers (including image sensors)"
+    reference_prefix: "U"
+    pins: { min: 3 }
+  AharoniLab_OpAmp:
+    description: "Operational amplifiers and comparators"
+    reference_prefix: "U"
+    pins: { min: 3 }
+  AharoniLab_Transistor:
+    description: "Discrete transistors and MOSFETs"
+    reference_prefix: "Q"
+    pins: { min: 3 }
+  AharoniLab_Logic:
+    description: "Logic ICs (gates, buffers, flip-flops)"
+    reference_prefix: "U"
+    pins: { min: 3 }
+  AharoniLab_Memory:
+    description: "Memory ICs (EEPROM, Flash, SRAM)"
+    reference_prefix: "U"
+    pins: { min: 4 }
+  AharoniLab_Interface:
+    description: "Interface ICs (SERDES, level shifters, transceivers)"
     reference_prefix: "U"
     pins: { min: 3 }
 
