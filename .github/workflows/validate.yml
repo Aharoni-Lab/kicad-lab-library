@@ -172,7 +172,7 @@ jobs:
       - name: List rendered files
         id: renders
         run: |
-          RENDER_URL="https://aharoni-lab.github.io/kicad-lab-library/renders/pr-${{ github.event.pull_request.number }}"
+          RENDER_URL="https://aharoni-lab.com/kicad-lab-library/renders/pr-${{ github.event.pull_request.number }}"
           echo "base_url=$RENDER_URL" >> $GITHUB_OUTPUT
           if [ -d renders ] && [ "$(ls renders/*.svg 2>/dev/null)" ]; then
             echo "has_renders=true" >> $GITHUB_OUTPUT
