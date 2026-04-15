@@ -130,6 +130,41 @@ class TestDuplicatePadNumbers:
         result = check_duplicate_pad_numbers(fp_file)
         assert result.passed
 
+    def test_duplicate_pads_allowed_for_connector_dir(self, tmp_path):
+        """Duplicate pads in connector libraries should pass when configured."""
+        from validator.config import LibraryRules
+        connector_dir = tmp_path / "AharoniLab_Connector.pretty"
+        connector_dir.mkdir()
+        fp_file = connector_dir / "Coax.kicad_mod"
+        fp_file.write_text(
+            '(footprint "Coax"'
+            '  (layer "F.Cu")'
+            '  (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu"))'
+            '  (pad "1" smd rect (at 1 0) (size 1 1) (layers "F.Cu"))'
+            '  (pad "2" smd rect (at 0 1) (size 1 1) (layers "F.Cu"))'
+            ')'
+        )
+        rules = LibraryRules(allow_duplicate_pads=["AharoniLab_Connector"])
+        result = check_duplicate_pad_numbers(fp_file, rules=rules)
+        assert result.passed
+
+    def test_duplicate_pads_still_fail_for_non_allowed_dir(self, tmp_path):
+        """Duplicate pads in non-allowed dirs should still fail."""
+        from validator.config import LibraryRules
+        pkg_dir = tmp_path / "AharoniLab_Package_DFN_QFN.pretty"
+        pkg_dir.mkdir()
+        fp_file = pkg_dir / "bad.kicad_mod"
+        fp_file.write_text(
+            '(footprint "Bad"'
+            '  (layer "F.Cu")'
+            '  (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu"))'
+            '  (pad "1" smd rect (at 1 0) (size 1 1) (layers "F.Cu"))'
+            ')'
+        )
+        rules = LibraryRules(allow_duplicate_pads=["AharoniLab_Connector"])
+        result = check_duplicate_pad_numbers(fp_file, rules=rules)
+        assert not result.passed
+
 
 class TestFootprintProperties:
     def test_valid_footprint_properties_pass(self, tmp_path, rules):

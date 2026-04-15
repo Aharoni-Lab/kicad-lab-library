@@ -103,6 +103,11 @@ footprint_layer_rules:
   smd: ["F.Cu"]
   through_hole: ["F.Cu", "B.Cu"]
 
+# Footprint directories where duplicate pad numbers are allowed
+# (e.g. connectors often have multiple pads for shield/ground)
+allow_duplicate_pads:
+  - "AharoniLab_Connector"
+
 # Symbol flag defaults
 symbol_flags:
   in_bom: true

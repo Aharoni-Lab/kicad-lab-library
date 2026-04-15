@@ -173,10 +173,22 @@ def check_duplicate_pad_numbers(
     filepath: str | Path,
     *,
     info: Optional[FootprintInfo] = None,
+    rules: Optional[LibraryRules] = None,
 ) -> CheckResult:
-    """Check that no two pads share the same pad number (excluding empty strings)."""
+    """Check that no two pads share the same pad number (excluding empty strings).
+
+    If *rules* is provided, footprints inside directories listed in
+    ``rules.allow_duplicate_pads`` are skipped (e.g. connector libraries
+    where multiple shield/ground pads legitimately share a number).
+    """
     filepath = Path(filepath)
     errors: List[str] = []
+
+    # Skip check for footprint directories that allow duplicate pads
+    if rules and rules.allow_duplicate_pads:
+        parent_stem = filepath.parent.stem  # e.g. "AharoniLab_Connector"
+        if parent_stem in rules.allow_duplicate_pads:
+            return CheckResult()
 
     if info is None:
         try:
