@@ -47,8 +47,9 @@ pytest tests/ -v
 
 ```bash
 python -m validator --all --check-tables --check-footprints   # Check everything
-python -m validator --report                                   # Markdown report (implies all checks)
-python -m validator symbols/AharoniLab_Passive.kicad_sym       # Single file
+python -m validator --report --all --check-footprints          # Full Markdown report
+python -m validator --report sym.kicad_sym --footprint-files fp.kicad_mod  # Report on specific files
+python -m validator symbols/AharoniLab_Passive.kicad_sym       # Single symbol file
 python -m validator --check-generated-tables                   # Verify tables match auto-generated
 python -m validator --generate-tables                          # Write auto-generated tables to disk
 ```

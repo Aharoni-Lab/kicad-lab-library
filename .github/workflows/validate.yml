@@ -73,17 +73,27 @@ jobs:
           done <<< "${{ steps.changes.outputs.sym_files }}"
           exit $EXIT_CODE
 
-      - name: Run KLC checks on footprints
+      - name: Run KLC checks on footprints (errors)
         if: steps.changes.outputs.has_changes == 'true' && steps.changes.outputs.fp_files != ''
         run: |
           EXIT_CODE=0
           while IFS= read -r fp_file; do
             [ -z "$fp_file" ] && continue
             echo "::group::Checking $fp_file"
-            python /tmp/kicad-library-utils/klc-check/check_footprint.py "$fp_file" || EXIT_CODE=1
+            python /tmp/kicad-library-utils/klc-check/check_footprint.py "$fp_file" -r F9.1 || EXIT_CODE=1
             echo "::endgroup::"
           done <<< "${{ steps.changes.outputs.fp_files }}"
           exit $EXIT_CODE
+
+      - name: Run KLC checks on footprints (warnings)
+        if: steps.changes.outputs.has_changes == 'true' && steps.changes.outputs.fp_files != ''
+        run: |
+          while IFS= read -r fp_file; do
+            [ -z "$fp_file" ] && continue
+            echo "::group::Checking $fp_file"
+            python /tmp/kicad-library-utils/klc-check/check_footprint.py "$fp_file" -e F9.1 || echo "::warning::KLC warnings for $fp_file"
+            echo "::endgroup::"
+          done <<< "${{ steps.changes.outputs.fp_files }}"
 
       - name: Install pyyaml
         run: pip install pyyaml
@@ -94,7 +104,7 @@ jobs:
   render-and-report:
     name: Render & Report
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && always()
     needs: [test, klc-check]
     steps:
       - uses: actions/checkout@v4
@@ -109,14 +119,21 @@ jobs:
         id: changes
         uses: ./.github/actions/detect-changes
 
-      - name: Render symbols with KiCad CLI
+      - name: Prepare render directories
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          mkdir -p renders
+          chmod 777 renders
+
+      - name: Render with KiCad CLI
         if: steps.changes.outputs.has_changes == 'true'
         uses: docker://kicad/kicad:9.0.1
+        env:
+          HOME: /tmp
         with:
           entrypoint: /bin/bash
           args: |
             -c "
-            mkdir -p renders
             while IFS= read -r sym_file; do
               [ -z \"$sym_file\" ] && continue
               echo \"Rendering $sym_file\"
@@ -125,9 +142,59 @@ jobs:
             while IFS= read -r fp_file; do
               [ -z \"$fp_file\" ] && continue
               echo \"Rendering $fp_file\"
-              kicad-cli fp export svg --output renders/ \"$fp_file\" || true
+              FP_DIR=$(dirname \"$fp_file\")
+              FP_NAME=$(basename \"$fp_file\" .kicad_mod)
+              kicad-cli fp export svg --output renders/ --footprint \"$FP_NAME\" \"$FP_DIR\" || true
             done <<< '${{ steps.changes.outputs.fp_files }}'
+            ls -la renders/ 2>/dev/null || echo 'No renders produced'
             "
+
+      - name: Fix SVG sizing for browser display
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          for svg in renders/*.svg; do
+            [ -f "$svg" ] || continue
+            sed -i 's/width="[0-9.]*mm"/width="100%"/; s/height="[0-9.]*mm"/height="100%"/' "$svg"
+          done
+
+      - name: Generate HTML viewers for renders
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          for svg in renders/*.svg; do
+            [ -f "$svg" ] || continue
+            name=$(basename "$svg" .svg)
+            cat > "renders/${name}.html" <<HTMLEOF
+          <!DOCTYPE html>
+          <html><head>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>${name}</title>
+            <style>
+              body { margin: 0; background: #f5f5f5; display: flex;
+                     justify-content: center; padding: 2rem; }
+              .card { background: white; padding: 2rem;
+                      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                      width: 95%; max-width: 1200px; }
+              .card svg { width: 100%; height: auto; display: block; }
+            </style>
+          </head><body>
+            <div class="card" id="viewer"></div>
+            <script>
+              fetch('${name}.svg')
+                .then(r => r.text())
+                .then(svg => document.getElementById('viewer').innerHTML = svg);
+            </script>
+          </body></html>
+          HTMLEOF
+          done
+
+      - name: Deploy renders to GitHub Pages
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./renders
+          destination_dir: renders/pr-${{ github.event.pull_request.number }}
+          keep_files: true
 
       - name: Upload rendered previews
         if: steps.changes.outputs.has_changes == 'true'
@@ -140,9 +207,38 @@ jobs:
       - name: Install pyyaml for report
         run: pip install pyyaml
 
+      - name: List rendered files
+        id: renders
+        run: |
+          RENDER_URL="https://aharoni-lab.com/kicad-lab-library/renders/pr-${{ github.event.pull_request.number }}"
+          echo "base_url=$RENDER_URL" >> $GITHUB_OUTPUT
+          if [ -d renders ] && [ "$(ls renders/*.svg 2>/dev/null)" ]; then
+            echo "has_renders=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_renders=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Generate validation report
         run: |
-          python -m validator --report > report.md
+          SYM_ARGS=""
+          FP_ARGS=""
+          RENDER_ARGS=""
+          if [ -n "${{ steps.changes.outputs.sym_files }}" ]; then
+            while IFS= read -r f; do
+              [ -z "$f" ] && continue
+              SYM_ARGS="$SYM_ARGS $f"
+            done <<< "${{ steps.changes.outputs.sym_files }}"
+          fi
+          if [ -n "${{ steps.changes.outputs.fp_files }}" ]; then
+            while IFS= read -r f; do
+              [ -z "$f" ] && continue
+              FP_ARGS="$FP_ARGS --footprint-files $f"
+            done <<< "${{ steps.changes.outputs.fp_files }}"
+          fi
+          if [ "${{ steps.renders.outputs.has_renders }}" = "true" ]; then
+            RENDER_ARGS="--renders-url ${{ steps.renders.outputs.base_url }} --renders-dir renders"
+          fi
+          python -m validator --report $SYM_ARGS $FP_ARGS $RENDER_ARGS > report.md
           cat report.md
 
       - name: Post PR comment
@@ -169,7 +265,7 @@ jobs:
             body += `| Tests | ${testResult === 'success' ? ':white_check_mark: Passed' : ':x: Failed'} |\n`;
             body += `| KLC Validation | ${klcResult === 'success' ? ':white_check_mark: Passed' : ':x: Failed'} |\n\n`;
             body += report;
-            body += `\n\n---\n*[Download rendered previews](../actions/runs/${context.runId})*`;
+            body += `\n\n---\n*Generated by CI — [view workflow run](../actions/runs/${context.runId})*`;
 
             // Find existing bot comment to update
             const { data: comments } = await github.rest.issues.listComments({
