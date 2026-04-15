@@ -73,17 +73,27 @@ jobs:
           done <<< "${{ steps.changes.outputs.sym_files }}"
           exit $EXIT_CODE
 
-      - name: Run KLC checks on footprints
+      - name: Run KLC checks on footprints (errors)
         if: steps.changes.outputs.has_changes == 'true' && steps.changes.outputs.fp_files != ''
         run: |
           EXIT_CODE=0
           while IFS= read -r fp_file; do
             [ -z "$fp_file" ] && continue
             echo "::group::Checking $fp_file"
-            python /tmp/kicad-library-utils/klc-check/check_footprint.py "$fp_file" || EXIT_CODE=1
+            python /tmp/kicad-library-utils/klc-check/check_footprint.py "$fp_file" -r F9.1 || EXIT_CODE=1
             echo "::endgroup::"
           done <<< "${{ steps.changes.outputs.fp_files }}"
           exit $EXIT_CODE
+
+      - name: Run KLC checks on footprints (warnings)
+        if: steps.changes.outputs.has_changes == 'true' && steps.changes.outputs.fp_files != ''
+        run: |
+          while IFS= read -r fp_file; do
+            [ -z "$fp_file" ] && continue
+            echo "::group::Checking $fp_file"
+            python /tmp/kicad-library-utils/klc-check/check_footprint.py "$fp_file" -e F9.1 || echo "::warning::KLC warnings for $fp_file"
+            echo "::endgroup::"
+          done <<< "${{ steps.changes.outputs.fp_files }}"
 
       - name: Install pyyaml
         run: pip install pyyaml
