@@ -96,8 +96,9 @@ def read_kicad_common(path: Path) -> dict:
 def set_env_var(data: dict, var_name: str, var_value: str) -> dict:
     """Set an environment variable inside the kicad_common.json structure."""
     env = data.setdefault("environment", {})
-    vars_ = env.setdefault("vars", {})
-    vars_[var_name] = var_value
+    if env.get("vars") is None:
+        env["vars"] = {}
+    env["vars"][var_name] = var_value
     return data
 
 
@@ -106,7 +107,7 @@ def remove_env_var(data: dict, var_name: str) -> bool:
     try:
         del data["environment"]["vars"][var_name]
         return True
-    except KeyError:
+    except (KeyError, TypeError):
         return False
 
 

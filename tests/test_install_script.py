@@ -148,9 +148,20 @@ class TestKicadCommon:
         assert removed
         assert "AHARONI_LAB_KICAD_LIB" not in data["environment"]["vars"]
 
+    def test_set_env_var_null_vars(self):
+        """Should handle KiCad's null vars field (written as 'vars': null)."""
+        data = {"environment": {"vars": None}}
+        set_env_var(data, "AHARONI_LAB_KICAD_LIB", "/some/path")
+        assert data["environment"]["vars"]["AHARONI_LAB_KICAD_LIB"] == "/some/path"
+
     def test_remove_nonexistent_var(self):
         """Should return False if var doesn't exist."""
         data = {}
+        assert not remove_env_var(data, "AHARONI_LAB_KICAD_LIB")
+
+    def test_remove_var_null_vars(self):
+        """Should return False if vars is null."""
+        data = {"environment": {"vars": None}}
         assert not remove_env_var(data, "AHARONI_LAB_KICAD_LIB")
 
     def test_read_missing_common(self, tmp_path):
