@@ -34,32 +34,43 @@ from validator.lib_table import LibTableEntry, parse_lib_table, serialize_lib_ta
 # KiCad config detection
 # ---------------------------------------------------------------------------
 
-def get_kicad_config_dir() -> Path:
-    """Return the KiCad 9 configuration directory for the current platform.
+KICAD_VERSIONS = ["10.0", "9.0"]
 
-    Raises ``RuntimeError`` if the directory does not exist.
-    """
-    system = platform.system()
+
+def _get_kicad_base_dir(system: str) -> Path:
+    """Return the platform-specific KiCad config base directory."""
     if system == "Windows":
         appdata = Path.home() / "AppData" / "Roaming"
-        # Also honour %APPDATA% when set (it almost always is).
         appdata_env = os.environ.get("APPDATA")
         if appdata_env:
             appdata = Path(appdata_env)
-        config_dir = appdata / "kicad" / "9.0"
+        return appdata / "kicad"
     elif system == "Darwin":
-        config_dir = Path.home() / "Library" / "Preferences" / "kicad" / "9.0"
+        return Path.home() / "Library" / "Preferences" / "kicad"
     elif system == "Linux":
-        config_dir = Path.home() / ".config" / "kicad" / "9.0"
+        return Path.home() / ".config" / "kicad"
     else:
         raise RuntimeError(f"Unsupported platform: {system}")
 
-    if not config_dir.is_dir():
+
+def get_kicad_config_dirs() -> list[Path]:
+    """Return all KiCad configuration directories found on this system.
+
+    Checks for KiCad versions in order (newest first).  Returns a list
+    of existing config directories.  Raises ``RuntimeError`` if none
+    are found.
+    """
+    system = platform.system()
+    base = _get_kicad_base_dir(system)
+    found = [base / v for v in KICAD_VERSIONS if (base / v).is_dir()]
+    if not found:
+        tried = ", ".join(str(base / v) for v in KICAD_VERSIONS)
         raise RuntimeError(
-            f"KiCad 9 config directory not found at {config_dir}\n"
-            "Please make sure KiCad 9 has been launched at least once."
+            f"No KiCad config directory found.\n"
+            f"Looked for: {tried}\n"
+            "Please make sure KiCad has been launched at least once."
         )
-    return config_dir
+    return found
 
 
 # ---------------------------------------------------------------------------
@@ -273,20 +284,27 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     try:
-        config_dir = get_kicad_config_dir()
+        config_dirs = get_kicad_config_dirs()
     except RuntimeError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
 
-    if args.uninstall:
-        uninstall(config_dir, dry_run=args.dry_run)
-    else:
-        try:
-            repo_root = get_repo_root()
-        except RuntimeError as exc:
-            print(f"Error: {exc}", file=sys.stderr)
-            sys.exit(1)
-        install(config_dir, repo_root, dry_run=args.dry_run)
+    for config_dir in config_dirs:
+        version = config_dir.name
+        print(f"{'='*60}")
+        print(f"KiCad {version}")
+        print(f"{'='*60}")
+        print()
+
+        if args.uninstall:
+            uninstall(config_dir, dry_run=args.dry_run)
+        else:
+            try:
+                repo_root = get_repo_root()
+            except RuntimeError as exc:
+                print(f"Error: {exc}", file=sys.stderr)
+                sys.exit(1)
+            install(config_dir, repo_root, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":
