@@ -108,12 +108,26 @@ def generate_report(
                 label = f"{short} [{tag}]" if tag else short
                 errors.append((label, err))
 
+    has_renders = bool(render_files and renders_url)
+
+    def _preview_cell(path: str) -> str:
+        """Inline thumbnail linked to the HTML viewer."""
+        filename = path.rsplit("/", 1)[-1]
+        render = _find_render(filename, render_files) if render_files else None
+        if render and renders_url:
+            html_page = render.rsplit(".", 1)[0] + ".html"
+            return (
+                f'<a href="{renders_url}/{html_page}">'
+                f'<img src="{renders_url}/{render}" height="48">'
+                f'</a>'
+            )
+        return ""
+
     def _file_cell(path: str) -> str:
         """Format a filename cell, with render link if available."""
         filename = path.rsplit("/", 1)[-1]
         render = _find_render(filename, render_files) if render_files else None
         if render and renders_url:
-            # Link to HTML viewer page for better display
             html_page = render.rsplit(".", 1)[0] + ".html"
             return f"[`{filename}`]({renders_url}/{html_page})"
         return f"`{filename}`"
@@ -123,6 +137,8 @@ def generate_report(
         lines.append("## Symbols")
         lines.append("")
         header_cols = ["File"] + [label for _, label in _SYMBOL_CHECKS]
+        if has_renders:
+            header_cols.append("Preview")
         lines.append("| " + " | ".join(header_cols) + " |")
         lines.append("| " + " | ".join(["---"] * len(header_cols)) + " |")
 
@@ -134,6 +150,8 @@ def generate_report(
                     cols.append(_icon(checks[tag]))
                 else:
                     cols.append("-")
+            if has_renders:
+                cols.append(_preview_cell(path))
             lines.append("| " + " | ".join(cols) + " |")
         lines.append("")
 
@@ -142,6 +160,8 @@ def generate_report(
         lines.append("## Footprints")
         lines.append("")
         header_cols = ["File"] + [label for _, label in _FOOTPRINT_CHECKS]
+        if has_renders:
+            header_cols.append("Preview")
         lines.append("| " + " | ".join(header_cols) + " |")
         lines.append("| " + " | ".join(["---"] * len(header_cols)) + " |")
 
@@ -153,25 +173,10 @@ def generate_report(
                     cols.append(_icon(checks[tag]))
                 else:
                     cols.append("-")
+            if has_renders:
+                cols.append(_preview_cell(path))
             lines.append("| " + " | ".join(cols) + " |")
         lines.append("")
-
-    # --- Rendered previews ---
-    if render_files and renders_url:
-        svg_files = [rf for rf in render_files if rf.endswith(".svg")]
-        if svg_files:
-            lines.append("## Previews")
-            lines.append("")
-            for rf in sorted(svg_files):
-                label = rf.rsplit(".", 1)[0]
-                html_page = label + ".html"
-                lines.append(f"**{label}**")
-                lines.append("")
-                lines.append(
-                    f"[![{label}]({renders_url}/{rf})]"
-                    f"({renders_url}/{html_page})"
-                )
-                lines.append("")
 
     # --- Structure table ---
     struct_items = [
