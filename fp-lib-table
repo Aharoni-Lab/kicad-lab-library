@@ -1,4 +1,9 @@
 (fp_lib_table
   (version 7)
+  (lib (name "AharoniLab_Capacitor_SMD")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Capacitor_SMD.pretty")(options "")(descr ""))
+  (lib (name "AharoniLab_Connector")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Connector.pretty")(options "")(descr ""))
   (lib (name "AharoniLab_Package_DFN_QFN")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Package_DFN_QFN.pretty")(options "")(descr ""))
+  (lib (name "AharoniLab_Package_QFP")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Package_QFP.pretty")(options "")(descr ""))
+  (lib (name "AharoniLab_Package_SO")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Package_SO.pretty")(options "")(descr ""))
+  (lib (name "AharoniLab_Resistor_SMD")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Resistor_SMD.pretty")(options "")(descr ""))
 )
