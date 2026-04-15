@@ -85,6 +85,24 @@
 				(hide yes)
 			)
 		)
+		(property "Author" "Daniel Aharoni"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Source" "KiCad Device library"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(symbol "R_Small_US_1_1"
 			(polyline
 				(pts
@@ -224,6 +242,24 @@
 			)
 		)
 		(property "Validated" "No"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Author" "Daniel Aharoni"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Source" "KiCad Device library"
 			(at 0 0 0)
 			(effects
 				(font
@@ -373,6 +409,24 @@
 			)
 		)
 		(property "Validated" "No"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Author" "Daniel Aharoni"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Source" "KiCad Device library"
 			(at 0 0 0)
 			(effects
 				(font
@@ -542,6 +596,24 @@
 			)
 		)
 		(property "Validated" "No"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Author" "Daniel Aharoni"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Source" "KiCad Device library"
 			(at 0 0 0)
 			(effects
 				(font
@@ -722,6 +794,24 @@
 			)
 		)
 		(property "Validated" "No"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Author" "Daniel Aharoni"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Source" "KiCad Device library"
 			(at 0 0 0)
 			(effects
 				(font
@@ -931,6 +1021,24 @@
 				(hide yes)
 			)
 		)
+		(property "Author" "Daniel Aharoni"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Source" "KiCad Device library"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(symbol "D_0_1"
 			(polyline
 				(pts
@@ -1090,6 +1198,24 @@
 				(hide yes)
 			)
 		)
+		(property "Author" "Daniel Aharoni"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Source" "KiCad Device library"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(symbol "D_Zener_0_1"
 			(polyline
 				(pts
@@ -1241,6 +1367,24 @@
 			)
 		)
 		(property "Validated" "No"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Author" "Daniel Aharoni"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Source" "KiCad Device library"
 			(at 0 0 0)
 			(effects
 				(font

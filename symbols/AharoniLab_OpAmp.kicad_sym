@@ -63,6 +63,24 @@
 				(hide yes)
 			)
 		)
+		(property "Author" "Daniel Aharoni"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Source" "Ultra Librarian"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(property "ki_keywords" "transimpedance amplifier TIA wideband low-noise OPA857 photodiode"
 			(at 0 0 0)
 			(effects

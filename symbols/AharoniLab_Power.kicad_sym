@@ -63,6 +63,24 @@
 				(hide yes)
 			)
 		)
+		(property "Author" "Daniel Aharoni"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Source" "Ultra Librarian"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(property "Manufacturer" "Texas Instruments"
 			(at 0 0 0)
 			(effects
@@ -438,6 +456,24 @@
 			)
 		)
 		(property "Validated" "No"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Author" "Daniel Aharoni"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Source" "Ultra Librarian"
 			(at 0 0 0)
 			(effects
 				(font

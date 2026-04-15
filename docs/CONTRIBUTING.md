@@ -38,6 +38,8 @@ Every symbol **must** have these properties:
 | `Description` | `"100nF ceramic capacitor"` | Brief description |
 | `ki_keywords` | `"capacitor cap ceramic"` | Search keywords |
 | `Validated` | `"No"` | Set to `"No"` for new components |
+| `Author` | `"Jane Doe"` | Optional; comma-separated list of contributors |
+| `Source` | `"Ultra Librarian"` | Optional; where the symbol/footprint came from |
 
 ### The Validated Field
 
