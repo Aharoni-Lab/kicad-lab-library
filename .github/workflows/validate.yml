@@ -11,6 +11,10 @@ on:
       - 'validator/**'
       - 'library_rules.yaml'
       - 'tests/**'
+      - '.github/**'
+      - 'docs/**'
+      - '*.md'
+      - '.gitignore'
   push:
     branches: [main]
     paths:
@@ -22,6 +26,7 @@ on:
       - 'validator/**'
       - 'library_rules.yaml'
       - 'tests/**'
+      - '.github/**'
 
 jobs:
   test:
