@@ -3,6 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "9.0")
 	(layer "F.Cu")
+	(descr "TDFN-8 3x3mm, 0.5mm pitch, exposed pad, https://www.analog.com/media/en/technical-documentation/data-sheets/MAX15032.pdf")
 	(tags "max15032")
 	(property "Reference" "REF**"
 		(at 0 2.5 0)
@@ -40,7 +41,7 @@
 			)
 		)
 	)
-	(property "Description" "TDFN-8 3x3mm, 0.5mm pitch, exposed pad"
+	(property "Description" ""
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
