@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "9.0")
 	(layer "F.Cu")
-	(tags "max15032ata+t ")
+	(tags "max15032")
 	(property "Reference" "REF**"
 		(at 0 2.5 0)
 		(unlocked yes)
@@ -16,7 +16,7 @@
 			)
 		)
 	)
-	(property "Value" "21-0137I_T833-2_MXM"
+	(property "Value" "21-0137I_T833-2_MXM-L"
 		(at 0 0 0)
 		(unlocked yes)
 		(layer "F.Fab")
@@ -40,7 +40,7 @@
 			)
 		)
 	)
-	(property "Description" ""
+	(property "Description" "TDFN-8 3x3mm, 0.5mm pitch, exposed pad"
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
