@@ -156,7 +156,7 @@ def check_symbol_properties(
                     continue
 
             # Pattern check (only if value is present and non-empty)
-            if rule.compiled_pattern is not None and value and value.strip():
+            if rule.compiled_pattern is not None and value and value.strip() not in ('', '~'):
                 if not rule.compiled_pattern.match(value):
                     errors.append(
                         f"Symbol '{sym.name}': {prop_name} property must match "

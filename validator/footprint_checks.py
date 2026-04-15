@@ -225,7 +225,7 @@ def check_footprint_properties(
                 )
                 continue
 
-        if rule.compiled_pattern is not None and value and value.strip():
+        if rule.compiled_pattern is not None and value and value.strip() not in ('', '~'):
             if not rule.compiled_pattern.match(value):
                 errors.append(
                     f"Footprint '{info.name}': {prop_name} property must match "

@@ -19,20 +19,19 @@ from validator.checks import (
 
 class TestDatasheetProperty:
     def test_valid_symbol_has_datasheet_url(self, valid_symbol_path, rules):
-        """Every symbol MUST have a Datasheet property with a URL."""
+        """Symbol with a valid Datasheet URL should pass."""
         result = check_symbol_properties(valid_symbol_path, rules)
         assert result.passed
 
-    def test_missing_datasheet_fails(self, invalid_no_datasheet_path, rules):
-        """Symbol without Datasheet property should fail validation."""
+    def test_missing_datasheet_passes(self, invalid_no_datasheet_path, rules):
+        """Symbol without Datasheet property should pass (optional)."""
         result = check_symbol_properties(invalid_no_datasheet_path, rules)
-        assert not result.passed
-        assert any("Datasheet" in e for e in result.errors)
+        assert result.passed
 
-    def test_empty_datasheet_fails(self, invalid_empty_datasheet_path, rules):
-        """Symbol with empty Datasheet should fail validation."""
+    def test_empty_datasheet_passes(self, invalid_empty_datasheet_path, rules):
+        """Symbol with empty Datasheet should pass (optional)."""
         result = check_symbol_properties(invalid_empty_datasheet_path, rules)
-        assert not result.passed
+        assert result.passed
 
     def test_datasheet_url_pattern_enforced(self, tmp_path, rules):
         """Non-URL datasheet should fail pattern check."""
@@ -175,8 +174,8 @@ class TestTildeHandling:
         result = check_symbol_properties(sym_file, rules)
         assert not result.passed
 
-    def test_tilde_datasheet_still_fails(self, tmp_path, rules):
-        """Regression: Datasheet='~' should still fail."""
+    def test_tilde_datasheet_passes(self, tmp_path, rules):
+        """Datasheet='~' should pass (treated as empty, optional)."""
         sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
         sym_file.write_text(
             '(kicad_symbol_lib (version 20241209) (symbol "TildeDS"'
@@ -185,8 +184,7 @@ class TestTildeHandling:
             '  (property "Description" "Test")(property "Validated" "No")'
             '  (property "ki_keywords" "test")))')
         result = check_symbol_properties(sym_file, rules)
-        assert not result.passed
-        assert any("Datasheet" in e for e in result.errors)
+        assert result.passed
 
 
 class TestManufacturerMPN:
