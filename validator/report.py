@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from validator.checks import CheckResult
 
@@ -53,9 +53,28 @@ def _parse_key(key: str) -> Tuple[str, str]:
     return key, ""
 
 
-def generate_report(results: Dict[str, CheckResult]) -> str:
+def _find_render(filename: str, render_files: List[str]) -> Optional[str]:
+    """Find a render SVG that matches a source filename."""
+    stem = filename.rsplit(".", 1)[0]
+    # KiCad CLI names symbol renders like "symbolname_unit1.svg"
+    # and footprint renders like "footprintname.svg"
+    for rf in render_files:
+        rf_lower = rf.lower()
+        stem_lower = stem.lower()
+        if rf_lower.startswith(stem_lower):
+            return rf
+    return None
+
+
+def generate_report(
+    results: Dict[str, CheckResult],
+    *,
+    renders_url: Optional[str] = None,
+    render_files: Optional[List[str]] = None,
+) -> str:
     """Format *results* as a compact Markdown report."""
     all_passed = all(r.passed for r in results.values())
+    render_files = render_files or []
     lines: List[str] = []
 
     status = "PASS" if all_passed else "FAIL"
@@ -74,10 +93,8 @@ def generate_report(results: Dict[str, CheckResult]) -> str:
 
         if tag == "":
             if short.endswith(".kicad_sym"):
-                # Symbol property check (no tag)
                 symbol_files[short]["properties"] = result
             elif short.endswith(".kicad_mod"):
-                # Footprint parse error (no tag)
                 footprint_files[short]["parse"] = result
             else:
                 structure_results[short] = result
@@ -91,6 +108,14 @@ def generate_report(results: Dict[str, CheckResult]) -> str:
                 label = f"{short} [{tag}]" if tag else short
                 errors.append((label, err))
 
+    def _file_cell(path: str) -> str:
+        """Format a filename cell, with render link if available."""
+        filename = path.rsplit("/", 1)[-1]
+        render = _find_render(filename, render_files) if render_files else None
+        if render and renders_url:
+            return f"[`{filename}`]({renders_url}/{render})"
+        return f"`{filename}`"
+
     # --- Symbol table ---
     if symbol_files:
         lines.append("## Symbols")
@@ -101,8 +126,7 @@ def generate_report(results: Dict[str, CheckResult]) -> str:
 
         for path in sorted(symbol_files):
             checks = symbol_files[path]
-            filename = path.rsplit("/", 1)[-1]
-            cols = [f"`{filename}`"]
+            cols = [_file_cell(path)]
             for tag, _ in _SYMBOL_CHECKS:
                 if tag in checks:
                     cols.append(_icon(checks[tag]))
@@ -121,8 +145,7 @@ def generate_report(results: Dict[str, CheckResult]) -> str:
 
         for path in sorted(footprint_files):
             checks = footprint_files[path]
-            filename = path.rsplit("/", 1)[-1]
-            cols = [f"`{filename}`"]
+            cols = [_file_cell(path)]
             for tag, _ in _FOOTPRINT_CHECKS:
                 if tag in checks:
                     cols.append(_icon(checks[tag]))
@@ -130,6 +153,17 @@ def generate_report(results: Dict[str, CheckResult]) -> str:
                     cols.append("-")
             lines.append("| " + " | ".join(cols) + " |")
         lines.append("")
+
+    # --- Rendered previews ---
+    if render_files and renders_url:
+        lines.append("## Previews")
+        lines.append("")
+        for rf in sorted(render_files):
+            label = rf.rsplit(".", 1)[0]
+            lines.append(f"**{label}**")
+            lines.append("")
+            lines.append(f"![{label}]({renders_url}/{rf})")
+            lines.append("")
 
     # --- Structure table ---
     struct_items = [

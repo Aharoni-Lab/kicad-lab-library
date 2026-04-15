@@ -140,6 +140,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="Check that library tables match auto-generated content.")
     parser.add_argument('--generate-tables', action='store_true',
         help="Write auto-generated library tables to disk.")
+    parser.add_argument('--renders-url', default=None,
+        help="Base URL for rendered SVG previews (used in --report).")
+    parser.add_argument('--renders-dir', default=None,
+        help="Local directory containing rendered SVGs (used in --report).")
 
     args = parser.parse_args(argv)
     repo_root = _find_repo_root()
@@ -280,7 +284,17 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # Report mode
     if args.report:
-        print(generate_report(results))
+        # Collect available render files
+        render_files: List[str] = []
+        if args.renders_dir:
+            renders_path = Path(args.renders_dir)
+            if renders_path.is_dir():
+                render_files = [f.name for f in sorted(renders_path.glob('*.svg'))]
+        print(generate_report(
+            results,
+            renders_url=args.renders_url,
+            render_files=render_files,
+        ))
 
     # Exit code
     if not results:
