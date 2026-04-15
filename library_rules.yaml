@@ -13,7 +13,7 @@ global_symbol_properties:
   Footprint:
     required: false       # Can be empty for generic symbols
   Datasheet:
-    required: true
+    required: false
     pattern: "^https?://.+"
   Description:
     required: true

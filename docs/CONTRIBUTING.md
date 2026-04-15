@@ -34,7 +34,7 @@ Every symbol **must** have these properties:
 | `Reference` | `R`, `C`, `U` | Standard reference designator |
 | `Value` | `100nF`, `LM1117` | Component value or part number |
 | `Footprint` | `""` | Can be empty (assigned per-use) |
-| `Datasheet` | `https://www.ti.com/...` | **Must be a URL** (not empty, not `~`) |
+| `Datasheet` | `https://www.ti.com/...` | Optional; **must be a URL** when provided |
 | `Description` | `"100nF ceramic capacitor"` | Brief description |
 | `ki_keywords` | `"capacitor cap ceramic"` | Search keywords |
 | `Validated` | `"No"` | Set to `"No"` for new components |
