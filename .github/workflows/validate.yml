@@ -245,10 +245,14 @@ jobs:
             done <<< "${{ steps.changes.outputs.sym_files }}"
           fi
           if [ -n "${{ steps.changes.outputs.fp_files }}" ]; then
+            FP_LIST=""
             while IFS= read -r f; do
               [ -z "$f" ] && continue
-              FP_ARGS="$FP_ARGS --footprint-files $f"
+              FP_LIST="$FP_LIST $f"
             done <<< "${{ steps.changes.outputs.fp_files }}"
+            if [ -n "$FP_LIST" ]; then
+              FP_ARGS="--footprint-files $FP_LIST"
+            fi
           fi
           if [ "${{ steps.renders.outputs.has_renders }}" = "true" ]; then
             RENDER_ARGS="--renders-url ${{ steps.renders.outputs.base_url }} --renders-dir renders"
