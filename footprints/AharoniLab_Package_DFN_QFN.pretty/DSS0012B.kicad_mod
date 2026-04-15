@@ -28,7 +28,7 @@
 			)
 		)
 	)
-	(property "Datasheet" "https://www.ti.com/lit/ml/qfnd398b/qfnd398b.pdf"
+	(property "Datasheet" ""
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
