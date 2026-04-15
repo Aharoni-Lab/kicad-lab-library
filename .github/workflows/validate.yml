@@ -142,7 +142,9 @@ jobs:
             while IFS= read -r fp_file; do
               [ -z \"$fp_file\" ] && continue
               echo \"Rendering $fp_file\"
-              kicad-cli fp export svg --output renders/ \"$fp_file\" || true
+              FP_DIR=$(dirname \"$fp_file\")
+              FP_NAME=$(basename \"$fp_file\" .kicad_mod)
+              kicad-cli fp export svg --output renders/ --footprint \"$FP_NAME\" \"$FP_DIR\" || true
             done <<< '${{ steps.changes.outputs.fp_files }}'
             ls -la renders/ 2>/dev/null || echo 'No renders produced'
             "
