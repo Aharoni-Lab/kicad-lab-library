@@ -1,5 +1,13 @@
 (sym_lib_table
   (version 7)
+  (lib (name "AharoniLab_Connector")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Connector.kicad_sym")(options "")(descr "Connectors and headers"))
+  (lib (name "AharoniLab_Interface")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Interface.kicad_sym")(options "")(descr "Interface ICs (SERDES, level shifters, transceivers)"))
+  (lib (name "AharoniLab_Logic")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Logic.kicad_sym")(options "")(descr "Logic ICs (gates, buffers, flip-flops)"))
+  (lib (name "AharoniLab_MCU")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_MCU.kicad_sym")(options "")(descr "Microcontrollers"))
+  (lib (name "AharoniLab_Memory")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Memory.kicad_sym")(options "")(descr "Memory ICs (EEPROM, Flash, SRAM)"))
+  (lib (name "AharoniLab_OpAmp")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_OpAmp.kicad_sym")(options "")(descr "Operational amplifiers and comparators"))
   (lib (name "AharoniLab_Passive")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym")(options "")(descr "Passive components (resistors, capacitors, inductors, diodes)"))
   (lib (name "AharoniLab_Power")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Power.kicad_sym")(options "")(descr "Power management ICs"))
+  (lib (name "AharoniLab_Sensor")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Sensor.kicad_sym")(options "")(descr "Sensors and transducers (including image sensors)"))
+  (lib (name "AharoniLab_Transistor")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Transistor.kicad_sym")(options "")(descr "Discrete transistors and MOSFETs"))
 )
