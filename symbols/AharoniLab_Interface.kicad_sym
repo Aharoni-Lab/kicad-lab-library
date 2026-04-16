@@ -3,16 +3,13 @@
 	(generator "kicad_symbol_editor")
 	(generator_version "10.0")
 	(symbol "DS90UB913A"
-		(pin_names
-			(offset 1.016)
-		)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
 		(property "Reference" "U"
-			(at -17.78 13.97 0)
+			(at -24.13 29.21 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -22,7 +19,7 @@
 			)
 		)
 		(property "Value" "DS90UB913A"
-			(at 24.13 12.7 0)
+			(at 0.254 0.508 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -32,7 +29,7 @@
 			)
 		)
 		(property "Footprint" "AharoniLab_Package_DFN_QFN:QFN_33_P50_500X500X80L40X24T310L"
-			(at 5.334 -46.736 0)
+			(at -1.016 -31.496 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -42,7 +39,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/ds90ub913a-q1.pdf"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -53,8 +50,8 @@
 				)
 			)
 		)
-		(property "Description" "TI DS90UB913A FPD-Link III serializer, 100MHz"
-			(at 38.608 23.876 0)
+		(property "Description" "FPD-Link III serializer, 100MHz"
+			(at 33.528 39.116 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -65,7 +62,7 @@
 			)
 		)
 		(property "Source" "Extracted from MiniXL schematic"
-			(at 31.242 17.526 0)
+			(at 24.892 32.766 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -76,7 +73,7 @@
 			)
 		)
 		(property "Author" "Daniel Aharoni"
-			(at 22.352 19.558 0)
+			(at 16.002 34.798 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -87,7 +84,7 @@
 			)
 		)
 		(property "Manufacturer" "Texas Instruments"
-			(at 23.876 21.844 0)
+			(at 17.526 37.084 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -98,7 +95,7 @@
 			)
 		)
 		(property "MPN" "DS90UB913ATRTVTQ1"
-			(at 25.4 15.494 0)
+			(at 19.05 30.734 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -109,6 +106,17 @@
 			)
 		)
 		(property "Validated" "No"
+			(at -6.35 15.24 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "serializer SERDES FPD-Link"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -119,7 +127,7 @@
 				)
 			)
 		)
-		(property "ki_keywords" "serializer SERDES FPD-Link LVDS camera CSI"
+		(property "ki_fp_filters" "QFN?33*"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -130,22 +138,20 @@
 				)
 			)
 		)
-		(symbol "DS90UB913A_0_1"
+		(symbol "DS90UB913A_1_1"
 			(rectangle
-				(start -17.78 11.43)
-				(end 29.21 -44.45)
+				(start -22.86 27.94)
+				(end 22.86 -27.94)
 				(stroke
-					(width 0)
+					(width 0.254)
 					(type solid)
 				)
 				(fill
 					(type background)
 				)
 			)
-		)
-		(symbol "DS90UB913A_1_1"
 			(pin input line
-				(at -22.86 7.62 0)
+				(at -27.94 22.86 0)
 				(length 5.08)
 				(name "HSYNC"
 					(effects
@@ -163,7 +169,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 5.08 0)
+				(at -27.94 20.32 0)
 				(length 5.08)
 				(name "VSYNC"
 					(effects
@@ -181,7 +187,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 -33.02 0)
+				(at -27.94 -17.78 0)
 				(length 5.08)
 				(name "PCLK"
 					(effects
@@ -199,7 +205,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -22.86 -41.91 0)
+				(at -27.94 -25.4 0)
 				(length 5.08)
 				(name "SCL"
 					(effects
@@ -217,7 +223,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -22.86 -39.37 0)
+				(at -27.94 -22.86 0)
 				(length 5.08)
 				(name "SDA"
 					(effects
@@ -235,7 +241,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 34.29 -25.4 180)
+				(at 27.94 -12.7 180)
 				(length 5.08)
 				(name "ID[x]"
 					(effects
@@ -253,7 +259,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 34.29 -38.1 180)
+				(at 27.94 -25.4 180)
 				(length 5.08)
 				(name "RES"
 					(effects
@@ -271,7 +277,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 34.29 -22.86 180)
+				(at 27.94 -10.16 180)
 				(length 5.08)
 				(name "MODE"
 					(effects
@@ -289,7 +295,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 34.29 -35.56 180)
+				(at 27.94 -22.86 180)
 				(length 5.08)
 				(name "PDB"
 					(effects
@@ -307,7 +313,7 @@
 				)
 			)
 			(pin power_in line
-				(at 5.08 16.51 270)
+				(at 0 33.02 270)
 				(length 5.08)
 				(name "VDDPLL"
 					(effects
@@ -325,7 +331,7 @@
 				)
 			)
 			(pin power_in line
-				(at 7.62 16.51 270)
+				(at 2.54 33.02 270)
 				(length 5.08)
 				(name "VDDT"
 					(effects
@@ -343,7 +349,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 34.29 6.35 180)
+				(at 27.94 20.32 180)
 				(length 5.08)
 				(name "DOUT-"
 					(effects
@@ -361,7 +367,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 34.29 8.89 180)
+				(at 27.94 22.86 180)
 				(length 5.08)
 				(name "DOUT+"
 					(effects
@@ -379,7 +385,7 @@
 				)
 			)
 			(pin power_in line
-				(at 10.16 16.51 270)
+				(at 5.08 33.02 270)
 				(length 5.08)
 				(name "VDDCML"
 					(effects
@@ -397,7 +403,7 @@
 				)
 			)
 			(pin output line
-				(at 34.29 -3.81 180)
+				(at 27.94 10.16 180)
 				(length 5.08)
 				(name "GPO[0]"
 					(effects
@@ -415,7 +421,7 @@
 				)
 			)
 			(pin output line
-				(at 34.29 -6.35 180)
+				(at 27.94 7.62 180)
 				(length 5.08)
 				(name "GPO[1]"
 					(effects
@@ -433,7 +439,7 @@
 				)
 			)
 			(pin output line
-				(at 34.29 -8.89 180)
+				(at 27.94 5.08 180)
 				(length 5.08)
 				(name "CPO[2]/CLKOUT"
 					(effects
@@ -451,7 +457,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 34.29 -11.43 180)
+				(at 27.94 2.54 180)
 				(length 5.08)
 				(name "GPO[3]/CLKIN"
 					(effects
@@ -469,7 +475,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 0 0)
+				(at -27.94 15.24 0)
 				(length 5.08)
 				(name "DIN[0]"
 					(effects
@@ -487,7 +493,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 -2.54 0)
+				(at -27.94 12.7 0)
 				(length 5.08)
 				(name "DIN[1]"
 					(effects
@@ -505,7 +511,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 -5.08 0)
+				(at -27.94 10.16 0)
 				(length 5.08)
 				(name "DIN[2]"
 					(effects
@@ -523,7 +529,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 -7.62 0)
+				(at -27.94 7.62 0)
 				(length 5.08)
 				(name "DIN[3]"
 					(effects
@@ -541,7 +547,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 -10.16 0)
+				(at -27.94 5.08 0)
 				(length 5.08)
 				(name "DIN[4]"
 					(effects
@@ -559,7 +565,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 -12.7 0)
+				(at -27.94 2.54 0)
 				(length 5.08)
 				(name "DIN[5]"
 					(effects
@@ -577,7 +583,7 @@
 				)
 			)
 			(pin power_in line
-				(at -2.54 16.51 270)
+				(at -7.62 33.02 270)
 				(length 5.08)
 				(name "VDDIO"
 					(effects
@@ -595,7 +601,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 -15.24 0)
+				(at -27.94 0 0)
 				(length 5.08)
 				(name "DIN[6]"
 					(effects
@@ -613,7 +619,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 -17.78 0)
+				(at -27.94 -2.54 0)
 				(length 5.08)
 				(name "DIN[7]"
 					(effects
@@ -631,7 +637,7 @@
 				)
 			)
 			(pin power_in line
-				(at 2.54 16.51 270)
+				(at -2.54 33.02 270)
 				(length 5.08)
 				(name "VDDD"
 					(effects
@@ -649,7 +655,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 -20.32 0)
+				(at -27.94 -5.08 0)
 				(length 5.08)
 				(name "DIN[8]"
 					(effects
@@ -667,7 +673,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 -22.86 0)
+				(at -27.94 -7.62 0)
 				(length 5.08)
 				(name "DIN[9]"
 					(effects
@@ -685,7 +691,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 -25.4 0)
+				(at -27.94 -10.16 0)
 				(length 5.08)
 				(name "DIN[10]"
 					(effects
@@ -703,7 +709,7 @@
 				)
 			)
 			(pin input line
-				(at -22.86 -27.94 0)
+				(at -27.94 -12.7 0)
 				(length 5.08)
 				(name "DIN[11]"
 					(effects
@@ -721,7 +727,7 @@
 				)
 			)
 			(pin power_in line
-				(at 5.08 -49.53 90)
+				(at 0 -33.02 90)
 				(length 5.08)
 				(name "VSS"
 					(effects
