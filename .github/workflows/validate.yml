@@ -96,7 +96,7 @@ jobs:
           while IFS= read -r fp_file; do
             [ -z "$fp_file" ] && continue
             echo "::group::Checking $fp_file"
-            python /tmp/kicad-library-utils/klc-check/check_footprint.py "$fp_file" -e F9.1 2>&1 | tee -a klc-report.txt || echo "::warning::KLC warnings for $fp_file"
+            python /tmp/kicad-library-utils/klc-check/check_footprint.py "$fp_file" --exclude F9.1 2>&1 | tee -a klc-report.txt || echo "::warning::KLC warnings for $fp_file"
             echo "::endgroup::"
           done <<< "${{ steps.changes.outputs.fp_files }}"
 
