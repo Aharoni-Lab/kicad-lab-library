@@ -42,7 +42,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Datasheet" "LGA-28 Bosch"
+		(property "Datasheet" ""
 			(at -6.35 33.274 0)
 			(show_name no)
 			(do_not_autoplace no)
