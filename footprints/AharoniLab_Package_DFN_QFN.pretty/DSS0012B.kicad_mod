@@ -64,7 +64,7 @@
 			)
 		)
 	)
-	(property "Author" "Daniel Aharoni"
+	(property "Contributor" "Daniel Aharoni"
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
