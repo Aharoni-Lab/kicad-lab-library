@@ -470,7 +470,9 @@ def check_pin_pad_cross_validation(
     """Cross-validate symbol pin counts against footprint pad counts.
 
     For each symbol whose Footprint property points to an existing ``.kicad_mod``,
-    compare the number of electrical pins with the number of electrical pads.
+    check that the symbol does not have *more* pins than the footprint has
+    electrical pads.  Footprints may have extra pads (NC, mounting, duplicate
+    power/ground) so ``pins <= pads`` is the invariant.
     """
     from validator.footprint_checks import parse_kicad_mod, _get_electrical_pad_count
 
@@ -504,10 +506,10 @@ def check_pin_pad_cross_validation(
         if electrical_pads == 0:
             continue  # No electrical pads to compare
 
-        if sym.pin_count != electrical_pads:
+        if sym.pin_count > electrical_pads:
             errors.append(
                 f"Symbol '{sym.name}': has {sym.pin_count} pins but footprint "
-                f"'{fp}' has {electrical_pads} electrical pads"
+                f"'{fp}' has only {electrical_pads} electrical pads"
             )
 
     return CheckResult(errors=errors)
