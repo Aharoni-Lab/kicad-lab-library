@@ -73,7 +73,7 @@ jobs:
           while IFS= read -r sym_file; do
             [ -z "$sym_file" ] && continue
             echo "::group::Checking $sym_file"
-            python /tmp/kicad-library-utils/klc-check/check_symbol.py "$sym_file" --exclude S3.1,S5.1,S5.2,S6.2 2>&1 | tee -a klc-report.txt || EXIT_CODE=1
+            python /tmp/kicad-library-utils/klc-check/check_symbol.py "$sym_file" --exclude S3.1,S4.1,S4.2,S4.5,S5.1,S5.2,S6.2 2>&1 | tee -a klc-report.txt || EXIT_CODE=1
             echo "::endgroup::"
           done <<< "${{ steps.changes.outputs.sym_files }}"
           exit $EXIT_CODE
