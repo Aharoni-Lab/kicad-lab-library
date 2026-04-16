@@ -78,6 +78,14 @@ categories:
     description: "Interface ICs (SERDES, level shifters, transceivers)"
     reference_prefix: "U"
     pins: { min: 3 }
+  AharoniLab_Misc:
+    description: "Miscellaneous ICs (digital potentiometers, etc.)"
+    reference_prefix: "U"
+    pins: { min: 3 }
+  AharoniLab_Oscillator:
+    description: "Oscillators and clock generators"
+    reference_prefix: "U"
+    pins: { min: 4 }
 
 # Footprint validation
 footprint_required_layers:
