@@ -3,16 +3,13 @@
 	(generator "kicad_symbol_editor")
 	(generator_version "10.0")
 	(symbol "TPL0102"
-		(pin_names
-			(offset 1.016)
-		)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
 		(property "Reference" "U"
-			(at -7.62 13.97 0)
+			(at -9.652 13.97 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -22,7 +19,7 @@
 			)
 		)
 		(property "Value" "TPL0102"
-			(at 11.43 13.97 0)
+			(at 5.842 13.716 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -32,7 +29,7 @@
 			)
 		)
 		(property "Footprint" "AharoniLab_Package_DFN_QFN:QFN_14_P40_200X200X40L40X20L"
-			(at 3.81 -24.13 0)
+			(at -2.032 29.464 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -54,6 +51,72 @@
 			)
 		)
 		(property "Description" "TI TPL0102 dual 100K digital potentiometer with I2C"
+			(at -0.254 17.526 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Source" "Extracted from MiniXL schematic"
+			(at -1.016 26.924 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Author" "Daniel Aharoni"
+			(at -1.016 22.352 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Texas Instruments"
+			(at -0.254 20.32 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "TPL0102-100RUCR"
+			(at -0.762 24.638 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Validated" "No"
+			(at 13.208 21.336 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "digital potentiometer I2C dual rheostat"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -75,88 +138,20 @@
 				)
 			)
 		)
-			(property "Source" "Extracted from MiniXL schematic"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Author" "Daniel Aharoni"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Manufacturer" "Texas Instruments"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "MPN" "TPL0102-100RUCR"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "ki_keywords" "digital potentiometer I2C dual rheostat"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Validated" "No"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-		(symbol "TPL0102_0_1"
+		(symbol "TPL0102_1_1"
 			(rectangle
-				(start -8.89 12.7)
-				(end 8.89 -12.7)
+				(start -10.16 12.7)
+				(end 10.16 -12.7)
 				(stroke
-					(width 0)
+					(width 0.254)
 					(type solid)
 				)
 				(fill
 					(type background)
 				)
 			)
-		)
-		(symbol "TPL0102_1_1"
 			(pin bidirectional line
-				(at 11.43 10.16 180)
+				(at 12.7 10.16 180)
 				(length 2.54)
 				(name "HA"
 					(effects
@@ -174,7 +169,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 11.43 -5.08 180)
+				(at 12.7 -5.08 180)
 				(length 2.54)
 				(name "LA"
 					(effects
@@ -192,7 +187,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 11.43 2.54 180)
+				(at 12.7 2.54 180)
 				(length 2.54)
 				(name "WA"
 					(effects
@@ -210,7 +205,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 11.43 7.62 180)
+				(at 12.7 7.62 180)
 				(length 2.54)
 				(name "HB"
 					(effects
@@ -228,7 +223,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 11.43 -7.62 180)
+				(at 12.7 -7.62 180)
 				(length 2.54)
 				(name "LB"
 					(effects
@@ -246,7 +241,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 11.43 0 180)
+				(at 12.7 0 180)
 				(length 2.54)
 				(name "WB"
 					(effects
@@ -264,7 +259,7 @@
 				)
 			)
 			(pin input line
-				(at -11.43 -10.16 0)
+				(at -12.7 -10.16 0)
 				(length 2.54)
 				(name "A2"
 					(effects
@@ -282,7 +277,7 @@
 				)
 			)
 			(pin power_in line
-				(at -1.27 -15.24 90)
+				(at 0 -15.24 90)
 				(length 2.54)
 				(name "VSS"
 					(effects
@@ -300,7 +295,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -11.43 2.54 0)
+				(at -12.7 2.54 0)
 				(length 2.54)
 				(name "SDA"
 					(effects
@@ -318,7 +313,7 @@
 				)
 			)
 			(pin input line
-				(at -11.43 0 0)
+				(at -12.7 0 0)
 				(length 2.54)
 				(name "SCL"
 					(effects
@@ -336,7 +331,7 @@
 				)
 			)
 			(pin power_in line
-				(at 1.27 -15.24 90)
+				(at 2.54 -15.24 90)
 				(length 2.54)
 				(name "GND"
 					(effects
@@ -354,7 +349,7 @@
 				)
 			)
 			(pin input line
-				(at -11.43 -7.62 0)
+				(at -12.7 -7.62 0)
 				(length 2.54)
 				(name "A1"
 					(effects
@@ -372,7 +367,7 @@
 				)
 			)
 			(pin input line
-				(at -11.43 -5.08 0)
+				(at -12.7 -5.08 0)
 				(length 2.54)
 				(name "A0"
 					(effects
@@ -390,7 +385,7 @@
 				)
 			)
 			(pin power_in line
-				(at -11.43 10.16 0)
+				(at -12.7 10.16 0)
 				(length 2.54)
 				(name "VDD"
 					(effects
