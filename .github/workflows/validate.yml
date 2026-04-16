@@ -262,7 +262,7 @@ jobs:
           if [ "${{ steps.renders.outputs.has_renders }}" = "true" ]; then
             RENDER_ARGS="--renders-url ${{ steps.renders.outputs.base_url }} --renders-dir renders"
           fi
-          python -m validator --report $SYM_ARGS $FP_ARGS $RENDER_ARGS > report.md
+          python -m validator --report $SYM_ARGS $FP_ARGS $RENDER_ARGS > report.md || true
           cat report.md
 
       - name: Post PR comment
