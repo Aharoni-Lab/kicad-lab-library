@@ -78,6 +78,14 @@ categories:
     description: "Interface ICs (SERDES, level shifters, transceivers)"
     reference_prefix: "U"
     pins: { min: 3 }
+  AharoniLab_Misc:
+    description: "Miscellaneous ICs (digital potentiometers, etc.)"
+    reference_prefix: "U"
+    pins: { min: 3 }
+  AharoniLab_Oscillator:
+    description: "Oscillators and clock generators"
+    reference_prefix: "U"
+    pins: { min: 4 }
 
 # Footprint validation
 footprint_required_layers:
@@ -102,6 +110,11 @@ footprint_layer_rules:
   common: ["F.CrtYd", "F.Fab"]
   smd: ["F.Cu"]
   through_hole: ["F.Cu", "B.Cu"]
+
+# Footprint directories where duplicate pad numbers are allowed
+# (e.g. connectors often have multiple pads for shield/ground)
+allow_duplicate_pads:
+  - "AharoniLab_Connector"
 
 # Symbol flag defaults
 symbol_flags:

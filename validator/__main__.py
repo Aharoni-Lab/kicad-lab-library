@@ -79,7 +79,7 @@ def _run_footprint_checks(
         for check_fn, tag in [
             (lambda f, i: check_footprint_layers(f, rules, info=i), "layers"),
             (lambda f, i: check_footprint_pads(f, info=i), "pads"),
-            (lambda f, i: check_duplicate_pad_numbers(f, info=i), "dup-pads"),
+            (lambda f, i: check_duplicate_pad_numbers(f, info=i, rules=rules), "dup-pads"),
             (lambda f, i: check_footprint_properties(f, rules, info=i), "fp-props"),
         ]:
             result = check_fn(fp_file, fp_info)

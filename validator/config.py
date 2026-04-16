@@ -96,6 +96,7 @@ class LibraryRules:
     symbol_flags: Optional[SymbolFlagRules] = None
     global_footprint_properties: Dict[str, PropertyRule] = field(default_factory=dict)
     footprint_layer_rules: Optional[FootprintLayerRules] = None
+    allow_duplicate_pads: List[str] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -232,6 +233,9 @@ def load_rules(path: str | Path) -> LibraryRules:
             through_hole=flr_raw.get("through_hole", []),
         )
 
+    # --- allow_duplicate_pads ---
+    allow_duplicate_pads: List[str] = raw.get("allow_duplicate_pads", [])
+
     return LibraryRules(
         prefix=prefix,
         env_var=env_var,
@@ -242,4 +246,5 @@ def load_rules(path: str | Path) -> LibraryRules:
         symbol_flags=symbol_flags,
         global_footprint_properties=global_fp_props,
         footprint_layer_rules=footprint_layer_rules,
+        allow_duplicate_pads=allow_duplicate_pads,
     )
