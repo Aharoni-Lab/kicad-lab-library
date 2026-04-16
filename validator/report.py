@@ -47,6 +47,17 @@ def _icon(result: CheckResult) -> str:
     return "pass" if result.passed else "FAIL"
 
 
+def _symbol_icon(result: CheckResult, sym_name: str) -> str:
+    """Return per-symbol pass/fail by checking if any errors mention this symbol."""
+    if result.passed:
+        return "pass"
+    # Check if any error message mentions this specific symbol
+    for err in result.errors:
+        if f"'{sym_name}'" in err:
+            return "FAIL"
+    return "pass"
+
+
 def _parse_key(key: str) -> Tuple[str, str]:
     """Split 'path [tag]' into (path, tag).  Plain keys return (key, '')."""
     m = re.match(r"^(.+?) \[(.+)]$", key)
@@ -165,9 +176,10 @@ def generate_report(
                 for sym_name in names:
                     cols = [f"`{sym_name}`", f"`{lib_name}`"]
                     for tag, _ in _SYMBOL_CHECKS:
-                        cols.append(
-                            _icon(checks[tag]) if tag in checks else "-"
-                        )
+                        if tag in checks:
+                            cols.append(_symbol_icon(checks[tag], sym_name))
+                        else:
+                            cols.append("-")
                     if has_renders:
                         cols.append(
                             _render_cell(sym_name, render_files, renders_url)
