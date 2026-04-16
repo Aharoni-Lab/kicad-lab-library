@@ -72,7 +72,7 @@
 				)
 			)
 		)
-		(property "Author" "Daniel Aharoni"
+		(property "Contributor" "Daniel Aharoni"
 			(at -1.016 22.352 0)
 			(show_name no)
 			(do_not_autoplace no)

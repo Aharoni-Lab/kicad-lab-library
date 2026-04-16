@@ -27,7 +27,7 @@ global_symbol_properties:
   MPN:
     required: false
     pattern: "^(?!N/?A$|TBD$|TODO$).+"
-  Author:
+  Contributor:
     required: false
   Source:
     required: false
@@ -101,7 +101,7 @@ global_footprint_properties:
   Validated:
     required: true
     pattern: "^(Yes|No)$"
-  Author:
+  Contributor:
     required: false
   Source:
     required: false

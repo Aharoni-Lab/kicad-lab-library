@@ -74,7 +74,7 @@
 				)
 			)
 		)
-		(property "Author" "Daniel Aharoni"
+		(property "Contributor" "Daniel Aharoni"
 			(at 28.956 1.778 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -461,7 +461,7 @@
 				)
 			)
 		)
-		(property "Author" "Daniel Aharoni"
+		(property "Contributor" "Daniel Aharoni"
 			(at 0.254 32.766 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -812,7 +812,7 @@
 				)
 			)
 		)
-		(property "Author" "Daniel Aharoni"
+		(property "Contributor" "Daniel Aharoni"
 			(at -0.508 30.226 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1202,7 +1202,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.onsemi.cn/download/data-sheet/pdf/ncv8154-d.pdf"
 			(at 0 10.16 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1235,7 +1235,7 @@
 				)
 			)
 		)
-		(property "Author" "Daniel Aharoni"
+		(property "Contributor" "Daniel Aharoni"
 			(at 0.254 21.082 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1374,8 +1374,26 @@
 					)
 				)
 			)
+			(pin no_connect line
+				(at -10.16 -7.62 0)
+				(length 2.54)
+				(name "NC"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
 			(pin input line
-				(at -10.16 -5.08 0)
+				(at -10.16 -2.54 0)
 				(length 2.54)
 				(name "EN2"
 					(effects
@@ -1393,7 +1411,7 @@
 				)
 			)
 			(pin input line
-				(at -10.16 2.54 0)
+				(at -10.16 5.08 0)
 				(length 2.54)
 				(name "IN2"
 					(effects
@@ -1411,7 +1429,7 @@
 				)
 			)
 			(pin input line
-				(at -10.16 5.08 0)
+				(at -10.16 7.62 0)
 				(length 2.54)
 				(name "IN1"
 					(effects
@@ -1429,7 +1447,7 @@
 				)
 			)
 			(pin input line
-				(at -10.16 -2.54 0)
+				(at -10.16 0 0)
 				(length 2.54)
 				(name "EN1"
 					(effects
@@ -1504,7 +1522,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://semtech.my.salesforce.com/sfc/p/#E0000000JelG/a/44000000MDZF/Kz5ycNi9I5Dzzg5AzBOB4W0TtqtKUtMf03CWPRt6CLQ"
 			(at -5.08 5.08 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1537,7 +1555,7 @@
 				)
 			)
 		)
-		(property "Author" "Daniel Aharoni"
+		(property "Contributor" "Daniel Aharoni"
 			(at 0.254 17.272 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1606,6 +1624,24 @@
 			)
 		)
 		(symbol "SC189ZULTRT_1_1"
+			(pin no_connect line
+				(at -10.16 -2.54 0)
+				(length 2.54)
+				(name "NC"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
 			(pin input line
 				(at -10.16 0 0)
 				(length 2.54)
@@ -1789,7 +1825,7 @@
 				)
 			)
 		)
-		(property "Author" "Daniel Aharoni"
+		(property "Contributor" "Daniel Aharoni"
 			(at 0.254 19.05 0)
 			(show_name no)
 			(do_not_autoplace no)
