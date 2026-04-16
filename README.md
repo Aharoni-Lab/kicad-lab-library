@@ -27,6 +27,13 @@ The library is ready for components. Libraries are created on demand as componen
 | `AharoniLab_MCU` | Microcontrollers | U |
 | `AharoniLab_Power` | Power management ICs | U |
 | `AharoniLab_Sensor` | Sensors and transducers | U |
+| `AharoniLab_Interface` | Interface ICs (SERDES, level shifters) | U |
+| `AharoniLab_OpAmp` | Operational amplifiers and comparators | U |
+| `AharoniLab_Logic` | Logic ICs (gates, buffers, flip-flops) | U |
+| `AharoniLab_Memory` | Memory ICs (EEPROM, Flash, SRAM) | U |
+| `AharoniLab_Transistor` | Discrete transistors and MOSFETs | Q |
+| `AharoniLab_Oscillator` | Oscillators and clock generators | U |
+| `AharoniLab_Misc` | Miscellaneous ICs (digital potentiometers, etc.) | U |
 
 ## Contributing
 
@@ -46,4 +53,4 @@ See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for how to add components. Ever
 
 ## License
 
-MIT
+[CC-BY-SA 4.0](LICENSE) with a design exception -- using library components in your projects requires no license obligations. Redistributing the library files themselves requires the same license. See [LICENSE](LICENSE) for details.
