@@ -4,6 +4,7 @@
 	(generator_version "10.0")
 	(layer "F.Cu")
 	(descr "Quad Flat No-Lead (QFN with Tab), 0.50 mm pitch; square, 8 pin X 8 pin, 5.00 mm L X 5.00 mm W X 0.80 mm H body")
+	(tags "QFN 0.50mm")
 	(property "Reference" "REF**"
 		(at 0 0 0)
 		(layer "F.Fab")

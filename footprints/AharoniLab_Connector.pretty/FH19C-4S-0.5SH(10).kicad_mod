@@ -3,6 +3,8 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
+	(descr "Hirose FH19C series FPC connector, 4-pin, 0.5mm pitch, SMD")
+	(tags "FPC connector Hirose FH19C SMD")
 	(property "Reference" "REF**"
 		(at 0.01524 1.57358 270)
 		(layer "F.SilkS")

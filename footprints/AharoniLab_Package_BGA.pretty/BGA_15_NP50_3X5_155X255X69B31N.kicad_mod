@@ -4,6 +4,7 @@
 	(generator_version "10.0")
 	(layer "F.Cu")
 	(descr "Ball Grid Array (BGA), 0.50 mm pitch, rect.; 15 pin, 1.55 mm L X 2.555 mm W X 0.69 mm H body")
+	(tags "BGA 0.50mm")
 	(property "Reference" "REF**"
 		(at 0 0 180)
 		(layer "F.Fab")
