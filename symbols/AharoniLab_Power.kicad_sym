@@ -1302,7 +1302,7 @@
 					(type background)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at 0 -12.7 90)
 				(length 2.54)
 				(name "GND"
@@ -1356,7 +1356,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at 2.54 -12.7 90)
 				(length 2.54)
 				(name "GND"
@@ -1446,7 +1446,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin passive line
 				(at 5.08 -12.7 90)
 				(length 2.54)
 				(name "PAD"
@@ -1624,7 +1624,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at -10.16 2.54 0)
 				(length 2.54)
 				(name "VIN"
@@ -1642,7 +1642,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 10.16 2.54 180)
 				(length 2.54)
 				(name "LX"
@@ -1660,7 +1660,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at 0 -7.62 90)
 				(length 2.54)
 				(name "GND"
@@ -1678,7 +1678,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 10.16 0 180)
 				(length 2.54)
 				(name "VOUT"
@@ -1696,7 +1696,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin passive line
 				(at 2.54 -7.62 90)
 				(length 2.54)
 				(name "PAD"

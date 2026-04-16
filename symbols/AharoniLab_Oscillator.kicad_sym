@@ -127,7 +127,7 @@
 				)
 			)
 		)
-		(symbol "SG210STF_0_1"
+		(symbol "SG210STF_1_1"
 			(rectangle
 				(start -10.16 5.08)
 				(end 10.16 -5.08)
@@ -139,8 +139,6 @@
 					(type background)
 				)
 			)
-		)
-		(symbol "SG210STF_1_1"
 			(pin input line
 				(at -12.7 2.54 0)
 				(length 2.54)
@@ -159,7 +157,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at -12.7 -2.54 0)
 				(length 2.54)
 				(name "GND"
@@ -195,7 +193,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at 12.7 2.54 180)
 				(length 2.54)
 				(name "VDD"

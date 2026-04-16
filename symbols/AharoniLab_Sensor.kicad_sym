@@ -54,7 +54,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Description" "Bosch BNO055 9-axis absolute orientation IMU"
+		(property "Description" "9-axis absolute orientation IMU"
 			(at 1.016 -26.67 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -63,66 +63,6 @@
 				(font
 					(size 1.27 1.27)
 				)
-			)
-		)
-		(property "Field42" "BNO055"
-			(at -5.08 37.592 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Field42_1" "Unavailable"
-			(at -4.318 23.368 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Field42_2" "Bosch"
-			(at -2.794 39.624 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Field42_3" "BNO055 9-axis Absolute Orientation Sensor _ SiP _ w/Sensors and Sensor Fusion"
-			(at -31.242 43.688 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Field42_4" "None"
-			(at -2.286 47.498 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
 			)
 		)
 		(property "Source" "Extracted from MiniXL schematic"
@@ -587,7 +527,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.onsemi.com/pdf/datasheet/mt9p031-d.pdf"
 			(at 0 6.35 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -598,7 +538,7 @@
 				)
 			)
 		)
-		(property "Description" "ON Semi MT9P031 5MP CMOS digital image sensor"
+		(property "Description" "5MP CMOS digital image sensor"
 			(at 0.254 40.132 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -705,7 +645,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at 2.54 -33.02 90)
 				(length 2.54)
 				(name "AGND"
@@ -759,7 +699,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin bidirectional line
 				(at -20.32 -2.54 0)
 				(length 2.54)
 				(name "SDATA"
@@ -795,7 +735,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 20.32 -10.16 180)
 				(length 2.54)
 				(name "FRAME_VALID"
@@ -813,7 +753,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 20.32 -12.7 180)
 				(length 2.54)
 				(name "LINE_VALID"
@@ -831,7 +771,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 20.32 -17.78 180)
 				(length 2.54)
 				(name "STROBE"
@@ -849,7 +789,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at -5.08 -33.02 90)
 				(length 2.54)
 				(name "DGND"
@@ -885,7 +825,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at -2.54 33.02 270)
 				(length 2.54)
 				(name "VDD"
@@ -1029,7 +969,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at 5.08 -33.02 90)
 				(length 2.54)
 				(name "AGND"
@@ -1047,7 +987,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at 12.7 33.02 270)
 				(length 2.54)
 				(name "VAA"
@@ -1065,7 +1005,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at 15.24 33.02 270)
 				(length 2.54)
 				(name "VAA"
@@ -1101,7 +1041,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at -2.54 -33.02 90)
 				(length 2.54)
 				(name "DGND"
@@ -1137,7 +1077,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 20.32 -15.24 180)
 				(length 2.54)
 				(name "PIXCLK"
@@ -1389,7 +1329,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at -7.62 -33.02 90)
 				(length 2.54)
 				(name "DGND"
@@ -1407,7 +1347,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at -5.08 33.02 270)
 				(length 2.54)
 				(name "VDD"
