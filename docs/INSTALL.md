@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- **KiCad 10 or 9** -- launch it at least once to create the config directory
+- **KiCad 10** -- launch it at least once to create the config directory. KiCad 9 is **not** supported: the library files are saved in the KiCad 10 format and will not load in KiCad 9.
 - **Git**
 - **Python 3.8+**
 
@@ -18,7 +18,7 @@ python scripts/install.py
 ```
 
 The script will:
-1. Detect your KiCad config directory (supports both 10 and 9)
+1. Detect your KiCad 10 config directory
 2. Set the `AHARONI_LAB_KICAD_LIB` environment variable in KiCad
 3. Add all library entries to KiCad's global symbol and footprint tables
 
@@ -77,12 +77,14 @@ After installing, open KiCad:
 
 ## Troubleshooting
 
-### "No KiCad config directory found"
+### "No KiCad 10 config directory found"
 
-Make sure you've launched KiCad at least once. The config directory is created on first launch:
-- **Windows**: `%APPDATA%\kicad\10.0\` (or `9.0`)
-- **macOS**: `~/Library/Preferences/kicad/10.0/` (or `9.0`)
-- **Linux**: `~/.config/kicad/10.0/` (or `9.0`)
+Make sure you've installed **KiCad 10** and launched it at least once. The config directory is created on first launch:
+- **Windows**: `%APPDATA%\kicad\10.0\`
+- **macOS**: `~/Library/Preferences/kicad/10.0/`
+- **Linux**: `~/.config/kicad/10.0/`
+
+If you only have KiCad 9 installed, this library will not work -- the symbols and footprints are saved in the KiCad 10 format and will not load in KiCad 9.
 
 ### Libraries don't appear in KiCad
 

@@ -216,7 +216,7 @@ class TestManufacturerMPN:
 
 class TestSymbolParsing:
     def test_can_parse_valid_symbol(self, valid_symbol_path):
-        """Should be able to parse a valid KiCad 9 .kicad_sym file."""
+        """Should be able to parse a valid .kicad_sym file."""
         symbols = parse_kicad_sym(valid_symbol_path)
         assert len(symbols) > 0
 
