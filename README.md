@@ -2,7 +2,7 @@
 
 [![Library Validation](https://github.com/Aharoni-Lab/kicad-lab-library/actions/workflows/validate.yml/badge.svg)](https://github.com/Aharoni-Lab/kicad-lab-library/actions/workflows/validate.yml)
 
-Shared KiCad component library for the [Aharoni Lab](https://aharoni-lab.github.io/) at UCLA. Supports KiCad 10 (and 9). Every component is validated by CI on every pull request.
+Shared KiCad component library for the [Aharoni Lab](https://aharoni-lab.github.io/) at UCLA. Requires **KiCad 10** -- the library files are saved in the KiCad 10 format and will not load in KiCad 9. Every component is validated by CI on every pull request.
 
 ## Quick Install
 
@@ -12,7 +12,7 @@ cd ~/kicad-libraries/kicad-lab-library
 python scripts/install.py
 ```
 
-This automatically configures KiCad to find the library (supports both KiCad 10 and 9). See [docs/INSTALL.md](docs/INSTALL.md) for details.
+This automatically configures KiCad 10 to find the library. See [docs/INSTALL.md](docs/INSTALL.md) for details.
 
 ## What's in the Library
 
