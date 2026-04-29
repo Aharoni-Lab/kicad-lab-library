@@ -40,7 +40,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install pytest pyyaml
+        run: pip install '.[dev]'
 
       - name: Run tests
         run: pytest tests/ -v
@@ -108,8 +108,8 @@ jobs:
           path: klc-report.txt
           if-no-files-found: ignore
 
-      - name: Install pyyaml
-        run: pip install pyyaml
+      - name: Install validator package
+        run: pip install .
 
       - name: Run lab-specific validation
         run: python -m validator --all --check-tables --check-footprints --check-generated-tables
@@ -224,8 +224,8 @@ jobs:
           path: .
         continue-on-error: true
 
-      - name: Install pyyaml for report
-        run: pip install pyyaml
+      - name: Install validator package
+        run: pip install .
 
       - name: List rendered files
         id: renders
