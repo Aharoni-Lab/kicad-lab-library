@@ -1,0 +1,357 @@
+(footprint "LED_LXZ1_PB01_L"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "LED, Chip; 1.30 mm L X 1.70 mm W X 0.76 mm H body")
+	(tags "470 nm Blue LED")
+	(property "Reference" "REF**"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "542b7067-bfa5-4c6b-8a15-7e067970ff61")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(property "Value" "LED_LXZ1_PB01_L"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "5643f56c-d6bf-4f2c-b52e-a290f0d9a6b9")
+		(effects
+			(font
+				(size 1.2 1.2)
+				(thickness 0.12)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "B.Fab")
+		(hide yes)
+		(uuid "a1b05739-7bf9-411b-a92f-c3e3a082fd29")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+			(justify mirror)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "B.Fab")
+		(hide yes)
+		(uuid "a26cf6bb-a3e6-4b69-80c1-62eb443c46b9")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+			(justify mirror)
+		)
+	)
+	(property "Validated" "No"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "d7b85153-d622-4e9a-894a-44aa1ad16bcf")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Contributor" "Federico Sangiuliano"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "79701698-bc3e-48f1-9dcc-2301e320022c")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_circle
+		(center 0 0.195)
+		(end 0.02 0.195)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "f1b25cae-f22b-4db9-a634-c1c7144bce96")
+	)
+	(fp_line
+		(start -0.65 -0.85)
+		(end -0.35 -0.85)
+		(stroke
+			(width 0.025)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "41e474f3-9e2e-4e2a-954b-c1150e696d34")
+	)
+	(fp_line
+		(start -0.65 -0.85)
+		(end 0.65 -0.85)
+		(stroke
+			(width 0.025)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "e68415b8-412b-441f-a126-9f34d86a838b")
+	)
+	(fp_line
+		(start -0.65 0.85)
+		(end -0.65 -0.85)
+		(stroke
+			(width 0.025)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "35ebe7d5-c188-4d19-8fe7-2ca236ea222a")
+	)
+	(fp_line
+		(start -0.65 0.85)
+		(end -0.65 -0.85)
+		(stroke
+			(width 0.025)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "c5f0b4ba-4462-4422-ae2f-b03bf01bfaf5")
+	)
+	(fp_line
+		(start -0.35 -0.85)
+		(end -0.35 0.85)
+		(stroke
+			(width 0.025)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "e6377802-c25b-42db-992c-b9b804f7c127")
+	)
+	(fp_line
+		(start -0.35 0.85)
+		(end -0.65 0.85)
+		(stroke
+			(width 0.025)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "291c9059-8a31-40c5-803e-fe8180c87cf9")
+	)
+	(fp_line
+		(start 0.35 -0.85)
+		(end 0.65 -0.85)
+		(stroke
+			(width 0.025)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "0b247f0f-061b-4420-93e0-1a8d54b59708")
+	)
+	(fp_line
+		(start 0.35 0.85)
+		(end 0.35 -0.85)
+		(stroke
+			(width 0.025)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "524e7d81-6607-4789-b335-96f95e143706")
+	)
+	(fp_line
+		(start 0.65 -0.85)
+		(end 0.65 0.85)
+		(stroke
+			(width 0.025)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "2b4504f1-ea67-4742-a891-cf75c54c4ffb")
+	)
+	(fp_line
+		(start 0.65 -0.85)
+		(end 0.65 0.85)
+		(stroke
+			(width 0.025)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "ecfb462a-1844-4450-8637-7aa6c02bcf60")
+	)
+	(fp_line
+		(start 0.65 0.85)
+		(end -0.65 0.85)
+		(stroke
+			(width 0.025)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "c03f08a2-cc1d-4151-a8f0-b9c5d88a83da")
+	)
+	(fp_line
+		(start 0.65 0.85)
+		(end 0.35 0.85)
+		(stroke
+			(width 0.025)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "8880fbd9-132f-4477-b585-e307321300c1")
+	)
+	(fp_line
+		(start -0.79 -0.99)
+		(end 0.79 -0.99)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "60ecb15b-08ca-4531-a86e-05270116acf7")
+	)
+	(fp_line
+		(start -0.79 0.99)
+		(end -0.79 -0.99)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "9fbd2a39-d020-47f5-ac4b-200a43629061")
+	)
+	(fp_line
+		(start 0 -0.35)
+		(end 0 0.35)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "1129263f-1903-46f7-ac1c-fd8733a7ee7c")
+	)
+	(fp_line
+		(start 0.35 0)
+		(end -0.35 0)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "9bfedbcb-7382-4c96-a380-650219661b9b")
+	)
+	(fp_line
+		(start 0.79 -0.99)
+		(end 0.79 0.99)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "7a6177a0-3f03-4e9c-992d-19b6757867d5")
+	)
+	(fp_line
+		(start 0.79 0.99)
+		(end -0.79 0.99)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "dd0bed58-c1fa-4299-8cd7-c98ad577564c")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 0 0.25)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "ea61910f-cb4f-4ae9-9997-a75233716bba")
+	)
+	(fp_line
+		(start -0.69 -0.89)
+		(end 0.69 -0.89)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "a1852f86-748a-491c-9f78-6e4dfa6ff34c")
+	)
+	(fp_line
+		(start -0.69 0.89)
+		(end -0.69 -0.89)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "cfe6b760-bcda-48a4-bb60-4c109acf37e3")
+	)
+	(fp_line
+		(start 0.69 -0.89)
+		(end 0.69 0.89)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "1ef90638-96d4-42a0-a50c-f6b471f8ea81")
+	)
+	(fp_line
+		(start 0.69 0.89)
+		(end -0.69 0.89)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "81a3fee8-10a4-45a2-9531-4fc5767141d8")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 -1.27 0)
+		(layer "F.Fab")
+		(uuid "42fc4b91-bf77-49de-95e9-4651531fb4d7")
+		(effects
+			(font
+				(size 0.89 0.89)
+				(thickness 0.09)
+			)
+		)
+	)
+	(pad "1" smd rect
+		(at -0.35 0 180)
+		(size 0.45 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "1c388473-1ae2-45ff-83d3-16e66967c759")
+	)
+	(pad "2" smd rect
+		(at 0.35 0 180)
+		(size 0.45 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "16f23cfb-0a3d-4db6-a9d8-65cea9bb1df1")
+	)
+	(embedded_fonts no)
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_LED_SMD.3dshapes/LED_LXZ1_PB01_L.step"
+		(offset
+			(xyz 0.04 0.29 0.3454)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 180)
+		)
+	)
+)

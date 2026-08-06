@@ -27,7 +27,7 @@
 			)
 		)
 	)
-	(property "Value" "C_0201_0603Metric"
+	(property "Value" "C_0201_0603Metric_reduced"
 		(at 0 1.05 0)
 		(layer "F.Fab")
 		(uuid "5e2c735e-1b28-40e9-a40a-3d0b8d78a982")
@@ -61,6 +61,17 @@
 			(font
 				(size 1.27 1.27)
 				(thickness 0.15)
+			)
+		)
+	)
+	(property "Contributor" "Federico Sangiuliano"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "2407c171-cb90-4969-849c-233fb9262891")
+		(effects
+			(font
+				(size 1.27 1.27)
 			)
 		)
 	)
@@ -186,7 +197,7 @@
 		(uuid "89e4f5f2-bb4b-4d49-ad80-aa7015c371ca")
 	)
 	(embedded_fonts no)
-	(model "${KICAD8_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0201_0603Metric.wrl"
+	(model "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0201_0603Metric.step"
 		(offset
 			(xyz 0 0 0)
 		)

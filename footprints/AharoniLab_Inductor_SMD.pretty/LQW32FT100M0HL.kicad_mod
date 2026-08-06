@@ -1,0 +1,174 @@
+(footprint "LQW32FT100M0HL"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "1210 (3225) T=2.3±0.2mm")
+	(tags "Inductor")
+	(property "Reference" "L**"
+		(at 0 0 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "e2da0113-62e2-44b9-bce4-496713ae4dee")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+			)
+		)
+	)
+	(property "Value" "LQW32FT100M0HL"
+		(at 0 0 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "351ff5d7-a10c-4a2b-823d-423428721ae0")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "838a2255-5f61-497d-94e4-9c46eb8a01bc")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "a137f339-b992-41c1-bd1d-0b6ec18665d6")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Validated" "No"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "8555c78f-49c9-472b-b3b8-ef63ff8b8a94")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Contributor" "Federico Sangiuliano"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "173dfeea-db63-471e-a988-4689447d091e")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_line
+		(start 0 -1.15)
+		(end 0 1.15)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "f5858b46-6562-49b3-8190-10ad5d26b81b")
+	)
+	(fp_rect
+		(start -2.07 -1.39)
+		(end 2.08 1.45)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "084efe62-65a2-4ff2-81d2-0c4e1fa33f0a")
+	)
+	(fp_line
+		(start -1.6 -1.25)
+		(end 1.6 -1.25)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "c656358c-6e3e-41e5-9449-751405251899")
+	)
+	(fp_line
+		(start -1.6 1.25)
+		(end -1.6 -1.25)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "8e826a5c-a87a-42ea-9e6f-64c0c574165e")
+	)
+	(fp_line
+		(start 1.6 -1.25)
+		(end 1.6 1.25)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "38c992e9-1531-49ce-be24-a098300c29ec")
+	)
+	(fp_line
+		(start 1.6 1.25)
+		(end -1.6 1.25)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "47a8e3a4-e8b7-4f64-b40a-9c775983134e")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "a4426f0a-3939-4d47-beee-8614a2382418")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+			)
+		)
+	)
+	(pad "1" smd rect
+		(at -1.55 0)
+		(size 0.9 2.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "741f5f5e-3d9b-4445-a08e-71408b46638a")
+	)
+	(pad "2" smd rect
+		(at 1.55 0)
+		(size 0.9 2.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "095bbbaa-f80c-48f3-8ffe-44eff819face")
+	)
+	(embedded_fonts no)
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Inductor_SMD.3dshapes/LQW32FT100M0HL.stp"
+		(offset
+			(xyz 0 0 2)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -180 -0)
+		)
+	)
+)

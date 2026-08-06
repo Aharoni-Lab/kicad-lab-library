@@ -62,6 +62,17 @@
 			)
 		)
 	)
+	(property "Contributor" "Federico Sangiuliano"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "e1c8ed55-fc55-42cc-b8b8-f07ee1f19cb1")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
 	(attr smd)
 	(duplicate_pad_numbers_are_jumpers no)
 	(fp_line
@@ -170,7 +181,7 @@
 		(uuid "1026d6fa-6b00-44a1-b982-8fbd4e77d8a0")
 	)
 	(embedded_fonts no)
-	(model "${KICAD9_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
+	(model "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0402_1005Metric.step"
 		(offset
 			(xyz 0 0 0)
 		)

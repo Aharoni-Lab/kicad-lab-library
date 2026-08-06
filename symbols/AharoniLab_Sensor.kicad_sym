@@ -581,6 +581,17 @@
 				)
 			)
 		)
+		(property "Contributor" "Federico Sangiuliano"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(symbol "IMX335-Mono_1_0"
 			(pin power_in line
 				(at -25.4 -39.37 0)
@@ -1470,7 +1481,7 @@
 				(start -22.86 -0.254)
 				(end 20.32 -122.428)
 				(stroke
-					(width 0)
+					(width 0.254)
 					(type default)
 				)
 				(fill
@@ -1701,7 +1712,7 @@
 				(start -10.16 0)
 				(end 12.7 -37.846)
 				(stroke
-					(width 0)
+					(width 0.254)
 					(type default)
 				)
 				(fill
@@ -1914,7 +1925,7 @@
 				(start -11.43 0)
 				(end 10.16 -44.196)
 				(stroke
-					(width 0)
+					(width 0.254)
 					(type default)
 				)
 				(fill
@@ -2217,7 +2228,7 @@
 				(start -8.89 0)
 				(end 8.128 -44.704)
 				(stroke
-					(width 0)
+					(width 0.254)
 					(type default)
 				)
 				(fill
