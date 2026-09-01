@@ -115,6 +115,7 @@ footprint_layer_rules:
 # (e.g. connectors often have multiple pads for shield/ground)
 allow_duplicate_pads:
   - "AharoniLab_Connector"
+  - "AharoniLab_Package_DFN_QFN"
 
 # Symbol flag defaults
 symbol_flags:
