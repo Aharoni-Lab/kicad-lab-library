@@ -28,6 +28,19 @@ on:
       - 'tests/**'
       - '.github/**'
 
+# Explicit bash makes every run step use `bash -e -o pipefail`, so a failing
+# check piped through `tee` still fails the step.
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Run Tests
@@ -38,6 +51,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
 
       - name: Install dependencies
         run: pip install '.[dev]'
@@ -63,11 +78,17 @@ jobs:
 
       - name: Clone kicad-library-utils
         if: steps.changes.outputs.has_changes == 'true'
+        env:
+          # Pinned so upstream rule changes don't suddenly break PRs; bump deliberately.
+          KLU_COMMIT: 90b0af91eaffcd91552027c3bfd166896f78c7de
         run: |
-          git clone --depth 1 https://gitlab.com/kicad/libraries/kicad-library-utils.git /tmp/kicad-library-utils
+          git clone https://gitlab.com/kicad/libraries/kicad-library-utils.git /tmp/kicad-library-utils
+          git -C /tmp/kicad-library-utils checkout "$KLU_COMMIT"
 
       - name: Run KLC checks on symbols
         if: steps.changes.outputs.has_changes == 'true' && steps.changes.outputs.sym_files != ''
+        env:
+          SYM_FILES: ${{ steps.changes.outputs.sym_files }}
         run: |
           EXIT_CODE=0
           while IFS= read -r sym_file; do
@@ -75,11 +96,13 @@ jobs:
             echo "::group::Checking $sym_file"
             python /tmp/kicad-library-utils/klc-check/check_symbol.py "$sym_file" --exclude S3.1,S4.1,S4.2,S4.5,S5.1,S5.2,S6.2 2>&1 | tee -a klc-report.txt || EXIT_CODE=1
             echo "::endgroup::"
-          done <<< "${{ steps.changes.outputs.sym_files }}"
+          done <<< "$SYM_FILES"
           exit $EXIT_CODE
 
       - name: Run KLC checks on footprints (errors)
-        if: steps.changes.outputs.has_changes == 'true' && steps.changes.outputs.fp_files != ''
+        if: always() && steps.changes.outputs.has_changes == 'true' && steps.changes.outputs.fp_files != ''
+        env:
+          FP_FILES: ${{ steps.changes.outputs.fp_files }}
         run: |
           EXIT_CODE=0
           while IFS= read -r fp_file; do
@@ -87,18 +110,20 @@ jobs:
             echo "::group::Checking $fp_file"
             python /tmp/kicad-library-utils/klc-check/check_footprint.py "$fp_file" -r F9.1 2>&1 | tee -a klc-report.txt || EXIT_CODE=1
             echo "::endgroup::"
-          done <<< "${{ steps.changes.outputs.fp_files }}"
+          done <<< "$FP_FILES"
           exit $EXIT_CODE
 
       - name: Run KLC checks on footprints (warnings)
-        if: steps.changes.outputs.has_changes == 'true' && steps.changes.outputs.fp_files != ''
+        if: always() && steps.changes.outputs.has_changes == 'true' && steps.changes.outputs.fp_files != ''
+        env:
+          FP_FILES: ${{ steps.changes.outputs.fp_files }}
         run: |
           while IFS= read -r fp_file; do
             [ -z "$fp_file" ] && continue
             echo "::group::Checking $fp_file"
             python /tmp/kicad-library-utils/klc-check/check_footprint.py "$fp_file" --exclude F9.1 2>&1 | tee -a klc-report.txt || echo "::warning::KLC warnings for $fp_file"
             echo "::endgroup::"
-          done <<< "${{ steps.changes.outputs.fp_files }}"
+          done <<< "$FP_FILES"
 
       - name: Upload KLC report
         if: always()
@@ -108,10 +133,14 @@ jobs:
           path: klc-report.txt
           if-no-files-found: ignore
 
+      # Run even when a KLC step failed, so a PR author sees KLC and
+      # lab-rule failures in the same run instead of discovering them serially.
       - name: Install validator package
+        if: always()
         run: pip install .
 
       - name: Run lab-specific validation
+        if: always()
         run: python -m validator --all --check-tables --check-footprints --check-generated-tables
 
   render-and-report:
@@ -119,6 +148,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && always()
     needs: [test, klc-check]
+    permissions:
+      contents: write        # gh-pages deploy of rendered SVGs
+      pull-requests: write   # validation report comment
     steps:
       - uses: actions/checkout@v4
         with:
@@ -143,6 +175,8 @@ jobs:
         uses: docker://kicad/kicad:10.0
         env:
           HOME: /tmp
+          SYM_FILES: ${{ steps.changes.outputs.sym_files }}
+          FP_FILES: ${{ steps.changes.outputs.fp_files }}
         with:
           entrypoint: /bin/bash
           args: |
@@ -151,14 +185,14 @@ jobs:
               [ -z \"$sym_file\" ] && continue
               echo \"Rendering $sym_file\"
               kicad-cli sym export svg --output renders/ \"$sym_file\" || true
-            done <<< '${{ steps.changes.outputs.sym_files }}'
+            done <<< \"$SYM_FILES\"
             while IFS= read -r fp_file; do
               [ -z \"$fp_file\" ] && continue
               echo \"Rendering $fp_file\"
               FP_DIR=$(dirname \"$fp_file\")
               FP_NAME=$(basename \"$fp_file\" .kicad_mod)
               kicad-cli fp export svg --output renders/ --footprint \"$FP_NAME\" \"$FP_DIR\" || true
-            done <<< '${{ steps.changes.outputs.fp_files }}'
+            done <<< \"$FP_FILES\"
             ls -la renders/ 2>/dev/null || echo 'No renders produced'
             "
 
@@ -201,7 +235,9 @@ jobs:
           done
 
       - name: Deploy renders to GitHub Pages
-        if: steps.changes.outputs.has_changes == 'true'
+        # GITHUB_TOKEN is read-only on fork PRs; skip the deploy there
+        # (previews remain available via the uploaded artifact).
+        if: steps.changes.outputs.has_changes == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -239,22 +275,25 @@ jobs:
           fi
 
       - name: Generate validation report
+        env:
+          SYM_FILES: ${{ steps.changes.outputs.sym_files }}
+          FP_FILES: ${{ steps.changes.outputs.fp_files }}
         run: |
           SYM_ARGS=""
           FP_ARGS=""
           RENDER_ARGS=""
-          if [ -n "${{ steps.changes.outputs.sym_files }}" ]; then
+          if [ -n "$SYM_FILES" ]; then
             while IFS= read -r f; do
               [ -z "$f" ] && continue
               SYM_ARGS="$SYM_ARGS $f"
-            done <<< "${{ steps.changes.outputs.sym_files }}"
+            done <<< "$SYM_FILES"
           fi
-          if [ -n "${{ steps.changes.outputs.fp_files }}" ]; then
+          if [ -n "$FP_FILES" ]; then
             FP_LIST=""
             while IFS= read -r f; do
               [ -z "$f" ] && continue
               FP_LIST="$FP_LIST $f"
-            done <<< "${{ steps.changes.outputs.fp_files }}"
+            done <<< "$FP_FILES"
             if [ -n "$FP_LIST" ]; then
               FP_ARGS="--footprint-files $FP_LIST"
             fi
@@ -266,6 +305,8 @@ jobs:
           cat report.md
 
       - name: Post PR comment
+        # Commenting needs a writable token, which fork PRs don't get.
+        if: github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v7
         with:
           script: |
