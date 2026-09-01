@@ -55,7 +55,7 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Install dependencies
-        run: pip install pytest pyyaml
+        run: pip install '.[dev]'
 
       - name: Run tests
         run: pytest tests/ -v
@@ -135,9 +135,9 @@ jobs:
 
       # Run even when a KLC step failed, so a PR author sees KLC and
       # lab-rule failures in the same run instead of discovering them serially.
-      - name: Install pyyaml
+      - name: Install validator package
         if: always()
-        run: pip install pyyaml
+        run: pip install .
 
       - name: Run lab-specific validation
         if: always()
@@ -260,8 +260,8 @@ jobs:
           path: .
         continue-on-error: true
 
-      - name: Install pyyaml for report
-        run: pip install pyyaml
+      - name: Install validator package
+        run: pip install .
 
       - name: List rendered files
         id: renders
