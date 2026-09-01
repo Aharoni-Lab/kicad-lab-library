@@ -1,0 +1,237 @@
+(footprint "XAL7070472MEC"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Coilcraft XAL7070-472MEC shielded molded power inductor, 4.7 uH, 7.5 x 7.2 x 7.0 mm https://www.coilcraft.com/getmedia/1ba55433-bcc8-4838-9b21-382f497e12e0/xal7070.pdf")
+	(tags "Inductor")
+	(property "Reference" "L**"
+		(at 0 0 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "f45b524e-7864-4310-a743-650d2ff68eff")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+			)
+		)
+	)
+	(property "Value" "XAL7070472MEC"
+		(at 0 0 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "1309eed7-25d6-490f-97cb-b99146f2762a")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "2c7bf8f4-96d5-42c0-8b8b-04b8855f2ac4")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "6f41fd40-03c0-4a2a-a2e6-b0b5292ef05f")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Validated" "No"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "6de49909-b5bb-48fd-ab8a-c64c895296b2")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Contributor" "Federico Sangiuliano"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "876b0bdb-2d63-479f-b948-b3367a4e63b6")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_line
+		(start -4.2 0)
+		(end -4.2 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "fe49da33-ad85-4889-8c02-16366239f95b")
+	)
+	(fp_line
+		(start -4.1 0)
+		(end -4.1 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "1ace567d-6afd-4262-8627-9f2f2e5ba90d")
+	)
+	(fp_line
+		(start -3.6 -3.75)
+		(end 3.6 -3.75)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "2b71e47a-9f37-4ce5-afbd-0796354b182e")
+	)
+	(fp_line
+		(start -3.6 3.75)
+		(end -3.6 -3.75)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "7fb6d61d-9196-4d5f-bc56-d5d6c74022ff")
+	)
+	(fp_line
+		(start 3.6 -3.75)
+		(end 3.6 3.75)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "1bde6f00-8ff3-4d7d-9037-7fcb14c25b15")
+	)
+	(fp_line
+		(start 3.6 3.75)
+		(end -3.6 3.75)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "e402f01d-662f-49b9-af47-015cda413174")
+	)
+	(fp_arc
+		(start -4.2 0)
+		(mid -4.15 -0.05)
+		(end -4.1 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "8e106a8d-d1f8-491e-a60b-1f53cdafa4ce")
+	)
+	(fp_arc
+		(start -4.1 0)
+		(mid -4.15 0.05)
+		(end -4.2 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "d18c033c-5aa7-4197-bcb1-0b808b131865")
+	)
+	(fp_line
+		(start -3.6 -3.75)
+		(end -3.6 3.75)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "b269d461-b16c-480f-b8dd-0f417e3d8c89")
+	)
+	(fp_line
+		(start -3.6 3.75)
+		(end 3.6 3.75)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "691ecb0e-e300-482b-9ae5-2bea7b9bec03")
+	)
+	(fp_line
+		(start 3.6 -3.75)
+		(end -3.6 -3.75)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "b813cdaa-e221-463c-b760-6936dcb752e4")
+	)
+	(fp_line
+		(start 3.6 3.75)
+		(end 3.6 -3.75)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "Dwgs.User")
+		(uuid "a76decad-c944-4919-84d2-d55b069254c5")
+	)
+	(fp_rect
+		(start -3.6 -3.76)
+		(end 3.61 3.77)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "17ec4daa-40c4-4fde-b993-7584b78152f5")
+	)
+	(pad "1" smd rect
+		(at -2.41 0)
+		(size 1.92 6.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(thermal_bridge_angle 45)
+		(uuid "f4d2a5b0-1e68-4adb-a366-47d951b24c91")
+	)
+	(pad "2" smd rect
+		(at 2.41 0)
+		(size 1.92 6.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(thermal_bridge_angle 45)
+		(uuid "4bcf54b3-1824-4794-a950-5c074b1b3982")
+	)
+	(embedded_fonts no)
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Inductor_SMD.3dshapes/XAL7070-472MEC.stp"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

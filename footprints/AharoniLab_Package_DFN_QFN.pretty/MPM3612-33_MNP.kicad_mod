@@ -1,0 +1,332 @@
+(footprint "MPM3612-33_MNP"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "MPM3612-33 - 22V, 1A step-down module with 5uA IQ in LGA package https://www.monolithicpower.com/en/documentview/productdocument/index/version/2/document_type/Datasheet/lang/en/sku/MPM3612GLQ-33/document_id/11833/")
+	(tags "MPM3612GLQ-33-Z ")
+	(property "Reference" "REF**"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "defde61c-13ba-42c0-a925-1f507db05886")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "MPM3612-33_MNP"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "db3e02d2-93fd-48ee-9dbd-01fafcb36a63")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "ad8b75b0-271b-4f0b-a432-688277d601a1")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "c8b61e29-70df-417e-ac5c-2e01ab006bd2")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Validated" "No"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "707a8cc4-9174-4806-a7b3-0f4033b6e910")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Contributor" "Federico Sangiuliano"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "8567680f-2c6a-4435-ac49-66abc2d636bf")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_line
+		(start -1.6764 -1.6764)
+		(end -1.6764 -1.392976)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "28742420-3743-47de-a13e-32ddb110a8a2")
+	)
+	(fp_line
+		(start -1.6764 1.392976)
+		(end -1.6764 1.6764)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "3b701dbf-0e8e-41fb-af55-828eedd79120")
+	)
+	(fp_line
+		(start -1.6764 1.6764)
+		(end 1.6764 1.6764)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "a228333b-537b-4fe2-980f-0bd59683bdd2")
+	)
+	(fp_line
+		(start 1.6764 -1.6764)
+		(end -1.6764 -1.6764)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "a1d8f6fc-c6c5-4079-a55f-b4fab7ce2350")
+	)
+	(fp_line
+		(start 1.6764 -1.392976)
+		(end 1.6764 -1.6764)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "b9b6c537-cefc-47fb-bcba-490e7a53803a")
+	)
+	(fp_line
+		(start 1.6764 1.6764)
+		(end 1.6764 1.392976)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "5b67b272-0d4b-4b0c-b739-319689531bbd")
+	)
+	(fp_rect
+		(start -1.8 -1.8)
+		(end 1.795 1.79)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "4740a817-ed1a-4ebf-8761-9465891797b4")
+	)
+	(fp_line
+		(start -1.5494 -1.5494)
+		(end -1.5494 1.5494)
+		(stroke
+			(width 0.0254)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "00773dad-c83c-447d-ab82-787d56a27a79")
+	)
+	(fp_line
+		(start -1.5494 1.5494)
+		(end 1.5494 1.5494)
+		(stroke
+			(width 0.0254)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "4fe190c1-c9e4-4a9f-b995-9d238d1e2a6d")
+	)
+	(fp_line
+		(start 1.5494 -1.5494)
+		(end -1.5494 -1.5494)
+		(stroke
+			(width 0.0254)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "2c07b3de-b352-4920-a05b-ed25cbef9d12")
+	)
+	(fp_line
+		(start 1.5494 1.5494)
+		(end 1.5494 -1.5494)
+		(stroke
+			(width 0.0254)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "569c2dfd-d066-4902-b14c-295514bae3d6")
+	)
+	(fp_arc
+		(start 0.3048 -1.5494)
+		(mid 0 -1.2446)
+		(end -0.3048 -1.5494)
+		(stroke
+			(width 0.0254)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "5dd214c6-8173-4393-83b4-5a4e3e16f800")
+	)
+	(fp_circle
+		(center -0.8 -0.975)
+		(end -0.7238 -0.975)
+		(stroke
+			(width 0.0254)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "2dd13c33-dd4a-4800-b3a3-2c37084cc400")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "611e65d1-8678-42a6-9493-7f3d51f2a191")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" smd rect
+		(at -1.1125 -0.974999)
+		(size 0.625 0.4)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "496e607a-3121-4db9-8c12-ac1b192f3a83")
+	)
+	(pad "2" smd rect
+		(at -1.1125 -0.325001)
+		(size 0.625 0.4)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "cf717947-48ba-4e64-810f-051c42af545b")
+	)
+	(pad "3" smd rect
+		(at -1.1125 0.325001)
+		(size 0.625 0.4)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "150df587-c97d-4fea-a3ce-9782263a90d0")
+	)
+	(pad "4" smd rect
+		(at -1.1125 0.974999)
+		(size 0.625 0.4)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "8c4ec08f-53f1-47a6-ac1a-94d726b7273c")
+	)
+	(pad "5" smd rect
+		(at 1.1125 0.974999)
+		(size 0.625 0.4)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "14c5ac9a-e62a-43d8-b855-da569bac7619")
+	)
+	(pad "6" smd rect
+		(at 1.1125 0.325001)
+		(size 0.625 0.4)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "508fac81-0ea4-4b16-bd63-ccefbb90d0a6")
+	)
+	(pad "7" smd rect
+		(at 1.1125 -0.325001)
+		(size 0.625 0.4)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "6faaaaa6-8cb5-4d90-bb9d-1368de22e9a7")
+	)
+	(pad "8" smd rect
+		(at 1.1125 -0.974999)
+		(size 0.625 0.4)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "20419f3e-d027-4815-827a-ce08dc095d76")
+	)
+	(pad "EP" smd rect
+		(at 0 0)
+		(size 1.1 1.9)
+		(layers "F.Cu" "F.Mask")
+		(uuid "d69b984a-6215-4fbc-bb7b-11a1aea473b0")
+	)
+	(pad "NC1" smd rect
+		(at -0.325 -1.3)
+		(size 0.299999 0.224993)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "5cf6c910-124a-4d40-b37a-8cf40b393521")
+	)
+	(pad "NC2" smd rect
+		(at 0.325 -1.3)
+		(size 0.299999 0.224993)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "82ac42f6-4dd3-43ec-86e9-dd8e8aae32ec")
+	)
+	(zone
+		(layer "F.Cu")
+		(uuid "65892177-724e-4a1d-8f2e-c98f96e67f32")
+		(hatch full 0.508)
+		(connect_pads
+			(clearance 0)
+		)
+		(min_thickness 0.254)
+		(keepout
+			(tracks not_allowed)
+			(vias not_allowed)
+			(pads allowed)
+			(copperpour not_allowed)
+			(footprints allowed)
+		)
+		(placement
+			(enabled no)
+			(sheetname "")
+		)
+		(fill
+			(thermal_gap 0.508)
+			(thermal_bridge_width 0.508)
+			(island_removal_mode 0)
+		)
+		(polygon
+			(pts
+				(xy 0.575005 -1.5) (xy -0.575005 -1.5) (xy -0.575005 -1.1) (xy 0.575005 -1.1)
+			)
+		)
+	)
+	(embedded_fonts no)
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/MPM3612GLQ-33-P.stp"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)
