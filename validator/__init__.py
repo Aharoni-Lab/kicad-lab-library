@@ -31,10 +31,12 @@ from validator.config import (
     load_rules,
 )
 from validator.footprint_checks import (
+    FootprintInfo,
     check_duplicate_pad_numbers,
     check_footprint_layers,
     check_footprint_pads,
     check_footprint_properties,
+    parse_kicad_mod,
 )
 from validator.lib_table import LibTableEntry, parse_lib_table, serialize_lib_table
 from validator.report import generate_report
@@ -45,6 +47,7 @@ __all__ = [
     "ENV_VAR_PLACEHOLDER",
     "Category",
     "CheckResult",
+    "FootprintInfo",
     "FootprintLayerRules",
     "LibTableEntry",
     "LibraryRules",
@@ -71,6 +74,7 @@ __all__ = [
     "extract_properties",
     "generate_report",
     "load_rules",
+    "parse_kicad_mod",
     "parse_kicad_sym",
     "parse_lib_table",
     "parse_sexpr",

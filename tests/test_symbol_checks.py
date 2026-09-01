@@ -416,3 +416,21 @@ class TestSymbolFlags:
         sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
         sym_file.write_text('(kicad_symbol_lib (version 20241209) (symbol "X" (in_bom no) (property "Reference" "R")(property "Value" "X")))')
         assert check_symbol_flags(sym_file, LibraryRules()).passed
+
+
+class TestNoFalseChildExclusion:
+    def test_symbol_named_like_parent_plus_digits_is_not_excluded(self, tmp_path):
+        """A real symbol whose name is another symbol plus a digit suffix
+        (e.g. "R" and "R_0402") must be parsed and validated, not silently
+        skipped as a unit sub-symbol — units are nested inside their parent
+        node in the KiCad format and never appear at top level."""
+        from validator.checks import parse_kicad_sym
+        sym_file = tmp_path / "test.kicad_sym"
+        sym_file.write_text(
+            '(kicad_symbol_lib (version 20241209)'
+            '  (symbol "R" (property "Reference" "R" (at 0 0 0)))'
+            '  (symbol "R_0402" (property "Reference" "R" (at 0 0 0)))'
+            ')'
+        )
+        names = [s.name for s in parse_kicad_sym(sym_file)]
+        assert names == ["R", "R_0402"]

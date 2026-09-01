@@ -54,8 +54,9 @@ def _extract_flags(node: list) -> Dict[str, bool]:
 def parse_kicad_sym(filepath: str | Path) -> List[SymbolInfo]:
     """Parse a ``.kicad_sym`` file and return a list of :class:`SymbolInfo`.
 
-    Only *top-level* symbols are returned (sub-symbols like ``C_0_1``
-    are skipped).
+    Every top-level symbol node is a real symbol: unit sub-symbols like
+    ``C_0_1`` are nested *inside* their parent node in the KiCad format,
+    so they never appear at this level.
     """
     filepath = Path(filepath)
     text = filepath.read_text(encoding='utf-8')
@@ -63,38 +64,14 @@ def parse_kicad_sym(filepath: str | Path) -> List[SymbolInfo]:
 
     # tree should be ['kicad_symbol_lib', ... , ['symbol', name, ...], ...]
     symbols: List[SymbolInfo] = []
-    # Collect top-level symbol names first so we can identify children.
-    top_names: List[str] = []
-    symbol_nodes: List[list] = []
     for node in tree:
-        if isinstance(node, list) and len(node) >= 2 and node[0] == 'symbol':
-            top_names.append(node[1])
-            symbol_nodes.append(node)
-
-    # A child symbol's name starts with a parent name + "_" and ends
-    # with digit(s)_digit(s).  Build a set of children to exclude.
-    children: set = set()
-    for name in top_names:
-        for other in top_names:
-            if other == name:
-                continue
-            if other.startswith(name + '_'):
-                suffix = other[len(name) + 1:]
-                parts = suffix.split('_')
-                if all(p.isdigit() for p in parts):
-                    children.add(other)
-
-    for node in symbol_nodes:
-        name = node[1]
-        if name in children:
+        if not (isinstance(node, list) and len(node) >= 2 and node[0] == 'symbol'):
             continue
-        props = extract_properties(node)
-        pin_count = _count_pins(node)
         flags = _extract_flags(node)
         symbols.append(SymbolInfo(
-            name=name,
-            properties=props,
-            pin_count=pin_count,
+            name=node[1],
+            properties=extract_properties(node),
+            pin_count=_count_pins(node),
             in_bom=flags.get('in_bom'),
             on_board=flags.get('on_board'),
         ))
@@ -357,8 +334,9 @@ def check_duplicate_symbols(
 ) -> CheckResult:
     """Check that no two ``.kicad_sym`` files define the same symbol name.
 
-    If *parsed_symbols* is provided (a mapping of filepath to parsed symbols),
-    those are used directly to avoid re-parsing files.
+    The check is always global: every file in ``symbols/`` is examined,
+    even when the caller is only validating a subset. *parsed_symbols*
+    is used purely as a parse cache for files it already covers.
     """
     repo_root = Path(repo_root)
     symbols_dir = repo_root / 'symbols'
@@ -367,33 +345,26 @@ def check_duplicate_symbols(
     if not symbols_dir.is_dir():
         return CheckResult()
 
-    seen: Dict[str, str] = {}  # symbol_name -> filename
+    cache: Dict[Path, List[SymbolInfo]] = {}
+    if parsed_symbols:
+        cache = {Path(k).resolve(): v for k, v in parsed_symbols.items()}
 
-    if parsed_symbols is not None:
-        # Use pre-parsed data
-        for sym_file, symbols in sorted(parsed_symbols.items(), key=lambda t: t[0]):
-            for sym in symbols:
-                if sym.name in seen:
-                    errors.append(
-                        f"Duplicate symbol '{sym.name}' found in "
-                        f"'{sym_file.name}' and '{seen[sym.name]}'"
-                    )
-                else:
-                    seen[sym.name] = sym_file.name
-    else:
-        for sym_file in sorted(symbols_dir.glob('*.kicad_sym')):
+    seen: Dict[str, str] = {}  # symbol_name -> filename
+    for sym_file in sorted(symbols_dir.glob('*.kicad_sym')):
+        symbols = cache.get(sym_file.resolve())
+        if symbols is None:
             try:
                 symbols = parse_kicad_sym(sym_file)
             except Exception:
                 continue  # parse errors are caught by check_symbol_properties
-            for sym in symbols:
-                if sym.name in seen:
-                    errors.append(
-                        f"Duplicate symbol '{sym.name}' found in "
-                        f"'{sym_file.name}' and '{seen[sym.name]}'"
-                    )
-                else:
-                    seen[sym.name] = sym_file.name
+        for sym in symbols:
+            if sym.name in seen:
+                errors.append(
+                    f"Duplicate symbol '{sym.name}' found in "
+                    f"'{sym_file.name}' and '{seen[sym.name]}'"
+                )
+            else:
+                seen[sym.name] = sym_file.name
 
     return CheckResult(errors=errors)
 
@@ -573,10 +544,22 @@ def check_uncategorized_files(
 ENV_VAR_PLACEHOLDER = '${AHARONI_LAB_KICAD_LIB}'
 
 
-def resolve_table_uri(uri: str, repo_root: str | Path) -> Path:
-    """Replace ``${AHARONI_LAB_KICAD_LIB}`` in *uri* with *repo_root*."""
+def _env_placeholder(rules: Optional[LibraryRules]) -> str:
+    """Placeholder string for the library env var, from rules when given."""
+    if rules is not None:
+        return '${' + rules.env_var + '}'
+    return ENV_VAR_PLACEHOLDER
+
+
+def resolve_table_uri(
+    uri: str,
+    repo_root: str | Path,
+    *,
+    rules: Optional[LibraryRules] = None,
+) -> Path:
+    """Replace the library env-var placeholder in *uri* with *repo_root*."""
     repo_root = Path(repo_root)
-    resolved = uri.replace(ENV_VAR_PLACEHOLDER, str(repo_root))
+    resolved = uri.replace(_env_placeholder(rules), str(repo_root))
     return Path(resolved)
 
 
@@ -584,17 +567,22 @@ def resolve_table_uri(uri: str, repo_root: str | Path) -> Path:
 # Library-table consistency check
 # ---------------------------------------------------------------------------
 
-def check_library_tables(repo_root: str | Path) -> CheckResult:
+def check_library_tables(
+    repo_root: str | Path,
+    rules: Optional[LibraryRules] = None,
+) -> CheckResult:
     """Check that library tables and on-disk files are consistent.
 
     Checks performed:
     1. Every ``.kicad_sym`` in ``symbols/`` has a ``sym-lib-table`` entry.
     2. Every ``.pretty`` dir in ``footprints/`` has a ``fp-lib-table`` entry.
-    3. All table URIs use ``${AHARONI_LAB_KICAD_LIB}``.
+    3. All table URIs use the library env-var placeholder
+       (``rules.env_var``, default ``AHARONI_LAB_KICAD_LIB``).
     4. All table entries point to files/directories that actually exist.
     """
     repo_root = Path(repo_root)
     errors: List[str] = []
+    placeholder = _env_placeholder(rules)
 
     # --- sym-lib-table ---
     sym_table_path = repo_root / 'sym-lib-table'
@@ -614,12 +602,12 @@ def check_library_tables(repo_root: str | Path) -> CheckResult:
 
         # 3 & 4. URI checks
         for entry in sym_entries:
-            if ENV_VAR_PLACEHOLDER not in entry.uri:
+            if placeholder not in entry.uri:
                 errors.append(
                     f"sym-lib-table entry '{entry.name}': URI does not use "
-                    "${{AHARONI_LAB_KICAD_LIB}}"
+                    f"{placeholder}"
                 )
-            resolved = resolve_table_uri(entry.uri, repo_root)
+            resolved = resolve_table_uri(entry.uri, repo_root, rules=rules)
             if not resolved.exists():
                 errors.append(
                     f"sym-lib-table entry '{entry.name}': target does not exist "
@@ -647,12 +635,12 @@ def check_library_tables(repo_root: str | Path) -> CheckResult:
 
         # 3 & 4. URI checks
         for entry in fp_entries:
-            if ENV_VAR_PLACEHOLDER not in entry.uri:
+            if placeholder not in entry.uri:
                 errors.append(
                     f"fp-lib-table entry '{entry.name}': URI does not use "
-                    "${{AHARONI_LAB_KICAD_LIB}}"
+                    f"{placeholder}"
                 )
-            resolved = resolve_table_uri(entry.uri, repo_root)
+            resolved = resolve_table_uri(entry.uri, repo_root, rules=rules)
             if not resolved.exists():
                 errors.append(
                     f"fp-lib-table entry '{entry.name}': target does not exist "
