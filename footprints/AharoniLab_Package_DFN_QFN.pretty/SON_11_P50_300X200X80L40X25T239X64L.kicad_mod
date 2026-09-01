@@ -924,15 +924,4 @@
 		(uuid "c571a280-ff5a-404c-9647-fd6f1b9e1e13")
 	)
 	(embedded_fonts no)
-	(model "${KICAD_AHARONI_LAB}/Modules/Package_SON.pretty/SON_11_P50_300X200X80L40X25T239X64L.STEP"
-		(offset
-			(xyz 0 0 0)
-		)
-		(scale
-			(xyz 1 1 1)
-		)
-		(rotate
-			(xyz -90 0 0)
-		)
-	)
 )

@@ -952,15 +952,4 @@
 		(uuid "3cd9450e-1073-43f3-88f7-e3d8c36c42c6")
 	)
 	(embedded_fonts no)
-	(model "${KICAD_AHARONI_LAB}/Modules/Package_QFN.pretty/DFN10_3x3_11P50_300X300X100L40X24T250X180N.STEP"
-		(offset
-			(xyz 0 0 0)
-		)
-		(scale
-			(xyz 1 1 1)
-		)
-		(rotate
-			(xyz -90 0 0)
-		)
-	)
 )

@@ -2515,15 +2515,4 @@
 		(uuid "a0354068-74e3-4dac-93f6-ea1d001f5747")
 	)
 	(embedded_fonts no)
-	(model "${KICAD_AHARONI_LAB}/Modules/Package_LCC.pretty/iLCC48P70_1000X1000X135L80X40N.STEP"
-		(offset
-			(xyz 0 0 0)
-		)
-		(scale
-			(xyz 1 1 1)
-		)
-		(rotate
-			(xyz -90 0 0)
-		)
-	)
 )

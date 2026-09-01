@@ -469,15 +469,4 @@
 		(uuid "7cca1a6c-89a0-4749-8bdd-8cf34733bc89")
 	)
 	(embedded_fonts no)
-	(model "${KICAD_AHARONI_LAB}/Modules/Oscillator.pretty/OSC_CC250X200X80L70X75L.STEP"
-		(offset
-			(xyz 0 0 0)
-		)
-		(scale
-			(xyz 1 1 1)
-		)
-		(rotate
-			(xyz -90 0 0)
-		)
-	)
 )

@@ -56,13 +56,14 @@ def _print_result(label: str, result: CheckResult) -> None:
 
 
 def _run_footprint_checks(
-    fp_files: List[Path], rules, results: Dict[str, CheckResult], *, quiet: bool,
+    fp_files: List[Path], rules, results: Dict[str, CheckResult],
+    repo_root: Path, *, quiet: bool,
 ) -> None:
     """Run all footprint checks on the given files."""
     from validator.footprint_checks import (
         check_duplicate_pad_numbers, check_footprint_layers,
-        check_footprint_pads, check_footprint_properties,
-        parse_kicad_mod,
+        check_footprint_models, check_footprint_pads,
+        check_footprint_properties, parse_kicad_mod,
     )
     for fp_file in fp_files:
         try:
@@ -81,6 +82,7 @@ def _run_footprint_checks(
             (lambda f, i: check_footprint_pads(f, info=i), "pads"),
             (lambda f, i: check_duplicate_pad_numbers(f, info=i, rules=rules), "dup-pads"),
             (lambda f, i: check_footprint_properties(f, rules, info=i), "fp-props"),
+            (lambda f, i: check_footprint_models(f, repo_root, info=i), "models"),
         ]:
             result = check_fn(fp_file, fp_info)
             results[f"{fp_file} [{tag}]"] = result
@@ -267,7 +269,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                     fp_files.extend(sorted(pretty_dir.glob('*.kicad_mod')))
 
     if fp_files:
-        _run_footprint_checks(fp_files, rules, results, quiet=args.report)
+        _run_footprint_checks(fp_files, rules, results, repo_root, quiet=args.report)
 
     # Run table generation check (always global)
     if args.check_generated_tables or args.report:

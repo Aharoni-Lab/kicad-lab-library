@@ -334,26 +334,4 @@
 		(uuid "6222b4ab-0951-4190-82f3-3d1ea3612655")
 	)
 	(embedded_fonts no)
-	(model "${KICAD_AHARONI_LAB}/Modules/BNO055/BNO055.step"
-		(offset
-			(xyz 0 0 0)
-		)
-		(scale
-			(xyz 1 1 1)
-		)
-		(rotate
-			(xyz -90 0 180)
-		)
-	)
-	(model "${BNO055}/BNO055.step"
-		(offset
-			(xyz 0 0 0)
-		)
-		(scale
-			(xyz 1 1 1)
-		)
-		(rotate
-			(xyz -90 0 180)
-		)
-	)
 )
