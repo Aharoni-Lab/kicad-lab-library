@@ -31,11 +31,13 @@ Footprints are grouped by **package type** into `.pretty` directories:
 
 3D model directories mirror footprint directories:
 - `AharoniLab_Capacitor_SMD.3dshapes/` matches `AharoniLab_Capacitor_SMD.pretty/`
-- Models use STEP format (`.step`)
+- Models use STEP format (`.step` or `.stp` extension)
+- Name the model after its footprint where practical; vendor-supplied models may keep their manufacturer part number
+- Every `(model ...)` path in a footprint must use `${AHARONI_LAB_KICAD_LIB}` and point at a file that exists in this repo (CI enforces this); a footprint without a model is allowed
 
-## When to Create a New Library File
+## Library Files and Categories
 
-Create a new library file only when you have actual components to add. Don't create empty placeholders. If you're adding the first sensor IC, that's when `AharoniLab_Sensor.kicad_sym` gets created.
+The repo pre-creates library files/dirs for the categories defined in `library_rules.yaml`, so some are still empty — that's expected. To add a brand-new category: add its rules to `library_rules.yaml` first, then create the library file/dir and regenerate the tables (`python -m validator --generate-tables`).
 
 ## The Validated Field
 

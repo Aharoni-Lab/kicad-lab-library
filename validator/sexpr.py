@@ -8,7 +8,16 @@ This module provides a single ``parse_sexpr()`` function used by both
 """
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
+
+# Token kinds. Atoms carry their (unescaped) text; parens carry None.
+# Keeping the kind separate means a quoted value of "(" or ")" can never
+# be mistaken for a structural parenthesis.
+_OPEN = 'open'
+_CLOSE = 'close'
+_ATOM = 'atom'
+
+_Token = Tuple[str, str]
 
 
 def parse_sexpr(text: str) -> list:
@@ -18,13 +27,14 @@ def parse_sexpr(text: str) -> list:
     both supported.  Returns a nested list where each ``(...)`` group
     becomes a Python list whose first element is the keyword token.
 
-    Raises :class:`ValueError` on unbalanced parentheses or empty input.
+    Raises :class:`ValueError` on unbalanced parentheses, unterminated
+    strings, or empty input.
     """
     tokens = _tokenize(text)
     if not tokens:
         raise ValueError("Empty S-expression")
-    open_count = tokens.count('(')
-    close_count = tokens.count(')')
+    open_count = sum(1 for kind, _ in tokens if kind == _OPEN)
+    close_count = sum(1 for kind, _ in tokens if kind == _CLOSE)
     if open_count != close_count:
         raise ValueError(
             f"Malformed S-expression: unbalanced parentheses "
@@ -37,13 +47,14 @@ def parse_sexpr(text: str) -> list:
     return result
 
 
-def _tokenize(text: str) -> List[str]:
-    """Tokenize an S-expression string into a flat list of tokens.
+def _tokenize(text: str) -> List[_Token]:
+    """Tokenize an S-expression string into ``(kind, value)`` tuples.
 
-    Tokens are ``(``, ``)``, quoted strings (contents only, unescaped),
-    or bare words.
+    Kinds are ``open``, ``close``, and ``atom`` (quoted-string contents,
+    unescaped, or bare words).  Raises :class:`ValueError` on a quoted
+    string with no closing quote.
     """
-    tokens: List[str] = []
+    tokens: List[_Token] = []
     i = 0
     length = len(text)
     while i < length:
@@ -56,11 +67,11 @@ def _tokenize(text: str) -> List[str]:
 
         # Open / close parens
         if ch == '(':
-            tokens.append('(')
+            tokens.append((_OPEN, ''))
             i += 1
             continue
         if ch == ')':
-            tokens.append(')')
+            tokens.append((_CLOSE, ''))
             i += 1
             continue
 
@@ -74,10 +85,14 @@ def _tokenize(text: str) -> List[str]:
                 if text[j] == '"':
                     break
                 j += 1
+            if j >= length:
+                raise ValueError(
+                    f"Unterminated quoted string starting at offset {i}"
+                )
             # Extract content between quotes (unescaping inner quotes)
             raw = text[i + 1 : j]
             unescaped = raw.replace('\\\\', '\x00').replace('\\"', '"').replace('\x00', '\\')
-            tokens.append(unescaped)
+            tokens.append((_ATOM, unescaped))
             i = j + 1
             continue
 
@@ -85,7 +100,7 @@ def _tokenize(text: str) -> List[str]:
         j = i
         while j < length and text[j] not in ('(', ')', ' ', '\t', '\n', '\r', '"'):
             j += 1
-        tokens.append(text[i:j])
+        tokens.append((_ATOM, text[i:j]))
         i = j
 
     return tokens
@@ -104,20 +119,20 @@ def extract_properties(sexpr_node: list) -> Dict[str, str]:
     return props
 
 
-def _parse_tokens(tokens: List[str], pos: int) -> tuple:
+def _parse_tokens(tokens: List[_Token], pos: int) -> tuple:
     """Recursively parse tokens starting at *pos*.
 
     Returns ``(result_list, new_pos)``.
     """
     result: list = []
     while pos < len(tokens):
-        tok = tokens[pos]
-        if tok == '(':
+        kind, value = tokens[pos]
+        if kind == _OPEN:
             child, pos = _parse_tokens(tokens, pos + 1)
             result.append(child)
-        elif tok == ')':
+        elif kind == _CLOSE:
             return result, pos + 1
         else:
-            result.append(tok)
+            result.append(value)
             pos += 1
     return result, pos

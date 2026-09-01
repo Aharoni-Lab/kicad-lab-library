@@ -66,7 +66,7 @@ CI runs the official KLC checker on every PR.
 - All library files use `AharoniLab_` prefix
 - Symbols: follow KLC naming (e.g., `C`, `R`, `LM1117-3.3`)
 - Footprints: follow KLC naming (e.g., `C_0201_0603Metric`, `R_0402_1005Metric`)
-- 3D models: match footprint names with `.step` extension
+- 3D models: STEP format (`.step` or `.stp`); name after the footprint where practical (vendor-supplied models may keep their manufacturer part number). The footprint's `(model ...)` path must use `${AHARONI_LAB_KICAD_LIB}` and point at a file in this repo
 
 ## Running Tests Locally
 

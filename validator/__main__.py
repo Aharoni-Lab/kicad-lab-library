@@ -28,7 +28,7 @@ from validator.report import generate_report
 # Repo-root discovery
 # ---------------------------------------------------------------------------
 
-def _find_repo_root() -> Path:
+def _find_repo_root() -> Optional[Path]:
     """Walk up from CWD until ``sym-lib-table`` is found."""
     current = Path.cwd().resolve()
     while True:
@@ -36,9 +36,8 @@ def _find_repo_root() -> Path:
             return current
         parent = current.parent
         if parent == current:
-            break
+            return None
         current = parent
-    return Path.cwd()
 
 
 # ---------------------------------------------------------------------------
@@ -56,13 +55,14 @@ def _print_result(label: str, result: CheckResult) -> None:
 
 
 def _run_footprint_checks(
-    fp_files: List[Path], rules, results: Dict[str, CheckResult], *, quiet: bool,
+    fp_files: List[Path], rules, results: Dict[str, CheckResult],
+    repo_root: Path, *, quiet: bool,
 ) -> None:
     """Run all footprint checks on the given files."""
     from validator.footprint_checks import (
         check_duplicate_pad_numbers, check_footprint_layers,
-        check_footprint_pads, check_footprint_properties,
-        parse_kicad_mod,
+        check_footprint_models, check_footprint_pads,
+        check_footprint_properties, parse_kicad_mod,
     )
     for fp_file in fp_files:
         try:
@@ -81,6 +81,7 @@ def _run_footprint_checks(
             (lambda f, i: check_footprint_pads(f, info=i), "pads"),
             (lambda f, i: check_duplicate_pad_numbers(f, info=i, rules=rules), "dup-pads"),
             (lambda f, i: check_footprint_properties(f, rules, info=i), "fp-props"),
+            (lambda f, i: check_footprint_models(f, repo_root, info=i), "models"),
         ]:
             result = check_fn(fp_file, fp_info)
             results[f"{fp_file} [{tag}]"] = result
@@ -146,16 +147,30 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="Local directory containing rendered SVGs (used in --report).")
 
     args = parser.parse_args(argv)
+
     repo_root = _find_repo_root()
+    if repo_root is None:
+        # Without a repo root, repo-wide flags would "check" an empty set
+        # of files and exit 0 with vacuous PASSes. Only explicit file
+        # arguments make sense here.
+        if not (args.files or args.footprint_files):
+            print(
+                "Error: repository root not found (no sym-lib-table in any "
+                "parent of the current directory).",
+                file=sys.stderr,
+            )
+            return 2
+        repo_root = Path.cwd()
 
     # Load rules
     config_path = Path(args.config) if args.config else repo_root / 'library_rules.yaml'
     if config_path.exists():
         rules = load_rules(config_path)
     else:
-        print(f"Warning: config not found at {config_path}, using defaults",
+        print(f"Warning: config not found at {config_path}, using defaults "
+              "(no property rules will be checked)",
               file=sys.stderr)
-        from validator.config import LibraryRules, PropertyRule
+        from validator.config import LibraryRules
         rules = LibraryRules()
 
     results: Dict[str, CheckResult] = {}
@@ -238,7 +253,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # Run table consistency check (always global)
     if args.check_tables or args.report:
-        table_result = check_library_tables(repo_root)
+        table_result = check_library_tables(repo_root, rules)
         results['library-tables'] = table_result
         if not args.report:
             _print_result('library-tables', table_result)
@@ -267,7 +282,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                     fp_files.extend(sorted(pretty_dir.glob('*.kicad_mod')))
 
     if fp_files:
-        _run_footprint_checks(fp_files, rules, results, quiet=args.report)
+        _run_footprint_checks(fp_files, rules, results, repo_root, quiet=args.report)
 
     # Run table generation check (always global)
     if args.check_generated_tables or args.report:
@@ -303,8 +318,10 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # Exit code
     if not results:
-        # Nothing was checked -- show help
-        parser.print_help()
+        # Nothing was checked -- show help, unless this run's only job
+        # was writing the generated tables.
+        if not args.generate_tables:
+            parser.print_help()
         return 0
 
     return 0 if all(r.passed for r in results.values()) else 1

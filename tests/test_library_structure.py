@@ -140,3 +140,28 @@ class TestUncategorizedFiles:
         (tmp_path / "symbols").mkdir()
         result = check_uncategorized_files(tmp_path, rules)
         assert result.passed
+
+
+class TestDuplicateCheckIsGlobal:
+    def test_duplicates_found_outside_parsed_subset(self, tmp_path):
+        """When only a subset of files was pre-parsed (e.g. a single-file
+        CLI run), duplicates against the *other* library files must still
+        be detected — parsed_symbols is a cache, not a scope."""
+        from validator.checks import check_duplicate_symbols, parse_kicad_sym
+        symbols_dir = tmp_path / "symbols"
+        symbols_dir.mkdir()
+        template = (
+            '(kicad_symbol_lib (version 20241209)'
+            '  (symbol "SAME" (property "Reference" "U" (at 0 0 0)))'
+            ')'
+        )
+        file_a = symbols_dir / "A.kicad_sym"
+        file_b = symbols_dir / "B.kicad_sym"
+        file_a.write_text(template)
+        file_b.write_text(template)
+
+        result = check_duplicate_symbols(
+            tmp_path, parsed_symbols={file_a: parse_kicad_sym(file_a)},
+        )
+        assert not result.passed
+        assert any("SAME" in e for e in result.errors)
