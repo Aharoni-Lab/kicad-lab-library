@@ -22,6 +22,7 @@ import os
 import platform
 import shutil
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 # Ensure repo root is on sys.path so validator package is importable
@@ -187,28 +188,41 @@ def install(config_dir: Path, repo_root: Path, *, dry_run: bool) -> None:
         else:
             global_entries = []
 
-        existing_names = {e.name for e in global_entries}
-
+        # Upsert: refresh entries we own (keeping any flags KiCad added to
+        # them, like (disabled)), leave everything else untouched, append
+        # what's new. Entries the user disabled stay disabled.
+        repo_by_name = {e.name: e for e in repo_entries}
+        merged: list[LibTableEntry] = []
         added: list[str] = []
-        skipped: list[str] = []
-        for entry in repo_entries:
-            if entry.name in existing_names:
-                skipped.append(entry.name)
+        updated: list[str] = []
+        unchanged: list[str] = []
+        for entry in global_entries:
+            repo_entry = repo_by_name.pop(entry.name, None)
+            if repo_entry is None:
+                merged.append(entry)
+                continue
+            new_entry = replace(repo_entry, extras=entry.extras)
+            if new_entry == entry:
+                unchanged.append(entry.name)
             else:
-                global_entries.append(entry)
+                updated.append(entry.name)
+            merged.append(new_entry)
+        for entry in repo_entries:
+            if entry.name in repo_by_name:
+                merged.append(entry)
                 added.append(entry.name)
 
-        content = serialize_lib_table(kind, global_entries)
+        content = serialize_lib_table(kind, merged)
         write_file(global_table_path, content, dry_run=dry_run)
 
         print(f"{prefix}{table_file}:")
-        if added:
-            for name in added:
-                print(f"  + {name}")
-        if skipped:
-            for name in skipped:
-                print(f"  ~ {name} (already present, skipped)")
-        if not added and not skipped:
+        for name in added:
+            print(f"  + {name}")
+        for name in updated:
+            print(f"  ~ {name} (updated)")
+        for name in unchanged:
+            print(f"  = {name} (already up to date)")
+        if not added and not updated and not unchanged:
             print("  (no entries in repo table)")
         print()
 
