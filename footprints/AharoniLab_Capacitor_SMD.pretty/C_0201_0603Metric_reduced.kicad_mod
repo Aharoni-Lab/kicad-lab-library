@@ -1,0 +1,211 @@
+(footprint "C_0201_0603Metric_reduced"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Capacitor SMD 0201 (0603 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: https://www.vishay.com/docs/20052/crcw0201e3.pdf), generated with kicad-footprint-generator")
+	(tags "capacitor")
+	(property "Reference" "REF**"
+		(at 0 -1.05 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "8141ad68-7325-47e0-8fce-3ef53034b310")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Validated" "Yes"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Value" "C_0201_0603Metric_reduced"
+		(at 0 1.05 0)
+		(layer "F.Fab")
+		(uuid "5e2c735e-1b28-40e9-a40a-3d0b8d78a982")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "c9ab0df4-87d4-4f5c-bb0d-7c792525d189")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "1fff8229-ca69-4426-8924-2360c11890a2")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Contributor" "Federico Sangiuliano"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "2407c171-cb90-4969-849c-233fb9262891")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_line
+		(start -0.46 -0.19)
+		(end -0.46 0.19)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "273ba389-d22b-4bec-8191-c74e9008e7a3")
+	)
+	(fp_line
+		(start 0.46 -0.19)
+		(end -0.46 -0.19)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "0f71a464-940e-476f-a4e0-ac9d51f4e824")
+	)
+	(fp_line
+		(start 0.46 -0.19)
+		(end 0.46 0.19)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "3962b635-6104-4381-80cd-40cb8a8d4763")
+	)
+	(fp_line
+		(start 0.46 0.19)
+		(end -0.46 0.19)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "8caab8de-cb04-4569-b2e2-5f7ff6306e89")
+	)
+	(fp_line
+		(start -0.3 -0.15)
+		(end 0.3 -0.15)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "49cbc45a-ec3d-45b6-9d80-cf1dd7cab70f")
+	)
+	(fp_line
+		(start -0.3 0.15)
+		(end -0.3 -0.15)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "bd40bd9d-9c1a-4779-b5a5-ed38034ed2bf")
+	)
+	(fp_line
+		(start 0.3 -0.15)
+		(end 0.3 0.15)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "a1f29c15-b55a-44c9-a321-109e0004c1dc")
+	)
+	(fp_line
+		(start 0.3 0.15)
+		(end -0.3 0.15)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "921969f4-460e-480c-8560-1eb5593088a9")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 -0.68 0)
+		(layer "F.Fab")
+		(uuid "39f62ec3-9057-43ba-bc50-f70d4a86ea5f")
+		(effects
+			(font
+				(size 0.25 0.25)
+				(thickness 0.04)
+			)
+		)
+	)
+	(pad "" smd roundrect
+		(at -0.27 0)
+		(size 0.3 0.32)
+		(layers "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "240bd312-ddef-4744-b3cd-effcee2ffdaa")
+	)
+	(pad "" smd roundrect
+		(at 0.27 0)
+		(size 0.3 0.32)
+		(layers "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "d19b8c28-8a11-4fc0-919a-024e80204d58")
+	)
+	(pad "1" smd roundrect
+		(at -0.27 0)
+		(size 0.3 0.32)
+		(layers "F.Cu" "F.Mask")
+		(roundrect_rratio 0.25)
+		(uuid "8bf01d0b-6b5e-4e72-9f28-eaa9cb1ccc1a")
+	)
+	(pad "2" smd roundrect
+		(at 0.27 0)
+		(size 0.3 0.32)
+		(layers "F.Cu" "F.Mask")
+		(roundrect_rratio 0.25)
+		(uuid "89e4f5f2-bb4b-4d49-ad80-aa7015c371ca")
+	)
+	(embedded_fonts no)
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Capacitor_SMD.3dshapes/C_0201_0603Metric.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

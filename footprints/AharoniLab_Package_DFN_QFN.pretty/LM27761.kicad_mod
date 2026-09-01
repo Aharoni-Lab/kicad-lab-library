@@ -1,0 +1,216 @@
+(footprint "LM27761"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "LM27761 Low-Noise, Regulated, Switched-Capacitor Voltage Inverter https://www.ti.com/lit/gpn/LM27761")
+	(tags "Integrated Circuit")
+	(property "Reference" "IC**"
+		(at 0 0 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "c35f0ddd-4e71-434d-b278-5f7728ae63f9")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+			)
+		)
+	)
+	(property "Value" "LM27761"
+		(at 0 0 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "10644389-b349-4234-a8d2-50876f0ef229")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "0ab71b81-6d4f-4937-9bee-834c32f026e0")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "2fd4b924-446a-4f46-842e-85a6e95c5dde")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Validated" "No"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "6c7b45c1-c4e1-425b-aae0-c77f91ec5113")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Contributor" "Federico Sangiuliano"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "56de9a0f-ddf2-4691-93f3-7490c01e41bc")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start -1.43 -1.08)
+		(end 1.45 1.1)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "830a996f-bd1b-4d86-8e7d-6cd9466e0979")
+	)
+	(fp_line
+		(start -1 -1)
+		(end 1 -1)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "9cf48ee2-3189-45fc-88df-a78b10b323fa")
+	)
+	(fp_line
+		(start -1 -0.5)
+		(end -0.5 -1)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "8a95642b-b2ab-49e0-abe2-b099d1a7a475")
+	)
+	(fp_line
+		(start -1 1)
+		(end -1 -1)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "a6712ce9-3ed9-405b-93ec-4c7c8b13d53e")
+	)
+	(fp_line
+		(start 1 -1)
+		(end 1 1)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "a5fcbc6f-9d3f-4044-a59c-24acf5dd134c")
+	)
+	(fp_line
+		(start 1 1)
+		(end -1 1)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "43cf9f6f-84ac-477c-a0a9-d0de39bdcd83")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "779abafe-b96d-43d7-abfb-c668c6cfac2c")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+			)
+		)
+	)
+	(pad "1" smd rect
+		(at -1.05 -0.75 90)
+		(size 0.3 0.7)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "d2341a71-061f-4250-ac3a-9c8919d928e3")
+	)
+	(pad "2" smd rect
+		(at -1.05 -0.25 90)
+		(size 0.3 0.7)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "37c21e89-ffe3-4048-9d0c-1a1b6a915dcb")
+	)
+	(pad "3" smd rect
+		(at -1.05 0.25 90)
+		(size 0.3 0.7)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "052b4e9c-3b3e-466a-ad2a-50cdbb942697")
+	)
+	(pad "4" smd rect
+		(at -1.05 0.75 90)
+		(size 0.3 0.7)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "11262bcb-c33b-4015-ab01-5b0bb5c4e089")
+	)
+	(pad "5" smd rect
+		(at 1.05 0.75 90)
+		(size 0.3 0.7)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "cdde0055-05b7-467c-8d16-f0a0bfe32aef")
+	)
+	(pad "6" smd rect
+		(at 1.05 0.25 90)
+		(size 0.3 0.7)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "dc74517d-0701-4402-92ff-c7a37d570b06")
+	)
+	(pad "7" smd rect
+		(at 1.05 -0.25 90)
+		(size 0.3 0.7)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "946315ef-b47b-4ba7-a083-9085927896f4")
+	)
+	(pad "8" smd rect
+		(at 1.05 -0.75 90)
+		(size 0.3 0.7)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "403ea2d0-4106-4b07-ab9c-7bb837f7e9bf")
+	)
+	(pad "EP" smd rect
+		(at 0 0)
+		(size 1 1.7)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "359d70af-5cd2-4762-b12e-cbaafb9712d0")
+	)
+	(embedded_fonts no)
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/LM27761DSGT.stp"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)
