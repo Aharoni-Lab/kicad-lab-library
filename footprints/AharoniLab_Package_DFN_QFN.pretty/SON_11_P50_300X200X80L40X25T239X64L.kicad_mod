@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "Small Outline No-Lead (SON with Tab), 0.50 mm pitch; 10 pin, 3.00 mm L X 2.00 mm W X 0.80 mm H body")
+	(descr "Small Outline No-Lead (SON with Tab), 0.50 mm pitch; 10 pin, 3.00 mm L X 2.00 mm W X 0.80 mm H body; example part LTC3218, datasheet: https://www.analog.com/en/products/ltc3218.html")
 	(tags "SON DFN 0.50mm")
 	(property "Reference" "REF**"
 		(at 0 0 180)
@@ -16,7 +16,7 @@
 			)
 		)
 	)
-	(property "Value" "LTC3218"
+	(property "Value" "SON_11_P50_300X200X80L40X25T239X64L"
 		(at 0 0 180)
 		(layer "F.Fab")
 		(uuid "163c4529-fb91-44a0-941b-f9d6d8f4d00c")
@@ -924,7 +924,7 @@
 		(uuid "c571a280-ff5a-404c-9647-fd6f1b9e1e13")
 	)
 	(embedded_fonts no)
-	(model "${KICAD_AHARONI_LAB}/Modules/Package_SON.pretty/SON_11_P50_300X200X80L40X25T239X64L.STEP"
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/SON_11_P50_300X200X80L40X25T239X64L.step"
 		(offset
 			(xyz 0 0 0)
 		)
