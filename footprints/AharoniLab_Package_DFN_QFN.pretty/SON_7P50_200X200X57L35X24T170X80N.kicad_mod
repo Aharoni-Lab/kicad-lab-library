@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "Small Outline No-Lead (SON with Tab), 0.50 mm pitch; 6 pin, 2.00 mm L X 2.00 mm W X 0.575 mm H body")
+	(descr "Small Outline No-Lead (SON with Tab), 0.50 mm pitch; 6 pin, 2.00 mm L X 2.00 mm W X 0.575 mm H body; example part SC189, datasheet: https://www.semtech.com/products/power-management/buck-converters/sc189")
 	(tags "SON DFN 0.50mm")
 	(property "Reference" "REF**"
 		(at 0 0 0)
@@ -16,7 +16,7 @@
 			)
 		)
 	)
-	(property "Value" "SC189ZULTRT"
+	(property "Value" "SON_7P50_200X200X57L35X24T170X80N"
 		(at 0 0 0)
 		(layer "F.Fab")
 		(uuid "bea020bf-617b-4e0c-b462-4216dd0d1ad1")
@@ -711,4 +711,15 @@
 		(uuid "0c24bbf8-9785-45fe-8d1d-862fc0d8ca28")
 	)
 	(embedded_fonts no)
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/SON_7P50_200X200X57L35X24T170X80N.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 0 0)
+		)
+	)
 )

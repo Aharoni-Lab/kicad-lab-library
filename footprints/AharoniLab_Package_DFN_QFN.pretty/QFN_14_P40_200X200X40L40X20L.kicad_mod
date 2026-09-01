@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "Quad Flat No-Lead (QFN), 0.40 mm pitch; square, 5 pin X 2 pin, 2.00 mm L X 2.00 mm W X 0.40 mm H body")
+	(descr "Quad Flat No-Lead (QFN), 0.40 mm pitch; square, 5 pin X 2 pin, 2.00 mm L X 2.00 mm W X 0.40 mm H body; example part TPL0102-100, datasheet: https://www.ti.com/lit/ds/symlink/tpl0102-100.pdf")
 	(tags "QFN 0.40mm")
 	(property "Reference" "REF**"
 		(at 0 0 0)
@@ -16,7 +16,7 @@
 			)
 		)
 	)
-	(property "Value" "TPL0102-100RUCR"
+	(property "Value" "QFN_14_P40_200X200X40L40X20L"
 		(at 0 0 0)
 		(layer "F.Fab")
 		(uuid "fcb5dce9-7e8b-44d1-9416-0ca78a37664f")
@@ -1069,4 +1069,15 @@
 		(uuid "a9596443-0db6-4223-af7d-77411b423b15")
 	)
 	(embedded_fonts no)
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/QFN_14_P40_200X200X40L40X20L.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 0 0)
+		)
+	)
 )

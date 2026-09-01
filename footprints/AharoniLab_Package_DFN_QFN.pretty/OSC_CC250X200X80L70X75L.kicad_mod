@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "Oscillator, Corner Concave; 2.50 mm L X 2.00 mm W X 0.80 mm H body")
+	(descr "Oscillator, Corner Concave; 2.50 mm L X 2.00 mm W X 0.80 mm H body; example part SG-210STF, datasheet: https://download.epsondevice.com/td/pdf/brief/SG-210STF_en.pdf")
 	(tags "oscillator SMD")
 	(property "Reference" "REF**"
 		(at 0.025 2.2 0)
@@ -16,7 +16,7 @@
 			)
 		)
 	)
-	(property "Value" "SG-210STF 66.6667ML3"
+	(property "Value" "OSC_CC250X200X80L70X75L"
 		(at 0.425 3.625 0)
 		(layer "F.Fab")
 		(uuid "bde2690e-be89-4470-826b-567a6e98ac59")
@@ -469,4 +469,15 @@
 		(uuid "7cca1a6c-89a0-4749-8bdd-8cf34733bc89")
 	)
 	(embedded_fonts no)
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/OSC_CC250X200X80L70X75L.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 0 0)
+		)
+	)
 )
