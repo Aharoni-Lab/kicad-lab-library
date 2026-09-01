@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""Install the Aharoni Lab KiCad library into KiCad 9's global configuration.
+"""Install the Aharoni Lab KiCad library into KiCad 10's global configuration.
 
 This script:
-  1. Locates the KiCad 9 config directory (platform-aware).
+  1. Locates the KiCad 10 config directory (platform-aware).
   2. Sets the AHARONI_LAB_KICAD_LIB environment variable in kicad_common.json.
   3. Merges symbol and footprint library entries into KiCad's global tables.
+
+Only KiCad 10 is supported. Library files in this repo are saved in the KiCad
+10 format and will not load in KiCad 9.
 
 Usage:
     python scripts/install.py            # Install
@@ -34,7 +37,7 @@ from validator.lib_table import LibTableEntry, parse_lib_table, serialize_lib_ta
 # KiCad config detection
 # ---------------------------------------------------------------------------
 
-KICAD_VERSIONS = ["10.0", "9.0"]
+KICAD_VERSIONS = ["10.0"]
 
 
 def _get_kicad_base_dir(system: str) -> Path:
@@ -54,11 +57,10 @@ def _get_kicad_base_dir(system: str) -> Path:
 
 
 def get_kicad_config_dirs() -> list[Path]:
-    """Return all KiCad configuration directories found on this system.
+    """Return all supported KiCad configuration directories on this system.
 
-    Checks for KiCad versions in order (newest first).  Returns a list
-    of existing config directories.  Raises ``RuntimeError`` if none
-    are found.
+    Only KiCad 10 is supported. Raises ``RuntimeError`` if no KiCad 10
+    config directory is found.
     """
     system = platform.system()
     base = _get_kicad_base_dir(system)
@@ -66,9 +68,10 @@ def get_kicad_config_dirs() -> list[Path]:
     if not found:
         tried = ", ".join(str(base / v) for v in KICAD_VERSIONS)
         raise RuntimeError(
-            f"No KiCad config directory found.\n"
+            f"No KiCad 10 config directory found.\n"
             f"Looked for: {tried}\n"
-            "Please make sure KiCad has been launched at least once."
+            "This library only supports KiCad 10. Please install KiCad 10 "
+            "and launch it at least once."
         )
     return found
 
