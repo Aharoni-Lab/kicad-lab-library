@@ -1,0 +1,164 @@
+# Publishes the validation report produced by validate.yml: deploys rendered
+# SVGs to gh-pages and posts/updates the PR comment.
+#
+# This runs as a separate workflow_run-triggered workflow because on fork PRs
+# the pull_request event's GITHUB_TOKEN is capped to read-only — publishing
+# must happen here, in the base-repo context, for fork contributions to get
+# the bot comment at all.
+#
+# SECURITY: everything downloaded from the triggering run (report.md,
+# klc-report.txt, renders) is fork-controlled data. It is only ever embedded
+# as comment text or deployed as static files — never executed, and no
+# fork code is checked out. The PR number is derived from the run's head SHA,
+# never from artifact contents.
+name: PR Report Comment
+
+on:
+  workflow_run:
+    workflows: ["Library Validation"]
+    types: [completed]
+
+permissions:
+  contents: write        # gh-pages deploy of rendered SVGs
+  pull-requests: write   # validation report comment
+  actions: read          # download artifacts from the triggering run
+
+concurrency:
+  group: pr-report-comment-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publish report
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+    steps:
+      - name: Find PR for this run
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Resolve the PR from the run's head SHA. Artifact contents are
+            // fork-controlled, so the PR number must never come from them.
+            const headSha = context.payload.workflow_run.head_sha;
+            const prs = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const pr = prs.find(p => p.head.sha === headSha);
+            if (!pr) {
+              core.notice(`No open PR with head ${headSha} (superseded by a newer push?); nothing to publish.`);
+              core.setOutput('number', '');
+              return;
+            }
+            core.setOutput('number', String(pr.number));
+
+      - name: Download run artifacts
+        if: steps.pr.outputs.number != ''
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for renders
+        id: renders
+        if: steps.pr.outputs.number != ''
+        run: |
+          if [ -d artifacts/rendered-previews ] && [ "$(ls artifacts/rendered-previews/*.svg 2>/dev/null)" ]; then
+            echo "has_renders=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_renders=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy renders to GitHub Pages
+        if: steps.pr.outputs.number != '' && steps.renders.outputs.has_renders == 'true'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: artifacts/rendered-previews
+          destination_dir: renders/pr-${{ steps.pr.outputs.number }}
+          keep_files: true
+
+      - name: Post PR comment
+        if: steps.pr.outputs.number != ''
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        with:
+          script: |
+            const fs = require('fs');
+            const prNumber = Number(process.env.PR_NUMBER);
+            const run = context.payload.workflow_run;
+
+            const readArtifact = (path) => {
+              try { return fs.readFileSync(path, 'utf8').trim(); }
+              catch (e) { return ''; }
+            };
+            // Fork-controlled text: embedded as comment content only.
+            let report = readArtifact('artifacts/validation-report/report.md')
+              || '## Library Validation Report\n\nNo validation report generated.';
+            let klcDetails = readArtifact('artifacts/klc-report/klc-report.txt');
+
+            // Job results from the triggering run (not artifacts).
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: run.id,
+              per_page: 100,
+            });
+            const conclusion = (name) =>
+              jobs.find(j => j.name === name)?.conclusion ?? 'unknown';
+            const testResult = conclusion('Run Tests');
+            const klcResult = conclusion('KLC Validation');
+            const allPassed = testResult === 'success' && klcResult === 'success';
+            const statusIcon = allPassed ? ':white_check_mark:' : ':x:';
+            const statusText = allPassed ? 'PASS' : 'FAIL';
+
+            // GitHub comments cap at 65536 characters; leave headroom.
+            const clip = (text, max) => text.length > max
+              ? text.slice(0, max) + '\n… (truncated — see workflow run for full output)'
+              : text;
+            report = clip(report, 45000);
+            klcDetails = clip(klcDetails, 10000);
+
+            let body = `## Library Validation Report ${statusIcon}\n\n`;
+            body += `**Overall Status: ${statusText}**\n\n`;
+            body += `| Check | Result |\n|-------|--------|\n`;
+            body += `| Tests | ${testResult === 'success' ? ':white_check_mark: Passed' : ':x: Failed'} |\n`;
+            body += `| KLC Validation | ${klcResult === 'success' ? ':white_check_mark: Passed' : ':x: Failed'} |\n\n`;
+
+            if (klcDetails) {
+              body += `<details>\n<summary>KLC Validation Details</summary>\n\n\`\`\`\n${klcDetails}\n\`\`\`\n\n</details>\n\n`;
+            }
+
+            body += report;
+            body += `\n\n---\n*Generated by CI — [view workflow run](${run.html_url})*`;
+
+            // Find existing bot comment to update
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Library Validation Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body,
+              });
+            }
