@@ -3,6 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
+	(descr "TPSM828437 1.8V to 5.5V, 600mA, Ultra-Low 275nA IQ, High Efficiency, Step-Down Converter With Integrated Inductor in a QFN Package https://www.ti.com/lit/gpn/TPSM82843")
 	(tags "TPSM828437VCFR ")
 	(property "Reference" "REF**"
 		(at 0 0 0)
@@ -412,7 +413,7 @@
 		(uuid "4bba7e7b-116d-45df-b79b-b078b71a0e70")
 	)
 	(embedded_fonts no)
-	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/TPSM828438VCFR.stp"
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/TPSM828437VCFR.stp"
 		(offset
 			(xyz 0 0 0)
 		)

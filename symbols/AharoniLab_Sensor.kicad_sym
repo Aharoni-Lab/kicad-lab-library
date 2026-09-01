@@ -2,6 +2,403 @@
 	(version 20251024)
 	(generator "kicad_symbol_editor")
 	(generator_version "10.0")
+	(symbol "AD5593R"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "U"
+			(at 0 4.826 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AD5593R"
+			(at 0.254 2.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "AharoniLab_Package_DFN_QFN:AD5593RBCPZ"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.analog.com/media/en/technical-documentation/data-sheets/ad5593r.pdf"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "8-Channel, 12-Bit, Configurable ADC/DAC with On-Chip Reference, I2C Interface"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Validated" "No"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Contributor" "Federico Sangiuliano"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "ADC DAC GPIO configurable 12-bit I2C on-chip reference AD5593R"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "AD5593R_0_0"
+			(pin power_in line
+				(at -6.35 -39.37 90)
+				(length 2.54)
+				(name "VCC"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 20.32 -6.35 180)
+				(length 2.54)
+				(name "I/O_0"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 20.32 -10.16 180)
+				(length 2.54)
+				(name "I/O_1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 20.32 -13.97 180)
+				(length 2.54)
+				(name "I/O_2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 20.32 -17.78 180)
+				(length 2.54)
+				(name "I/O_3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -20.32 -31.75 0)
+				(length 2.54)
+				(name "VREF"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -20.32 -6.35 0)
+				(length 2.54)
+				(name "VLOGIC"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 20.32 -21.59 180)
+				(length 2.54)
+				(name "I/O_4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 20.32 -25.4 180)
+				(length 2.54)
+				(name "I/O_5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "9"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 20.32 -29.21 180)
+				(length 2.54)
+				(name "I/O_6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "10"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 20.32 -33.02 180)
+				(length 2.54)
+				(name "I/O_7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "11"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 6.35 -39.37 90)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "12"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -20.32 -26.67 0)
+				(length 2.54)
+				(name "I2C_SDA"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "13"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -20.32 -21.59 0)
+				(length 2.54)
+				(name "I2C_SCL"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "14"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -20.32 -11.43 0)
+				(length 2.54)
+				(name "Reset_(inv)"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "15"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -20.32 -16.51 0)
+				(length 2.54)
+				(name "A0"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "16"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(symbol "AD5593R_1_1"
+			(rectangle
+				(start -17.78 0)
+				(end 17.78 -36.83)
+				(stroke
+					(width 0.254)
+					(type solid)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
 	(symbol "BNO055"
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -527,7 +924,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.sony-semicon.com/en/products/is/security/security.html"
 			(at -19.05 -2.54 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -549,7 +946,7 @@
 				)
 			)
 		)
-		(property "ki_keywords" "CMOS image sensor monochrome Sony MIPI CSI-2"
+		(property "Validated" "Yes"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -560,7 +957,7 @@
 				)
 			)
 		)
-		(property "Validated" "Yes"
+		(property "Contributor" "Federico Sangiuliano"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -581,7 +978,7 @@
 				)
 			)
 		)
-		(property "Contributor" "Federico Sangiuliano"
+		(property "ki_keywords" "CMOS image sensor monochrome Sony MIPI CSI-2"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1937,6 +2334,7 @@
 			(pin no_connect line
 				(at -11.43 -5.08 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -1955,6 +2353,7 @@
 			(pin no_connect line
 				(at -11.43 -7.62 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -1973,6 +2372,7 @@
 			(pin no_connect line
 				(at -11.43 -10.16 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -1991,6 +2391,7 @@
 			(pin no_connect line
 				(at -11.43 -43.18 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -2009,6 +2410,7 @@
 			(pin no_connect line
 				(at -11.43 -12.7 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -2027,6 +2429,7 @@
 			(pin no_connect line
 				(at -11.43 -15.24 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -2045,6 +2448,7 @@
 			(pin no_connect line
 				(at -11.43 -17.78 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -2063,6 +2467,7 @@
 			(pin no_connect line
 				(at -11.43 -20.32 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -2081,6 +2486,7 @@
 			(pin no_connect line
 				(at -11.43 -22.86 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -2099,6 +2505,7 @@
 			(pin no_connect line
 				(at -11.43 -25.4 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -2117,6 +2524,7 @@
 			(pin no_connect line
 				(at -11.43 -27.94 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -2135,6 +2543,7 @@
 			(pin no_connect line
 				(at -11.43 -30.48 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -2153,6 +2562,7 @@
 			(pin no_connect line
 				(at -11.43 -33.02 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -2171,6 +2581,7 @@
 			(pin no_connect line
 				(at -11.43 -35.56 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -2189,6 +2600,7 @@
 			(pin no_connect line
 				(at -11.43 -38.1 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font
@@ -2207,6 +2619,7 @@
 			(pin no_connect line
 				(at -11.43 -40.64 0)
 				(length 2.54)
+				(hide yes)
 				(name "N.C."
 					(effects
 						(font

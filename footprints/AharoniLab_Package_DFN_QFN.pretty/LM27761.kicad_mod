@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "DSG0008A 1")
+	(descr "LM27761 Low-Noise, Regulated, Switched-Capacitor Voltage Inverter https://www.ti.com/lit/gpn/LM27761")
 	(tags "Integrated Circuit")
 	(property "Reference" "IC**"
 		(at 0 0 0)

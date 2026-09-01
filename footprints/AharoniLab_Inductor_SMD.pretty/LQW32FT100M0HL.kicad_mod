@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "1210 (3225) T=2.3±0.2mm")
+	(descr "Murata LQW32FT100M0HL wire-wound ferrite chip inductor, 10 uH +/-20%, 1210 (3225 metric) https://www.murata.com/en-us/products/productdetail?partno=LQW32FT100M0HL")
 	(tags "Inductor")
 	(property "Reference" "L**"
 		(at 0 0 0)

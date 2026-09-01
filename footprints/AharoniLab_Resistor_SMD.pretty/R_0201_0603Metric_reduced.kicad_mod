@@ -195,7 +195,7 @@
 		(uuid "f35eb1be-6587-42c1-a6b1-3c8f9773e830")
 	)
 	(embedded_fonts no)
-	(model "${KICAD10_3DMODEL_DIR}/Resistor_SMD.3dshapes/R_0201_0603Metric.step"
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Resistor_SMD.3dshapes/R_0201_0603Metric.step"
 		(offset
 			(xyz 0 0 0)
 		)

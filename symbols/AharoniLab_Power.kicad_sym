@@ -39,7 +39,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.ti.com/lit/gpn/LM27761"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -61,17 +61,6 @@
 				)
 			)
 		)
-		(property "ki_keywords" "charge pump voltage inverter negative output low-noise LDO LM27761"
-			(at 0 0 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 		(property "Validated" "No"
 			(at 0 0 0)
 			(show_name no)
@@ -84,6 +73,17 @@
 			)
 		)
 		(property "Contributor" "Federico Sangiuliano"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "charge pump voltage inverter negative output low-noise LDO LM27761"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -149,7 +149,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin power_out line
 				(at 11.43 -2.54 180)
 				(length 2.54)
 				(name "VOUT"
@@ -1473,7 +1473,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.monolithicpower.com/en/documentview/productdocument/index/version/2/document_type/Datasheet/lang/en/sku/MPM3612GLQ-33/document_id/11833/"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1485,17 +1485,6 @@
 			)
 		)
 		(property "Description" "MPM3612-33 – 22V, 1A, STEP-DOWN MODULE WITH 5μA IQ IN LGA PACKAGE"
-			(at 0 0 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "ki_keywords" "step-down module buck converter power module LGA MPM3612"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1518,6 +1507,17 @@
 			)
 		)
 		(property "Contributor" "Federico Sangiuliano"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "step-down module buck converter power module LGA MPM3612"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1619,7 +1619,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin power_out line
 				(at 12.7 -19.05 180)
 				(length 2.54)
 				(name "VOUT_S"
@@ -1655,7 +1655,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin power_in line
 				(at -12.7 -21.59 0)
 				(length 2.54)
 				(name "VCC"
@@ -1959,6 +1959,7 @@
 			(pin no_connect line
 				(at -10.16 -7.62 0)
 				(length 2.54)
+				(hide yes)
 				(name "NC"
 					(effects
 						(font
@@ -2209,6 +2210,7 @@
 			(pin no_connect line
 				(at -10.16 -2.54 0)
 				(length 2.54)
+				(hide yes)
 				(name "NC"
 					(effects
 						(font
@@ -2296,7 +2298,7 @@
 					)
 				)
 			)
-			(pin output line
+			(pin power_out line
 				(at 10.16 0 180)
 				(length 2.54)
 				(name "VOUT"
@@ -2372,7 +2374,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.ti.com/lit/gpn/TPS55289"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2394,17 +2396,6 @@
 				)
 			)
 		)
-		(property "ki_keywords" "buck-boost converter I2C 30V 8A TPS55289"
-			(at 0 0 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 		(property "Validated" "No"
 			(at 0 0 0)
 			(show_name no)
@@ -2417,6 +2408,17 @@
 			)
 		)
 		(property "Contributor" "Federico Sangiuliano"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "buck-boost converter I2C 30V 8A TPS55289"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2608,7 +2610,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin power_out line
 				(at 27.94 -38.1 180)
 				(length 2.54)
 				(name "VOUT"
@@ -2734,7 +2736,7 @@
 					)
 				)
 			)
-			(pin output line
+			(pin power_in line
 				(at -27.94 -8.89 0)
 				(length 2.54)
 				(name "VCC"
@@ -2822,6 +2824,205 @@
 		)
 		(embedded_fonts no)
 	)
+	(symbol "TPS7A20"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "U"
+			(at 0 5.334 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TPS7A20"
+			(at 0 2.794 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "AharoniLab_Package_SO:Texas_X2SON-4_1x1mm_P0.65mm"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/tps7a20.pdf?HQS=dis-dk-null-digikeymode-dsf-pf-null-wwe&ts=1786033353440"
+			(at -1.27 16.764 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "TPS7A20 300mA, Ultra-Low-Noise, Low-IQ, High PSRR LDO"
+			(at -52.324 -1.016 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Validated" "No"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Contributor" "Federico Sangiuliano"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "LDO linear regulator low-noise high-PSRR low-IQ 300mA TPS7A20"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "TPS7A20_0_0"
+			(pin power_out line
+				(at 11.43 -3.81 180)
+				(length 2.54)
+				(name "Out"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -3.81 -20.32 90)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -11.43 -8.89 0)
+				(length 2.54)
+				(name "Enable"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -11.43 -3.81 0)
+				(length 2.54)
+				(name "IN"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at 3.81 -20.32 90)
+				(length 2.54)
+				(name "Thermal_Pad"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(symbol "TPS7A20_1_1"
+			(rectangle
+				(start -8.89 0)
+				(end 8.89 -17.78)
+				(stroke
+					(width 0.254)
+					(type solid)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
 	(symbol "TPSM828437"
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2859,7 +3060,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.ti.com/lit/gpn/TPSM82843"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2881,17 +3082,6 @@
 				)
 			)
 		)
-		(property "ki_keywords" "step-down converter power module integrated inductor QFN TPSM828437"
-			(at 0 0 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 		(property "Validated" "No"
 			(at 0 0 0)
 			(show_name no)
@@ -2904,6 +3094,17 @@
 			)
 		)
 		(property "Contributor" "Federico Sangiuliano"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "step-down converter power module integrated inductor QFN TPSM828437"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3005,7 +3206,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin power_out line
 				(at 8.89 -2.54 180)
 				(length 2.54)
 				(name "VOUT"

@@ -3,6 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
+	(descr "Dual GMSL2 3/6 Gbps deserializer https://www.analog.com/media/en/technical-documentation/data-sheets/max96716a.pdf")
 	(tags "MAX96716AGTM/VY+T ")
 	(property "Reference" "REF**"
 		(at 0 0 0)

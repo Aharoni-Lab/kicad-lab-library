@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "DCK (R-PDSO-G6)")
+	(descr "SOT-23-6 land pattern, TI DCK (R-PDSO-G6), 0.65 mm pitch; reference part SN74LVC2G14 https://www.ti.com/lit/gpn/SN74LVC2G14")
 	(tags "Integrated Circuit")
 	(property "Reference" "IC**"
 		(at 0 0 0)

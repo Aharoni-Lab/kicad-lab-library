@@ -181,7 +181,7 @@
 		(uuid "e5410988-c2e0-43ab-a197-730ad87a8d2b")
 	)
 	(embedded_fonts no)
-	(model "${KICAD10_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_1206_3216Metric.step"
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Capacitor_SMD.3dshapes/C_1206_3216Metric.step"
 		(offset
 			(xyz 0 0 0)
 		)

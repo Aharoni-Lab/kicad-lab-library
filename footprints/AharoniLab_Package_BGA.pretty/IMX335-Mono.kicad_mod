@@ -3,6 +3,8 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
+	(descr "Sony IMX335 5 MP 1/2.8-inch CMOS image sensor, monochrome https://www.sony-semicon.com/en/products/is/security/security.html")
+	(tags "image sensor CMOS monochrome Sony IMX335 BGA")
 	(property "Reference" "REF**"
 		(at 0 -4.526 0)
 		(layer "F.SilkS")

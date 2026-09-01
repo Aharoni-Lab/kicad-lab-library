@@ -3,13 +3,13 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "LP5810AYBHR")
+	(descr "LP5810 4-Channel I2C LED Driver with Autonomous Animation Engine https://www.ti.com/lit/ds/symlink/lp5810.pdf?ts=1704477736894&ref_url=https%253A%252F%252Fwww.ti.com%252Fsitesearch%252Fen-us%252Fdocs%252Funiversalsearch.tsp%253FlangPref%253Den-US%2526searchTerm%253DLP5810ADSDR%2526nr%253D5")
 	(tags "Integrated Circuit")
 	(property "Reference" "IC**"
 		(at 0 0 0)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "28ecc59e-5244-45cf-b94e-9405c0cb504c")
+		(uuid "7439af6c-640d-4131-bb68-b2a7c367d337")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -21,7 +21,7 @@
 		(at 0 0 0)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "c5806db1-ea8d-4ee8-93f5-1417ad1e3e7d")
+		(uuid "5268486d-64b6-46e3-a42a-c79f1bd02117")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -33,7 +33,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "dabcf6ec-8297-48c2-bf60-5239460e9812")
+		(uuid "d0f50033-b975-4104-b07a-2347920be2d3")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -44,7 +44,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "82591463-0413-4cc4-83ca-81d89fabb287")
+		(uuid "c77522e0-7db1-49ef-bb8e-34f3dc70f6c7")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -55,7 +55,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "2b3a1c9c-e250-4779-ba10-20a895e92be3")
+		(uuid "293c027f-7846-4a7f-b388-b685ec44c8d4")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -66,7 +66,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "6f2029af-6b75-426e-94ca-92cedf3fb9e5")
+		(uuid "f3cc7ad1-e4e0-4f7d-a35d-1ac1d939b60e")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -83,7 +83,7 @@
 			(type solid)
 		)
 		(layer "F.SilkS")
-		(uuid "38e8f7e0-ff75-4da8-a1c6-0556d652b64e")
+		(uuid "8222c5fb-e864-4b8c-bd13-40e81e10a905")
 	)
 	(fp_line
 		(start -0.852 0.852)
@@ -93,7 +93,7 @@
 			(type solid)
 		)
 		(layer "F.SilkS")
-		(uuid "9078abbc-5f12-4c90-948c-1c218835e735")
+		(uuid "cfbea994-c79f-4519-bc6b-77fb37006bc0")
 	)
 	(fp_line
 		(start -0.4 -0.852)
@@ -103,7 +103,7 @@
 			(type solid)
 		)
 		(layer "F.SilkS")
-		(uuid "0ff7035b-0d0d-45bf-8529-4c6d0c08fca2")
+		(uuid "46e18a02-c4dd-4997-9bc6-04919ca9df37")
 	)
 	(fp_line
 		(start 0.852 -0.852)
@@ -113,7 +113,7 @@
 			(type solid)
 		)
 		(layer "F.SilkS")
-		(uuid "10785292-b165-4c9d-853c-f887b18aed0c")
+		(uuid "97e0cb13-b8fc-4e10-97ba-a8d95c435e5d")
 	)
 	(fp_line
 		(start 0.852 0.852)
@@ -123,47 +123,18 @@
 			(type solid)
 		)
 		(layer "F.SilkS")
-		(uuid "b3b01295-d270-4215-85f2-c620fb9c4ec9")
+		(uuid "0bc9c997-b406-4bcc-8bdb-37758138e1e7")
 	)
-	(fp_line
-		(start -1.226 -1.18)
-		(end 1.226 -1.18)
+	(fp_rect
+		(start -0.96 -0.97)
+		(end 0.95 0.97)
 		(stroke
 			(width 0.05)
-			(type solid)
+			(type default)
 		)
+		(fill no)
 		(layer "F.CrtYd")
-		(uuid "99a099f1-930b-45f1-ba96-54f06e4d814d")
-	)
-	(fp_line
-		(start -1.226 1.18)
-		(end -1.226 -1.18)
-		(stroke
-			(width 0.05)
-			(type solid)
-		)
-		(layer "F.CrtYd")
-		(uuid "93f65e0a-98f5-4357-9f3d-4c228b946064")
-	)
-	(fp_line
-		(start 1.226 -1.18)
-		(end 1.226 1.18)
-		(stroke
-			(width 0.05)
-			(type solid)
-		)
-		(layer "F.CrtYd")
-		(uuid "49d5ae07-bab6-4af2-9243-0f2b99187b49")
-	)
-	(fp_line
-		(start 1.226 1.18)
-		(end -1.226 1.18)
-		(stroke
-			(width 0.05)
-			(type solid)
-		)
-		(layer "F.CrtYd")
-		(uuid "3f5d66a0-0a57-46cc-b759-89c43eb8ee37")
+		(uuid "70319d59-666b-4d2d-8d8b-026032a6a738")
 	)
 	(fp_line
 		(start -0.716 -0.67)
@@ -173,7 +144,7 @@
 			(type solid)
 		)
 		(layer "F.Fab")
-		(uuid "6b6d2a29-89f2-4745-9091-ed9ed59b3651")
+		(uuid "7431a5cd-306f-4263-8f3a-0f00d9da4e5e")
 	)
 	(fp_line
 		(start -0.716 -0.33)
@@ -183,7 +154,7 @@
 			(type solid)
 		)
 		(layer "F.Fab")
-		(uuid "ef148feb-70e5-4dba-861a-109de5da1e0e")
+		(uuid "b1abf44a-0b6e-493d-9b28-e164b9e04cc6")
 	)
 	(fp_line
 		(start -0.716 0.67)
@@ -193,7 +164,7 @@
 			(type solid)
 		)
 		(layer "F.Fab")
-		(uuid "3bd1334e-a546-41ca-ad17-60c80c363d0f")
+		(uuid "cab780ac-e75a-4e14-8d50-6b32f232a3bf")
 	)
 	(fp_line
 		(start 0.716 -0.67)
@@ -203,7 +174,7 @@
 			(type solid)
 		)
 		(layer "F.Fab")
-		(uuid "63e0a670-c0ba-4355-8c0f-0b55fc5a6aa1")
+		(uuid "6fc1d70d-fcaf-4950-8c96-3bcc0e93fe1d")
 	)
 	(fp_line
 		(start 0.716 0.67)
@@ -213,12 +184,12 @@
 			(type solid)
 		)
 		(layer "F.Fab")
-		(uuid "bbd0974b-ce3c-435b-bc31-c90f60de6eed")
+		(uuid "584c166f-abed-4bd3-8810-82dbf3a682b3")
 	)
 	(fp_text user "${REFERENCE}"
 		(at 0 0 0)
 		(layer "F.Fab")
-		(uuid "5e31b57c-e008-4377-808a-d36976454d14")
+		(uuid "38455feb-caa6-4699-a156-29eef9e0b18f")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -230,55 +201,55 @@
 		(at -0.4 -0.4 90)
 		(size 0.204 0.204)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "a5c6244b-6464-4e3f-b47e-101be704fd81")
+		(uuid "6edfd6e5-0cb0-4b17-bfc3-6186f24dd681")
 	)
 	(pad "A2" smd circle
 		(at 0 -0.4 90)
 		(size 0.204 0.204)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "c8b0e7e6-2324-421f-93d6-4e1b6a541df4")
+		(uuid "230e02ac-83bf-413d-8d98-1ada1d0722ff")
 	)
 	(pad "A3" smd circle
 		(at 0.4 -0.4 90)
 		(size 0.204 0.204)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "06e199d9-ff23-4278-b4af-0576b8168812")
+		(uuid "bff0f326-8713-4692-9c30-292880cc3285")
 	)
 	(pad "B1" smd circle
 		(at -0.4 0 90)
 		(size 0.204 0.204)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "9925daea-bed8-4141-94d2-d459acedd750")
+		(uuid "8f13271b-9f93-4ee9-9f82-093c39d0aa18")
 	)
 	(pad "B2" smd circle
 		(at 0 0 90)
 		(size 0.204 0.204)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "15bebbdf-86e7-4b0d-8921-afbe36bc146a")
+		(uuid "25aaa65f-4f7b-44c7-b0dd-e6d26aac5744")
 	)
 	(pad "B3" smd circle
 		(at 0.4 0 90)
 		(size 0.204 0.204)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "a7f98cdf-9b45-4113-ba5e-7b4e80fbbceb")
+		(uuid "7a296503-de86-42db-a0d2-be72f3d17e81")
 	)
 	(pad "C1" smd circle
 		(at -0.4 0.4 90)
 		(size 0.204 0.204)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "89ce4677-4e95-4b76-9cfc-96d66c2d9372")
+		(uuid "8cc06e76-1134-4e84-9269-5e08c4976dc9")
 	)
 	(pad "C2" smd circle
 		(at 0 0.4 90)
 		(size 0.204 0.204)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "18c10e22-ef64-4610-9125-7933e69630f2")
+		(uuid "26504453-8e14-49a4-b005-07f280e21041")
 	)
 	(pad "C3" smd circle
 		(at 0.4 0.4 90)
 		(size 0.204 0.204)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "1009c1e1-8124-4176-bec5-5a33ff50524c")
+		(uuid "63e2d9c5-9b3a-40c1-ae1f-a077b18de94f")
 	)
 	(embedded_fonts no)
 	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Package_BGA.3dshapes/LP5810AYBHR.stp"

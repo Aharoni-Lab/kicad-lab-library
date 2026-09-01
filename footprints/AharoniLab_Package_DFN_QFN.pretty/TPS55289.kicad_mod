@@ -3,6 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
+	(descr "TPS55289 30-V, 8-A Buck-Boost Converter with I2C Interface https://www.ti.com/lit/gpn/TPS55289")
 	(tags "TPS552892RYQR ")
 	(property "Reference" "REF**"
 		(at 0 0 0)
@@ -40,7 +41,7 @@
 			)
 		)
 	)
-	(property "Description" "TPS55289 30-V, 8-A Buck-Boost Converter with I2C Interface"
+	(property "Description" ""
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)

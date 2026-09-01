@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "ABM8G")
+	(descr "Abracon ABM8G-25.000MHZ-18-D2Y-T3, 25 MHz SMD crystal, 18 pF load, 4-pad 3.2 x 2.5 mm ceramic package https://abracon.com/Resonators/ABM8G.pdf")
 	(tags "Crystal or Oscillator")
 	(property "Reference" "Y**"
 		(at 0 0 0)

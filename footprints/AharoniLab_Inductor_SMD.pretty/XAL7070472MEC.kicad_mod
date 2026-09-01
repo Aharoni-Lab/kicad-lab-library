@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "XAL7070-472MEC-2")
+	(descr "Coilcraft XAL7070-472MEC shielded molded power inductor, 4.7 uH, 7.5 x 7.2 x 7.0 mm https://www.coilcraft.com/getmedia/1ba55433-bcc8-4838-9b21-382f497e12e0/xal7070.pdf")
 	(tags "Inductor")
 	(property "Reference" "L**"
 		(at 0 0 0)

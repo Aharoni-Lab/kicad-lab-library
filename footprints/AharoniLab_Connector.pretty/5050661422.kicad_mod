@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "505066-1422-1")
+	(descr "Molex 505066-1422 Easy-On FFC/FPC connector, 0.5 mm pitch, 14 circuits, right-angle SMT https://www.molex.com/pdm_docs/sd/5050661422_sd.pdf")
 	(tags "Connector")
 	(property "Reference" "J**"
 		(at 0 0 0)
