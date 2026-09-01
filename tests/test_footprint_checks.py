@@ -29,12 +29,6 @@ class TestParseFootprint:
         assert "F.Fab" in info.layers
         assert info.pad_count == 2
 
-    def test_pad_count(self, fixtures_dir):
-        """Should count pads correctly."""
-        info = parse_kicad_mod(fixtures_dir / "valid_footprint.kicad_mod")
-        assert info.pad_count == 2
-
-
 class TestFootprintRequiredLayers:
     def test_footprint_has_required_layers_passes(self, fixtures_dir, rules):
         """Footprint with all required layers should pass."""

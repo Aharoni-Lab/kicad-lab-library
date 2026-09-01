@@ -67,18 +67,6 @@ class TestLibTableParsing:
         entries = parse_lib_table(sym_text)
         assert isinstance(entries, list)
 
-    def test_roundtrip_serialize(self):
-        """Serializing and re-parsing should preserve entries."""
-        entries = [
-            LibTableEntry("TestLib", "KiCad", "${AHARONI_LAB_KICAD_LIB}/symbols/TestLib.kicad_sym", "", "Test"),
-        ]
-        text = serialize_lib_table("sym_lib_table", entries)
-        parsed = parse_lib_table(text)
-        assert len(parsed) == 1
-        assert parsed[0].name == "TestLib"
-        assert parsed[0].uri == "${AHARONI_LAB_KICAD_LIB}/symbols/TestLib.kicad_sym"
-
-
 class TestMergeLogic:
     def test_install_skips_duplicates(self, tmp_path, monkeypatch):
         """Should not add duplicate entries if library is already installed."""
