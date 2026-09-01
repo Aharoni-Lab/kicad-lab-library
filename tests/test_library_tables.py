@@ -71,3 +71,22 @@ class TestFpLibTableConsistency:
             assert ENV_VAR_PLACEHOLDER in entry.uri, (
                 f"Entry '{entry.name}' does not use ${{AHARONI_LAB_KICAD_LIB}}"
             )
+
+
+class TestTableCheckMessages:
+    def test_bad_uri_error_names_the_env_var(self, tmp_path):
+        """The error for a URI not using the env var must print
+        ${AHARONI_LAB_KICAD_LIB}, not a doubled-brace artifact."""
+        from validator.checks import check_library_tables
+        (tmp_path / "symbols").mkdir()
+        (tmp_path / "sym-lib-table").write_text(
+            '(sym_lib_table (version 7) '
+            '(lib (name "X")(type "KiCad")(uri "/absolute/path")(options "")(descr "")))'
+        )
+        (tmp_path / "fp-lib-table").write_text('(fp_lib_table (version 7))')
+        result = check_library_tables(tmp_path)
+        assert not result.passed
+        uri_errors = [e for e in result.errors if "does not use" in e]
+        assert uri_errors
+        assert all("${AHARONI_LAB_KICAD_LIB}" in e for e in uri_errors)
+        assert all("{{" not in e for e in uri_errors)

@@ -114,3 +114,21 @@ class TestKicadFormats:
         # Find the symbol node
         symbol = [n for n in result if isinstance(n, list) and n[0] == 'symbol'][0]
         assert symbol[1] == 'R'
+
+
+class TestTokenizerEdgeCases:
+    def test_quoted_paren_value_parses(self):
+        """A quoted value of "(" or ")" must not corrupt the paren balance."""
+        from validator.sexpr import parse_sexpr
+        tree = parse_sexpr('(node (property "Name" "(") (property "Other" ")"))')
+        assert tree[0] == 'node'
+        assert tree[1] == ['property', 'Name', '(']
+        assert tree[2] == ['property', 'Other', ')']
+
+    def test_unterminated_string_raises(self):
+        """A quoted string with no closing quote must raise, not be
+        silently consumed to end of file."""
+        import pytest
+        from validator.sexpr import parse_sexpr
+        with pytest.raises(ValueError, match="Unterminated"):
+            parse_sexpr('(node (property "Name))')

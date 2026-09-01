@@ -60,8 +60,6 @@ def _collect_pads(tree: list) -> tuple[List[str], List[str]]:
         if isinstance(child, list) and len(child) >= 3 and child[0] == 'pad':
             numbers.append(child[1])
             types.append(child[2])
-        elif isinstance(child, list) and len(child) >= 2 and child[0] == 'pad':
-            numbers.append(child[1])
     return numbers, types
 
 
