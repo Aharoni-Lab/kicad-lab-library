@@ -8,7 +8,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List, Optional
 
-from validator.checks import ENV_VAR_PLACEHOLDER, CheckResult
+from validator.checks import CheckResult, _env_placeholder
 from validator.config import LibraryRules
 from validator.lib_table import LibTableEntry, serialize_lib_table
 
@@ -34,14 +34,18 @@ def generate_sym_lib_table(
             entries.append(LibTableEntry(
                 name=name,
                 type="KiCad",
-                uri=f"{ENV_VAR_PLACEHOLDER}/symbols/{sym_file.name}",
+                uri=f"{_env_placeholder(rules)}/symbols/{sym_file.name}",
                 descr=descr,
             ))
 
     return serialize_lib_table("sym_lib_table", entries)
 
 
-def generate_fp_lib_table(repo_root: str | Path) -> str:
+def generate_fp_lib_table(
+    repo_root: str | Path,
+    *,
+    rules: Optional[LibraryRules] = None,
+) -> str:
     """Generate the expected ``fp-lib-table`` content from footprint dirs on disk."""
     repo_root = Path(repo_root)
     footprints_dir = repo_root / "footprints"
@@ -53,7 +57,7 @@ def generate_fp_lib_table(repo_root: str | Path) -> str:
                 entries.append(LibTableEntry(
                     name=fp_dir.stem,
                     type="KiCad",
-                    uri=f"{ENV_VAR_PLACEHOLDER}/footprints/{fp_dir.name}",
+                    uri=f"{_env_placeholder(rules)}/footprints/{fp_dir.name}",
                 ))
 
     return serialize_lib_table("fp_lib_table", entries)
@@ -70,7 +74,7 @@ def write_generated_tables(
         generate_sym_lib_table(repo_root, rules=rules), encoding="utf-8",
     )
     (repo_root / "fp-lib-table").write_text(
-        generate_fp_lib_table(repo_root), encoding="utf-8",
+        generate_fp_lib_table(repo_root, rules=rules), encoding="utf-8",
     )
 
 
@@ -101,7 +105,7 @@ def check_tables_match_generated(
 
     # fp-lib-table
     fp_table_path = repo_root / "fp-lib-table"
-    expected_fp = generate_fp_lib_table(repo_root)
+    expected_fp = generate_fp_lib_table(repo_root, rules=rules)
     if fp_table_path.exists():
         actual_fp = fp_table_path.read_text(encoding="utf-8")
         if _normalize(actual_fp) != _normalize(expected_fp):

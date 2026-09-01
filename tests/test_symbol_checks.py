@@ -1,7 +1,7 @@
 """Tests for lab-specific symbol property validation.
 
 These tests encode our requirements:
-- Every symbol MUST have a Datasheet property with a URL (not empty, not '~')
+- Datasheet is optional, but when present it must be an http(s) URL
 - Every symbol MUST have a Validated property set to 'Yes' or 'No'
 - Malformed files must produce clear errors, not crash
 - All validation is YAML-driven via library_rules.yaml
@@ -235,12 +235,17 @@ class TestSymbolParsing:
         for sym in symbols:
             assert sym.name
 
-    def test_multi_symbol_library(self, valid_symbol_path):
-        """Should parse symbols from a multi-symbol library file."""
-        symbols = parse_kicad_sym(valid_symbol_path)
-        assert len(symbols) >= 1
-        for sym in symbols:
-            assert sym.name
+    def test_multi_symbol_library(self, tmp_path):
+        """Should parse every symbol from a library file with several."""
+        sym_file = tmp_path / "multi.kicad_sym"
+        sym_file.write_text(
+            '(kicad_symbol_lib (version 20251024)'
+            '  (symbol "First" (property "Reference" "U" (at 0 0 0)))'
+            '  (symbol "Second" (property "Reference" "U" (at 0 0 0)))'
+            ')'
+        )
+        symbols = parse_kicad_sym(sym_file)
+        assert [s.name for s in symbols] == ["First", "Second"]
 
     def test_pin_count_extracted(self, valid_symbol_path):
         """Should count pins in parsed symbols."""
@@ -416,3 +421,21 @@ class TestSymbolFlags:
         sym_file = tmp_path / "AharoniLab_Test.kicad_sym"
         sym_file.write_text('(kicad_symbol_lib (version 20241209) (symbol "X" (in_bom no) (property "Reference" "R")(property "Value" "X")))')
         assert check_symbol_flags(sym_file, LibraryRules()).passed
+
+
+class TestNoFalseChildExclusion:
+    def test_symbol_named_like_parent_plus_digits_is_not_excluded(self, tmp_path):
+        """A real symbol whose name is another symbol plus a digit suffix
+        (e.g. "R" and "R_0402") must be parsed and validated, not silently
+        skipped as a unit sub-symbol — units are nested inside their parent
+        node in the KiCad format and never appear at top level."""
+        from validator.checks import parse_kicad_sym
+        sym_file = tmp_path / "test.kicad_sym"
+        sym_file.write_text(
+            '(kicad_symbol_lib (version 20241209)'
+            '  (symbol "R" (property "Reference" "R" (at 0 0 0)))'
+            '  (symbol "R_0402" (property "Reference" "R" (at 0 0 0)))'
+            ')'
+        )
+        names = [s.name for s in parse_kicad_sym(sym_file)]
+        assert names == ["R", "R_0402"]

@@ -4,6 +4,7 @@ These tests ensure:
 - Footprints are parsed correctly (layers, pads, properties)
 - Required layers (F.Cu, F.CrtYd, F.Fab) are validated
 - Footprints must have at least one pad
+- 3D model references use ${AHARONI_LAB_KICAD_LIB} and point at files that exist
 """
 from __future__ import annotations
 
@@ -13,6 +14,7 @@ from validator.footprint_checks import (
     FootprintInfo,
     check_duplicate_pad_numbers,
     check_footprint_layers,
+    check_footprint_models,
     check_footprint_pads,
     check_footprint_properties,
     parse_kicad_mod,
@@ -28,12 +30,6 @@ class TestParseFootprint:
         assert "F.CrtYd" in info.layers
         assert "F.Fab" in info.layers
         assert info.pad_count == 2
-
-    def test_pad_count(self, fixtures_dir):
-        """Should count pads correctly."""
-        info = parse_kicad_mod(fixtures_dir / "valid_footprint.kicad_mod")
-        assert info.pad_count == 2
-
 
 class TestFootprintRequiredLayers:
     def test_footprint_has_required_layers_passes(self, fixtures_dir, rules):
@@ -290,3 +286,84 @@ class TestAttributeAwareLayers:
         )
         result = check_footprint_layers(fp_file, rules_no_layer_rules)
         assert result.passed
+
+
+class TestFootprintModels:
+    """3D model references must use ${AHARONI_LAB_KICAD_LIB} and exist on disk."""
+
+    def _write_footprint(self, tmp_path, model_path=None):
+        model = ''
+        if model_path is not None:
+            model = (
+                f'  (model "{model_path}"'
+                '    (offset (xyz 0 0 0))'
+                '    (scale (xyz 1 1 1))'
+                '    (rotate (xyz 0 0 0))'
+                '  )'
+            )
+        fp_file = tmp_path / "Test.kicad_mod"
+        fp_file.write_text(
+            '(footprint "Test"'
+            '  (layer "F.Cu")'
+            '  (pad "1" smd rect (at 0 0) (size 1 1) (layers "F.Cu"))'
+            f'{model}'
+            ')'
+        )
+        return fp_file
+
+    def test_parse_extracts_model_paths(self, tmp_path):
+        """Parser should collect (model ...) paths into FootprintInfo."""
+        fp_file = self._write_footprint(
+            tmp_path, "${AHARONI_LAB_KICAD_LIB}/3dmodels/Lib.3dshapes/x.step"
+        )
+        info = parse_kicad_mod(fp_file)
+        assert info.model_paths == [
+            "${AHARONI_LAB_KICAD_LIB}/3dmodels/Lib.3dshapes/x.step"
+        ]
+
+    def test_no_model_clause_passes(self, tmp_path):
+        """A footprint without any 3D model reference is allowed."""
+        fp_file = self._write_footprint(tmp_path)
+        result = check_footprint_models(fp_file, tmp_path)
+        assert result.passed
+
+    def test_valid_model_reference_passes(self, tmp_path):
+        """Model path using the env var and pointing at a real file passes."""
+        model_dir = tmp_path / "3dmodels" / "AharoniLab_Test.3dshapes"
+        model_dir.mkdir(parents=True)
+        (model_dir / "x.step").write_text("solid")
+        fp_file = self._write_footprint(
+            tmp_path,
+            "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Test.3dshapes/x.step",
+        )
+        result = check_footprint_models(fp_file, tmp_path)
+        assert result.passed
+
+    def test_wrong_env_var_fails(self, tmp_path):
+        """Model path using a different variable (e.g. legacy name) fails."""
+        fp_file = self._write_footprint(
+            tmp_path, "${KICAD_AHARONI_LAB}/Modules/Package_QFN.pretty/x.STEP"
+        )
+        result = check_footprint_models(fp_file, tmp_path)
+        assert not result.passed
+        assert any("${AHARONI_LAB_KICAD_LIB}" in e for e in result.errors)
+
+    def test_missing_model_file_fails(self, tmp_path):
+        """Model path using the env var but pointing at a missing file fails."""
+        fp_file = self._write_footprint(
+            tmp_path,
+            "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Test.3dshapes/missing.step",
+        )
+        result = check_footprint_models(fp_file, tmp_path)
+        assert not result.passed
+        assert any("does not exist" in e for e in result.errors)
+
+    def test_all_repo_model_references_resolve(self, repo_root, rules):
+        """Every 3D model referenced by a repo footprint must exist."""
+        fp_files = sorted(repo_root.glob("footprints/*.pretty/*.kicad_mod"))
+        assert fp_files, "no footprints found in repo"
+        failures = []
+        for fp_file in fp_files:
+            result = check_footprint_models(fp_file, repo_root)
+            failures.extend(result.errors)
+        assert not failures, "\n".join(failures)

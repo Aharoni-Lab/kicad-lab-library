@@ -30,3 +30,4 @@ inbox/
 
 # CI artifacts
 renders/
+*.egg-info/

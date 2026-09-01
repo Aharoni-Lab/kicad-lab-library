@@ -16,7 +16,7 @@ This automatically configures KiCad 10 to find the library. See [docs/INSTALL.md
 
 ## What's in the Library
 
-The library is ready for components. Libraries are created on demand as components are added. See [docs/CONVENTIONS.md](docs/CONVENTIONS.md) for naming and grouping rules.
+The library holds real, growing collections of symbols, footprints, and 3D models — new components are added through PRs and validated by CI. See [docs/CONVENTIONS.md](docs/CONVENTIONS.md) for naming and grouping rules.
 
 **Defined categories** (in `library_rules.yaml`):
 
