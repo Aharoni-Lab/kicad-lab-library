@@ -298,4 +298,15 @@
 		(uuid "061c7c16-4d4b-46cc-ba90-640485bde537")
 	)
 	(embedded_fonts no)
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/DSS0012B.stp"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
 )

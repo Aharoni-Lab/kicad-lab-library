@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
-from validator.checks import CheckResult
+from validator.checks import ENV_VAR_PLACEHOLDER, CheckResult
 from validator.config import LibraryRules
 from validator.sexpr import extract_properties, parse_sexpr
 
@@ -23,6 +23,7 @@ class FootprintInfo:
     pad_numbers: List[str] = field(default_factory=list)
     pad_types: List[str] = field(default_factory=list)
     attribute: Optional[str] = None
+    model_paths: List[str] = field(default_factory=list)
 
     @property
     def pad_count(self) -> int:
@@ -63,6 +64,16 @@ def _collect_pads(tree: list) -> tuple[List[str], List[str]]:
     return numbers, types
 
 
+def _collect_models(tree: list) -> List[str]:
+    """Collect 3D model paths from ``(model "...")`` nodes."""
+    return [
+        child[1]
+        for child in tree
+        if isinstance(child, list) and len(child) >= 2 and child[0] == 'model'
+        and isinstance(child[1], str)
+    ]
+
+
 def _extract_attribute(tree: list) -> Optional[str]:
     """Extract footprint attribute (smd, through_hole, etc.) from the tree."""
     for child in tree:
@@ -86,6 +97,7 @@ def parse_kicad_mod(filepath: str | Path) -> FootprintInfo:
     properties = extract_properties(tree)
     pad_numbers, pad_types = _collect_pads(tree)
     attribute = _extract_attribute(tree)
+    model_paths = _collect_models(tree)
 
     return FootprintInfo(
         name=name,
@@ -94,6 +106,7 @@ def parse_kicad_mod(filepath: str | Path) -> FootprintInfo:
         pad_numbers=pad_numbers,
         pad_types=pad_types,
         attribute=attribute,
+        model_paths=model_paths,
     )
 
 
@@ -241,6 +254,45 @@ def check_footprint_properties(
                     f"Footprint '{info.name}': {prop_name} property must match "
                     f"'{rule.pattern}' (got '{value}')"
                 )
+
+    return CheckResult(errors=errors)
+
+
+def check_footprint_models(
+    filepath: str | Path,
+    repo_root: str | Path,
+    *,
+    info: Optional[FootprintInfo] = None,
+) -> CheckResult:
+    """Check that 3D model references resolve within this repository.
+
+    A footprint may reference no model at all, but every ``(model ...)``
+    path it does carry must start with ``${AHARONI_LAB_KICAD_LIB}/`` and
+    point at a file that exists under *repo_root*.
+    """
+    filepath = Path(filepath)
+    repo_root = Path(repo_root)
+    errors: List[str] = []
+
+    if info is None:
+        try:
+            info = parse_kicad_mod(filepath)
+        except Exception as exc:
+            return CheckResult(errors=[f"Failed to parse footprint: {exc}"])
+
+    prefix = ENV_VAR_PLACEHOLDER + '/'
+    for model_path in info.model_paths:
+        if not model_path.startswith(prefix):
+            errors.append(
+                f"Footprint '{info.name}': 3D model path '{model_path}' "
+                f"must start with '{prefix}'"
+            )
+            continue
+        if not (repo_root / model_path[len(prefix):]).is_file():
+            errors.append(
+                f"Footprint '{info.name}': 3D model file does not exist: "
+                f"'{model_path}'"
+            )
 
     return CheckResult(errors=errors)
 

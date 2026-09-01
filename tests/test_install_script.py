@@ -224,3 +224,94 @@ class TestDryRunUninstall:
         install_mod.uninstall(config_dir, dry_run=True)
         assert (config_dir / "sym-lib-table").read_text() == original_content
         assert "AHARONI_LAB_KICAD_LIB" in (config_dir / "kicad_common.json").read_text()
+
+
+class TestUpsertAndFidelity:
+    def _write_tables(self, tmp_path, config_entries, repo_entries):
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        (config_dir / "sym-lib-table").write_text(
+            serialize_lib_table("sym_lib_table", config_entries)
+        )
+        repo_dir = tmp_path / "repo"
+        repo_dir.mkdir()
+        (repo_dir / "sym-lib-table").write_text(
+            serialize_lib_table("sym_lib_table", repo_entries)
+        )
+        return config_dir, repo_dir
+
+    def test_reinstall_updates_changed_entry(self, tmp_path):
+        """Re-install must refresh existing entries (URI/descr changes),
+        not skip them forever."""
+        old = LibTableEntry("AharoniLab_Passive", "KiCad", "/old/path", "", "old")
+        new = LibTableEntry(
+            "AharoniLab_Passive", "KiCad",
+            "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym",
+            "", "Passive components",
+        )
+        config_dir, repo_dir = self._write_tables(tmp_path, [old], [new])
+        install_mod.install(config_dir, repo_dir, dry_run=False)
+        result = parse_lib_table((config_dir / "sym-lib-table").read_text())
+        assert len(result) == 1
+        assert result[0].uri == new.uri
+        assert result[0].descr == "Passive components"
+
+    def test_install_preserves_disabled_flag_on_other_libs(self, tmp_path):
+        """Installing must not strip KiCad's (disabled) marker from the
+        user's unrelated libraries."""
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        (config_dir / "sym-lib-table").write_text(
+            '(sym_lib_table (version 7) '
+            '(lib (name "Other")(type "KiCad")(uri "/o")(options "")(descr "")(disabled)))'
+        )
+        repo_dir = tmp_path / "repo"
+        repo_dir.mkdir()
+        (repo_dir / "sym-lib-table").write_text(serialize_lib_table(
+            "sym_lib_table",
+            [LibTableEntry("AharoniLab_Passive", "KiCad", "/p", "", "")],
+        ))
+        install_mod.install(config_dir, repo_dir, dry_run=False)
+        text = (config_dir / "sym-lib-table").read_text()
+        assert "(disabled)" in text
+        by_name = {e.name: e for e in parse_lib_table(text)}
+        assert by_name["Other"].extras == [["disabled"]]
+        assert "AharoniLab_Passive" in by_name
+
+    def test_reinstall_preserves_disabled_flag_on_our_entry(self, tmp_path):
+        """A lab library the user deliberately disabled stays disabled
+        across re-installs."""
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        (config_dir / "sym-lib-table").write_text(
+            '(sym_lib_table (version 7) '
+            '(lib (name "AharoniLab_Passive")(type "KiCad")(uri "/old")'
+            '(options "")(descr "")(disabled)))'
+        )
+        repo_dir = tmp_path / "repo"
+        repo_dir.mkdir()
+        (repo_dir / "sym-lib-table").write_text(serialize_lib_table(
+            "sym_lib_table",
+            [LibTableEntry("AharoniLab_Passive", "KiCad", "/new", "", "")],
+        ))
+        install_mod.install(config_dir, repo_dir, dry_run=False)
+        result = parse_lib_table((config_dir / "sym-lib-table").read_text())
+        assert result[0].uri == "/new"
+        assert result[0].extras == [["disabled"]]
+
+    def test_uninstall_preserves_disabled_flag_on_other_libs(self, tmp_path):
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        (config_dir / "sym-lib-table").write_text(
+            '(sym_lib_table (version 7) '
+            '(lib (name "AharoniLab_Passive")(type "KiCad")(uri "/p")(options "")(descr "")) '
+            '(lib (name "Other")(type "KiCad")(uri "/o")(options "")(descr "")(disabled)))'
+        )
+        (config_dir / "kicad_common.json").write_text(
+            json.dumps({"environment": {"vars": {"AHARONI_LAB_KICAD_LIB": "/x"}}})
+        )
+        install_mod.uninstall(config_dir, dry_run=False)
+        text = (config_dir / "sym-lib-table").read_text()
+        entries = parse_lib_table(text)
+        assert [e.name for e in entries] == ["Other"]
+        assert "(disabled)" in text
