@@ -25,6 +25,7 @@ _FOOTPRINT_CHECKS = [
     ("pads", "Pads"),
     ("dup-pads", "Dup Pads"),
     ("fp-props", "Props"),
+    ("models", "3D Model"),
 ]
 
 _STRUCTURE_CHECKS = [
