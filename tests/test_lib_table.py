@@ -77,3 +77,58 @@ class TestSerializeLibTable:
     def test_serialize_ends_with_newline(self):
         text = serialize_lib_table("sym_lib_table", [])
         assert text.endswith("\n")
+
+
+class TestRoundTripFidelity:
+    """KiCad adds fields beyond the standard five to global tables, e.g.
+    a bare (disabled) marker on deactivated libraries. Rewriting a table
+    must preserve them, or install/uninstall silently re-enables the
+    user's disabled libraries."""
+
+    def test_disabled_flag_preserved(self):
+        text = (
+            '(sym_lib_table (version 7) '
+            '(lib (name "A")(type "KiCad")(uri "/a")(options "")(descr "")(disabled)))'
+        )
+        entries = parse_lib_table(text)
+        assert entries[0].extras == [["disabled"]]
+        out = serialize_lib_table("sym_lib_table", entries)
+        assert "(disabled)" in out
+        assert parse_lib_table(out)[0].extras == [["disabled"]]
+
+    def test_hidden_flag_preserved(self):
+        text = (
+            '(fp_lib_table (version 7) '
+            '(lib (name "A")(type "KiCad")(uri "/a")(options "")(descr "")(hidden)))'
+        )
+        out = serialize_lib_table("fp_lib_table", parse_lib_table(text))
+        assert "(hidden)" in out
+
+    def test_unknown_keyed_field_preserved(self):
+        text = (
+            '(sym_lib_table (version 7) '
+            '(lib (name "A")(type "KiCad")(uri "/a")(options "")(descr "")(future "x")))'
+        )
+        out = serialize_lib_table("sym_lib_table", parse_lib_table(text))
+        assert '(future "x")' in out
+
+
+class TestEscaping:
+    def test_quotes_in_descr_roundtrip(self):
+        e = LibTableEntry("L", "KiCad", "/p", "", 'A "quoted" descr')
+        parsed = parse_lib_table(serialize_lib_table("sym_lib_table", [e]))
+        assert parsed[0].descr == 'A "quoted" descr'
+
+    def test_backslash_in_uri_roundtrip(self):
+        e = LibTableEntry("L", "KiCad", "C:\\libs\\a.kicad_sym")
+        parsed = parse_lib_table(serialize_lib_table("sym_lib_table", [e]))
+        assert parsed[0].uri == "C:\\libs\\a.kicad_sym"
+
+
+class TestMissingPath:
+    def test_string_path_to_missing_file_raises(self, tmp_path):
+        """A path-like string to a nonexistent file must raise, not silently
+        parse as an empty table (a typo'd path looked like an empty table)."""
+        import pytest
+        with pytest.raises(ValueError, match="not found"):
+            parse_lib_table(str(tmp_path / "no-such-table"))
