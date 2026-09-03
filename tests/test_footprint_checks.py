@@ -367,3 +367,32 @@ class TestFootprintModels:
             result = check_footprint_models(fp_file, repo_root)
             failures.extend(result.errors)
         assert not failures, "\n".join(failures)
+
+class TestWildcardLayers:
+    """``(layers "*.Cu" "*.Mask")`` on THT pads counts as F.Cu and B.Cu."""
+
+    THT = (
+        '(footprint "THT2" (version 20241209) (generator "pcbnew") (layer "F.Cu")'
+        ' (descr "x https://example.com") (tags "x")'
+        ' (property "Reference" "REF**" (at 0 0 0) (layer "F.SilkS"))'
+        ' (property "Value" "THT2" (at 0 0 0) (layer "F.Fab"))'
+        ' (property "Validated" "No" (at 0 0 0) (layer "F.Fab") (hide yes))'
+        ' (attr through_hole)'
+        ' (fp_rect (start -2 -2) (end 2 2) (layer "F.CrtYd"))'
+        ' (fp_rect (start -1 -1) (end 1 1) (layer "F.Fab"))'
+        ' (pad "1" thru_hole circle (at 0 0) (size 1.7 1.7) (drill 1) (layers "*.Cu" "*.Mask"))'
+        ' (pad "2" thru_hole circle (at 2.54 0) (size 1.7 1.7) (drill 1) (layers "*.Cu" "*.Mask"))'
+        ')'
+    )
+
+    def test_wildcard_cu_satisfies_tht_layers(self, tmp_path, rules):
+        fp = tmp_path / "THT2.kicad_mod"
+        fp.write_text(self.THT)
+        result = check_footprint_layers(fp, rules)
+        assert result.passed, result.errors
+
+    def test_wildcard_expands_to_both_sides(self, tmp_path):
+        fp = tmp_path / "THT2.kicad_mod"
+        fp.write_text(self.THT)
+        info = parse_kicad_mod(fp)
+        assert {"F.Cu", "B.Cu", "F.Mask", "B.Mask"} <= info.layers
