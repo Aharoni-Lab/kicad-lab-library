@@ -53,6 +53,16 @@ Included material:
 - `3dmodels/AharoniLab_Inductor_SMD.3dshapes/L_Murata_DFE201610P.step`
   (from `Inductor_SMD.3dshapes`), used as a same-size stand-in model for the
   TDK `L_TDK_TFM201610ALMA` footprint
+- The `W25Q128JVSIQ` symbol in `symbols/AharoniLab_Memory.kicad_sym`
+  (from `Memory_Flash`: `W25Q128JVS`, derived upstream from `W25Q32JVSS`)
+- The `Crystal_GND24` symbol in `symbols/AharoniLab_Passive.kicad_sym`
+  (from `Device`)
+- `footprints/AharoniLab_Package_SO.pretty/SOIC-8_5.3x5.3mm_P1.27mm.kicad_mod`
+  and `3dmodels/AharoniLab_Package_SO.3dshapes/SOIC-8_5.3x5.3mm_P1.27mm.step`
+  (from `Package_SO`)
+- `footprints/AharoniLab_Crystal.pretty/Crystal_SMD_3225-4Pin_3.2x2.5mm.kicad_mod`
+  and `3dmodels/AharoniLab_Crystal.3dshapes/Crystal_SMD_3225-4Pin_3.2x2.5mm.step`
+  (from `Crystal`)
 
 Sources: <https://gitlab.com/kicad/libraries/kicad-symbols> (revision `b705e03a`),
 <https://gitlab.com/kicad/libraries/kicad-footprints> (revision `c2593cf2`),
@@ -60,12 +70,14 @@ Sources: <https://gitlab.com/kicad/libraries/kicad-symbols> (revision `b705e03a`
 SHA-256 after line-ending normalization:
 `SOT-23-5.step` `720a6eab0024069bbee68e7cb4c3ff1149468a34611225cdc852662c5d0ec2b7`,
 `SOT-23-6.step` `c9fe686b4d1b56927a41fa84a9bc1efb61d8a45a123a3db43bcaa05c2891d635`,
-`L_Murata_DFE201610P.step` `0829341686f236e20609ac5135af9e13e03950a3b8eacf3588f502bb45483e97`.
+`L_Murata_DFE201610P.step` `0829341686f236e20609ac5135af9e13e03950a3b8eacf3588f502bb45483e97`,
+`SOIC-8_5.3x5.3mm_P1.27mm.step` `121aee742692bb7bc9ef49972786ecb89d1b2d62ab089ed278651a884c800331`,
+`Crystal_SMD_3225-4Pin_3.2x2.5mm.step` `d2a89df82ee5f0f56ef23ee59c8161b8d4e92af2b21959d72778316dde3f9f22`.
 License: Creative Commons Attribution-ShareAlike 4.0 International, with the
 KiCad Libraries License exception (<https://www.kicad.org/libraries/license/>).
 
-Modifications: flattened the `TLV62569*` symbols, which upstream derives from
-`TLV62568*` via `extends`, into complete symbols; added lab validation and
+Modifications: flattened the `TLV62569*` and `W25Q128JVS` symbols, which
+upstream derives via `extends`, into complete symbols; added lab validation and
 provenance properties; repointed footprint and 3D model references to the
 AharoniLab libraries; removed the upstream `KiLib_Generator` property; switched
 datasheet links to HTTPS; added lab properties and a default AharoniLab

@@ -36,12 +36,13 @@ global_symbol_properties:
 # Additive to global_symbol_properties
 categories:
   AharoniLab_Passive:
-    description: "Passive components (resistors, capacitors, inductors, diodes)"
+    description: "Passive components (resistors, capacitors, inductors, diodes, crystals)"
     subcategories:
       resistor:  { reference_prefix: "R", pins: { min: 2, max: 2 } }
       capacitor: { reference_prefix: "C", pins: { min: 2, max: 2 } }
       inductor:  { reference_prefix: "L", pins: { min: 2, max: 2 } }
       diode:     { reference_prefix: "D", pins: { min: 2, max: 3 } }
+      crystal:   { reference_prefix: "Y", pins: { min: 2, max: 4 } }
   AharoniLab_Connector:
     description: "Connectors, headers and test points"
     subcategories:
