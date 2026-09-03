@@ -1,0 +1,210 @@
+(footprint "Texas_DTS0008A_SOT-5X3_1.2x2.1mm_P0.5mm"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Texas Instruments SOT-5X3 (DTS0008A), 8 leads, 1.2x2.1mm body, 0.5mm pitch, 0.6mm max height (OPT4001; https://www.ti.com/lit/ds/symlink/opt4001.pdf)")
+	(tags "SOT-5X3 DTS DTS0008A SOT")
+	(property "Reference" "REF**"
+		(at 0 -2 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Texas_DTS0008A_SOT-5X3_1.2x2.1mm_P0.5mm"
+		(at 0 2 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Validated" "No"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Contributor" "Daniel Aharoni"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Source" "Drawn from TI DTS0008A package drawing 4226132/G land pattern example (OPT4001 datasheet SBOS993A)"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_poly
+		(pts
+			(xy -0.3 -1.05)
+			(xy 0.6 -1.05)
+			(xy 0.6 1.05)
+			(xy -0.6 1.05)
+			(xy -0.6 -0.75)
+		)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "85dacb0c-86ad-4bc2-859a-978b309fcd09")
+	)
+	(fp_line
+		(start -0.71 -1.16)
+		(end 0.71 -1.16)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "e777f37d-c4fe-4d94-bbe7-5bb8a2c95a5a")
+	)
+	(fp_line
+		(start -0.71 1.16)
+		(end 0.71 1.16)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "69391d14-c36c-4666-a31a-c5108181a0c8")
+	)
+	(fp_line
+		(start -0.71 -1.16)
+		(end -1.32 -1.16)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "a4d793de-7de8-496e-bc0a-97819039b924")
+	)
+	(fp_rect
+		(start -1.47 -1.3)
+		(end 1.47 1.3)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "8b78d9fa-f3d2-4baa-9cc1-79b156d10cd0")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "f23fa39f-17ae-4121-a666-226d4afd1986")
+		(effects
+			(font
+				(size 0.5 0.5)
+				(thickness 0.075)
+			)
+		)
+	)
+	(pad "1" smd roundrect
+		(at -0.86 -0.75)
+		(size 0.72 0.3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "5f08bb41-b1de-46d1-9f9c-bf9fdbaeee9f")
+	)
+	(pad "2" smd roundrect
+		(at -0.86 -0.25)
+		(size 0.72 0.3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "1f845929-d343-40a4-bdaa-032f05ef838f")
+	)
+	(pad "3" smd roundrect
+		(at -0.86 0.25)
+		(size 0.72 0.3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "76ea21ce-56ff-459e-bc1a-7aac055e0b09")
+	)
+	(pad "4" smd roundrect
+		(at -0.86 0.75)
+		(size 0.72 0.3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "7124f8bb-3de6-4ce4-8bd8-9dc41adef2ec")
+	)
+	(pad "5" smd roundrect
+		(at 0.86 0.75)
+		(size 0.72 0.3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "955ecc73-45f9-48a0-bd69-24e6cf31a789")
+	)
+	(pad "6" smd roundrect
+		(at 0.86 0.25)
+		(size 0.72 0.3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "4b20fa02-3045-4d3f-9a75-56c15ace46b4")
+	)
+	(pad "7" smd roundrect
+		(at 0.86 -0.25)
+		(size 0.72 0.3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "93c8c747-a2a2-4740-8af0-33c7a3f2108c")
+	)
+	(pad "8" smd roundrect
+		(at 0.86 -0.75)
+		(size 0.72 0.3)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "6767cb8c-87a7-418a-910c-60326334699a")
+	)
+	(embedded_fonts no)
+)
