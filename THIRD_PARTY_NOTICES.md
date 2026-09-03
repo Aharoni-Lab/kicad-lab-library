@@ -77,6 +77,12 @@ Included material:
   FTSH-106 footprints
 - `footprints/AharoniLab_LED_SMD.pretty/LED_0805_2012Metric.kicad_mod` and its
   STEP model (from `LED_SMD`)
+- Symbol graphics and pin layout of `TMP117AIDRVR` in
+  `symbols/AharoniLab_Sensor.kicad_sym` (from `Sensor_Temperature`:
+  `TMP117xxDRV`, derived upstream from `TMP102xxDRL`)
+- `3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm.step`
+  (from `Package_SON.3dshapes`), linked to the lab-drawn `Texas_DRV0006A_*`
+  footprints
 
 Sources: <https://gitlab.com/kicad/libraries/kicad-symbols> (revision `b705e03a`),
 <https://gitlab.com/kicad/libraries/kicad-footprints> (revision `c2593cf2`),
@@ -90,11 +96,12 @@ SHA-256 after line-ending normalization:
 `IDC-Header_2x06_P2.54mm_Vertical.step` `22db52d400c42c3f1f280f407cfa3b928f5cee52d32e0c24e4ce2542c7fb8bc7`,
 `JST_PH_B3B-PH-K_1x03_P2.00mm_Vertical.step` `00cbe1522070150893f96728ffaa78070972f025d63c45f899e18b3060a41f2d`,
 `PinHeader_2x06_P1.27mm_Vertical_SMD.step` `dfbdf4cac7fb2444a0fee0da9561e052e641708453d0fad0c510694f3ad40b05`,
-`LED_0805_2012Metric.step` `0aa8b791804f5d72a2fc7d1bf231dd9959207d83df8ad801176fbc459f575b98`.
+`LED_0805_2012Metric.step` `0aa8b791804f5d72a2fc7d1bf231dd9959207d83df8ad801176fbc459f575b98`,
+`WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm.step` `a159a524ab16d3406353a16f8c20b59f5679eea26e2d41174628288b5b9da702`.
 License: Creative Commons Attribution-ShareAlike 4.0 International, with the
 KiCad Libraries License exception (<https://www.kicad.org/libraries/license/>).
 
-Modifications: flattened the `TLV62569*` and `W25Q128JVS` symbols, which
+Modifications: flattened the `TLV62569*`, `W25Q128JVS` and `TMP117xxDRV` symbols, which
 upstream derives via `extends`, into complete symbols; added lab validation and
 provenance properties; repointed footprint and 3D model references to the
 AharoniLab libraries; removed the upstream `KiLib_Generator` property; switched
