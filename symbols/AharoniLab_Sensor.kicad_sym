@@ -3554,7 +3554,7 @@
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
 		(property "Reference" "U"
-			(at -7.62 8.89 0)
+			(at -7.62 11.43 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3565,7 +3565,7 @@
 			)
 		)
 		(property "Value" "OPT4001DNPRQ1"
-			(at -7.62 -8.89 0)
+			(at -7.62 -11.43 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3835,7 +3835,7 @@
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
 		(property "Reference" "U"
-			(at -7.62 8.89 0)
+			(at -7.62 11.43 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3846,7 +3846,7 @@
 			)
 		)
 		(property "Value" "OPT4001DTSR"
-			(at -7.62 -8.89 0)
+			(at -7.62 -11.43 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4136,7 +4136,7 @@
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
 		(property "Reference" "U"
-			(at -7.62 8.89 0)
+			(at -7.62 11.43 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4147,7 +4147,7 @@
 			)
 		)
 		(property "Value" "TMP117AIDRVR"
-			(at -7.62 -8.89 0)
+			(at -7.62 -11.43 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
