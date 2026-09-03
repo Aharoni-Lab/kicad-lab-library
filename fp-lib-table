@@ -2,6 +2,7 @@
   (version 7)
   (lib (name "AharoniLab_Capacitor_SMD")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Capacitor_SMD.pretty")(options "")(descr ""))
   (lib (name "AharoniLab_Connector")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Connector.pretty")(options "")(descr ""))
+  (lib (name "AharoniLab_Crystal")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Crystal.pretty")(options "")(descr ""))
   (lib (name "AharoniLab_Inductor_SMD")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Inductor_SMD.pretty")(options "")(descr ""))
   (lib (name "AharoniLab_LED_SMD")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_LED_SMD.pretty")(options "")(descr ""))
   (lib (name "AharoniLab_Package_BGA")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Package_BGA.pretty")(options "")(descr ""))

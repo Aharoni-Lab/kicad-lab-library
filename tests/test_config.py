@@ -123,6 +123,11 @@ class TestCategoryWithSubcategories:
         assert "capacitor" in passive.subcategories
         assert "inductor" in passive.subcategories
         assert "diode" in passive.subcategories
+        assert "crystal" in passive.subcategories
+        crystal = passive.subcategories["crystal"]
+        assert crystal.reference_prefix == "Y"
+        assert crystal.pins.min == 2
+        assert crystal.pins.max == 4
 
     def test_subcategory_has_prefix_and_pins(self, rules):
         """Subcategories should have reference_prefix and pin ranges."""
