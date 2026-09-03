@@ -83,6 +83,10 @@ Included material:
 - `3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm.step`
   (from `Package_SON.3dshapes`), linked to the lab-drawn `Texas_DRV0006A_*`
   footprints
+- The `AS7341-DLGM` symbol in `symbols/AharoniLab_Sensor.kicad_sym` (from
+  `Sensor_Optical`: `AS7341DLG`) and
+  `footprints/AharoniLab_Package_DFN_QFN.pretty/AMS_OLGA-8_2x3.1mm_P0.8mm.kicad_mod`
+  (from `Package_LGA`; no upstream STEP model exists)
 
 Sources: <https://gitlab.com/kicad/libraries/kicad-symbols> (revision `b705e03a`),
 <https://gitlab.com/kicad/libraries/kicad-footprints> (revision `c2593cf2`),
