@@ -43,10 +43,14 @@ def _collect_layers(node: list) -> Set[str]:
                 # Direct layer reference: (layer "F.Cu")
                 layers.add(child[1])
             elif child[0] == 'layers':
-                # Pad layers: (layers "F.Cu" "F.Paste" "F.Mask")
+                # Pad layers: (layers "F.Cu" "F.Paste" "F.Mask"); THT pads use
+                # wildcards like "*.Cu", which KiCad expands to both sides.
                 for item in child[1:]:
                     if isinstance(item, str):
                         layers.add(item)
+                        if item.startswith('*.'):
+                            layers.add('F' + item[1:])
+                            layers.add('B' + item[1:])
             else:
                 # Recurse
                 layers.update(_collect_layers(child))
