@@ -2184,7 +2184,6 @@
 			(pin passive line
 				(at 0 5.08 270)
 				(length 1.27)
-				(hide yes)
 				(name "G"
 					(effects
 						(font
