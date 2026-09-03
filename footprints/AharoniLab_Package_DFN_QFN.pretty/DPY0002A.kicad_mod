@@ -1,0 +1,195 @@
+(footprint "DPY0002A"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "TI X1SON-2 (DPY0002A), 1.0x0.6mm body, 0.65mm pitch, 0.45mm max height, https://www.ti.com/lit/ds/symlink/tpd1e10b06.pdf")
+	(tags "X1SON SON DPY TI 0402")
+	(property "Reference" "REF**"
+		(at 0 -1.2 0)
+		(layer "F.SilkS")
+		(uuid "f6621d8f-30f9-441e-853f-3a1d4f2662b8")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "DPY0002A"
+		(at 0 1.2 0)
+		(layer "F.Fab")
+		(uuid "e28dc54d-8268-4f17-ba25-60c8edc1ee61")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "63e74b89-301b-4fc4-b744-0284b3738e53")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "91d1dd23-b0da-45c3-9957-3aa9baef2a09")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Validated" "No"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "700695e1-15e1-4a5a-95b4-951c19c42b08")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Contributor" "Daniel Aharoni"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "5b00298e-e405-462a-9cd8-14d70a765592")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Source" "TI datasheet land pattern; 3D model from Ultra Librarian (TI)"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "888bb6e4-a8da-4dcb-aadd-dcca9c0cb84d")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_poly
+			(pts
+				(xy -0.35 -0.3)
+				(xy 0.5 -0.3)
+				(xy 0.5 0.3)
+				(xy -0.5 0.3)
+				(xy -0.5 -0.15)
+			)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "759e1940-e252-4a07-ae8b-56f7d4554bdd")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "dea39124-2e2e-47a1-aaf8-8e75c769dee3")
+		(effects
+			(font
+				(size 0.5 0.5)
+				(thickness 0.075)
+			)
+		)
+	)
+	(fp_line
+		(start -0.72 -0.3)
+		(end -0.72 0.3)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "2dcf4417-9d89-43e4-86fb-d9b19ebef399")
+	)
+	(fp_line
+		(start -0.85 -0.5)
+		(end 0.85 -0.5)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "73d1234b-2070-42b1-be6f-d035eea94ee1")
+	)
+	(fp_line
+		(start 0.85 -0.5)
+		(end 0.85 0.5)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "315314f6-1d52-4bf0-b3cb-35dc6428e639")
+	)
+	(fp_line
+		(start 0.85 0.5)
+		(end -0.85 0.5)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "c6bc8080-d932-4af7-8d2f-f5e809bd83bf")
+	)
+	(fp_line
+		(start -0.85 0.5)
+		(end -0.85 -0.5)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "dd805b8e-d79c-4f3e-b089-891f6708a2fb")
+	)
+	(pad "1" smd roundrect
+		(at -0.35 0)
+		(size 0.3 0.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "0a977dd8-9151-45c7-a519-cee370ed1eac")
+	)
+	(pad "2" smd roundrect
+		(at 0.35 0)
+		(size 0.3 0.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "fbb9ce2f-2ba0-415e-97bf-5366e4581c21")
+	)
+	(embedded_fonts no)
+	(model "${AHARONI_LAB_KICAD_LIB}/3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/DPY0002A.stp"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 0 0)
+		)
+	)
+)
