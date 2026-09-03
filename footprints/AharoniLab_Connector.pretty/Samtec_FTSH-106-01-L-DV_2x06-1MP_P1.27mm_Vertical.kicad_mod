@@ -76,7 +76,6 @@
 		)
 	)
 	(attr smd)
-	(duplicate_pin_numbers_are_jumpers no)
 	(fp_poly
 		(pts
 			(xy -1.215 -3.81) (xy 1.715 -3.81) (xy 1.715 3.81) (xy -1.715 3.81) (xy -1.715 -3.31)

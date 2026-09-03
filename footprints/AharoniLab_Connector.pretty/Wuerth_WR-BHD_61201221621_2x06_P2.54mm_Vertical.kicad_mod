@@ -76,7 +76,6 @@
 		)
 	)
 	(attr through_hole)
-	(duplicate_pin_numbers_are_jumpers no)
 	(fp_line
 		(start -3.18 -4.1)
 		(end -3.18 17.8)
