@@ -26,6 +26,7 @@ class SymbolInfo:
     pin_count: int = 0
     in_bom: Optional[bool] = None
     on_board: Optional[bool] = None
+    extends: Optional[str] = None
 
 
 def _count_pins(sexpr_node: list) -> int:
@@ -51,12 +52,25 @@ def _extract_flags(node: list) -> Dict[str, bool]:
     return flags
 
 
+def _extract_extends(node: list) -> Optional[str]:
+    """Return the parent name from ``(extends "Parent")``, if present."""
+    for child in node:
+        if isinstance(child, list) and len(child) == 2 and child[0] == 'extends':
+            return child[1]
+    return None
+
+
 def parse_kicad_sym(filepath: str | Path) -> List[SymbolInfo]:
     """Parse a ``.kicad_sym`` file and return a list of :class:`SymbolInfo`.
 
     Every top-level symbol node is a real symbol: unit sub-symbols like
     ``C_0_1`` are nested *inside* their parent node in the KiCad format,
     so they never appear at this level.
+
+    Derived symbols (``(extends "Parent")``) carry their own properties but
+    no graphics or pins; their ``pin_count`` is inherited from the parent.
+    A derived symbol whose parent is not in the same file raises
+    :class:`ValueError`, since KiCad cannot load it either.
     """
     filepath = Path(filepath)
     text = filepath.read_text(encoding='utf-8')
@@ -74,7 +88,33 @@ def parse_kicad_sym(filepath: str | Path) -> List[SymbolInfo]:
             pin_count=_count_pins(node),
             in_bom=flags.get('in_bom'),
             on_board=flags.get('on_board'),
+            extends=_extract_extends(node),
         ))
+
+    # Resolve inherited pin counts (parents may themselves be derived).
+    by_name = {sym.name: sym for sym in symbols}
+    for sym in symbols:
+        if sym.extends is None:
+            continue
+        seen = {sym.name}
+        parent = by_name.get(sym.extends)
+        while parent is not None and parent.extends is not None:
+            if parent.name in seen:
+                raise ValueError(
+                    f"Symbol '{sym.name}': circular extends chain via '{parent.name}'"
+                )
+            seen.add(parent.name)
+            parent = by_name.get(parent.extends)
+        if parent is None:
+            raise ValueError(
+                f"Symbol '{sym.name}': extends unknown parent '{sym.extends}' "
+                f"(parent must be defined in the same file)"
+            )
+        sym.pin_count = parent.pin_count
+        if sym.in_bom is None:
+            sym.in_bom = parent.in_bom
+        if sym.on_board is None:
+            sym.on_board = parent.on_board
 
     return symbols
 

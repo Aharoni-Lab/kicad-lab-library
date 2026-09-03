@@ -298,6 +298,35 @@ class TestReferencePrefix:
         result = check_reference_prefix(sym_file, rules)
         assert result.passed
 
+    def test_testpoint_prefix_in_connector_passes(self, tmp_path, rules):
+        """A one-pin TP symbol is allowed in the Connector library."""
+        sym_file = tmp_path / "AharoniLab_Connector.kicad_sym"
+        sym_file.write_text(
+            '(kicad_symbol_lib (version 20241209) (symbol "TestPoint"'
+            '  (property "Reference" "TP")'
+            '  (property "Value" "TestPoint")'
+            '  (symbol "TestPoint_1_1"'
+            '    (pin passive line (at 0 0 90) (length 2.54) (name "1") (number "1"))'
+            '  )'
+            '))'
+        )
+        assert check_reference_prefix(sym_file, rules).passed
+        assert check_pin_counts(sym_file, rules).passed
+
+    def test_two_pin_testpoint_fails(self, tmp_path, rules):
+        sym_file = tmp_path / "AharoniLab_Connector.kicad_sym"
+        sym_file.write_text(
+            '(kicad_symbol_lib (version 20241209) (symbol "TestPoint"'
+            '  (property "Reference" "TP")'
+            '  (property "Value" "TestPoint")'
+            '  (symbol "TestPoint_1_1"'
+            '    (pin passive line (at 0 0 90) (length 2.54) (name "1") (number "1"))'
+            '    (pin passive line (at 0 5 90) (length 2.54) (name "2") (number "2"))'
+            '  )'
+            '))'
+        )
+        assert not check_pin_counts(sym_file, rules).passed
+
     def test_unknown_category_skips(self, tmp_path, rules):
         """Files not in categories should be skipped (no errors)."""
         sym_file = tmp_path / "AharoniLab_Unknown.kicad_sym"
@@ -309,6 +338,80 @@ class TestReferencePrefix:
         )
         result = check_reference_prefix(sym_file, rules)
         assert result.passed
+
+
+class TestDerivedSymbols:
+    """Symbols using ``(extends "Parent")`` inherit pins from the parent."""
+
+    DERIVED_LIB = (
+        '(kicad_symbol_lib (version 20241209)'
+        '  (symbol "LDO_Base"'
+        '    (property "Reference" "U")'
+        '    (property "Value" "LDO_Base")'
+        '    (symbol "LDO_Base_1_1"'
+        '      (pin power_in line (at -5 0 0) (length 2.54) (name "IN") (number "1"))'
+        '      (pin power_in line (at 0 -5 90) (length 2.54) (name "GND") (number "2"))'
+        '      (pin input line (at -5 -2 0) (length 2.54) (name "EN") (number "3"))'
+        '      (pin power_out line (at 5 0 180) (length 2.54) (name "OUT") (number "5"))'
+        '    )'
+        '  )'
+        '  (symbol "LDO_3V3" (extends "LDO_Base")'
+        '    (property "Reference" "U")'
+        '    (property "Value" "LDO_3V3")'
+        '    (property "MPN" "LDO-33")'
+        '  )'
+        ')'
+    )
+
+    def test_derived_symbol_records_parent(self, tmp_path):
+        sym_file = tmp_path / "AharoniLab_Power.kicad_sym"
+        sym_file.write_text(self.DERIVED_LIB)
+        symbols = {s.name: s for s in parse_kicad_sym(sym_file)}
+        assert symbols["LDO_Base"].extends is None
+        assert symbols["LDO_3V3"].extends == "LDO_Base"
+
+    def test_derived_symbol_inherits_pin_count(self, tmp_path):
+        sym_file = tmp_path / "AharoniLab_Power.kicad_sym"
+        sym_file.write_text(self.DERIVED_LIB)
+        symbols = {s.name: s for s in parse_kicad_sym(sym_file)}
+        assert symbols["LDO_Base"].pin_count == 4
+        assert symbols["LDO_3V3"].pin_count == 4
+
+    def test_derived_symbol_keeps_own_properties(self, tmp_path):
+        sym_file = tmp_path / "AharoniLab_Power.kicad_sym"
+        sym_file.write_text(self.DERIVED_LIB)
+        symbols = {s.name: s for s in parse_kicad_sym(sym_file)}
+        assert symbols["LDO_3V3"].properties["MPN"] == "LDO-33"
+        assert "MPN" not in symbols["LDO_Base"].properties
+
+    def test_derived_symbol_inherits_flags(self, tmp_path):
+        sym_file = tmp_path / "AharoniLab_Power.kicad_sym"
+        sym_file.write_text(self.DERIVED_LIB.replace(
+            '(symbol "LDO_Base"', '(symbol "LDO_Base" (in_bom yes) (on_board no)', 1))
+        symbols = {s.name: s for s in parse_kicad_sym(sym_file)}
+        assert symbols["LDO_3V3"].in_bom is True
+        assert symbols["LDO_3V3"].on_board is False
+
+    def test_derived_symbol_passes_pin_count_check(self, tmp_path, rules):
+        """A derived Power symbol must not fail the 3-pin minimum."""
+        sym_file = tmp_path / "AharoniLab_Power.kicad_sym"
+        sym_file.write_text(self.DERIVED_LIB)
+        result = check_pin_counts(sym_file, rules)
+        assert result.passed, result.errors
+
+    def test_derived_symbol_with_missing_parent_errors(self, tmp_path, rules):
+        sym_file = tmp_path / "AharoniLab_Power.kicad_sym"
+        sym_file.write_text(
+            '(kicad_symbol_lib (version 20241209)'
+            '  (symbol "Orphan" (extends "Nope")'
+            '    (property "Reference" "U")'
+            '    (property "Value" "Orphan")'
+            '  )'
+            ')'
+        )
+        result = check_pin_counts(sym_file, rules)
+        assert not result.passed
+        assert any("Nope" in e for e in result.errors)
 
 
 class TestPinCounts:

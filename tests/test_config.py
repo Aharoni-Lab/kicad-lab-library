@@ -139,14 +139,18 @@ class TestCategoryWithSubcategories:
 
 
 class TestCategoryWithoutSubcategories:
-    def test_connector_is_simple(self, rules):
-        """AharoniLab_Connector should be a simple category (no subcategories)."""
+    def test_connector_has_connector_and_testpoint_subcategories(self, rules):
+        """AharoniLab_Connector holds J connectors and one-pin TP test points."""
         conn = rules.categories["AharoniLab_Connector"]
-        assert conn.subcategories is None
-        assert conn.reference_prefix == "J"
-        assert conn.pins is not None
-        assert conn.pins.min == 2
-        assert conn.pins.max is None
+        assert conn.subcategories is not None
+        connector = conn.subcategories["connector"]
+        assert connector.reference_prefix == "J"
+        assert connector.pins.min == 2
+        assert connector.pins.max is None
+        testpoint = conn.subcategories["testpoint"]
+        assert testpoint.reference_prefix == "TP"
+        assert testpoint.pins.min == 1
+        assert testpoint.pins.max == 1
 
     def test_mcu_has_minimum_pins(self, rules):
         """AharoniLab_MCU should require at least 8 pins."""
