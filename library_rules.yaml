@@ -43,9 +43,10 @@ categories:
       inductor:  { reference_prefix: "L", pins: { min: 2, max: 2 } }
       diode:     { reference_prefix: "D", pins: { min: 2, max: 3 } }
   AharoniLab_Connector:
-    description: "Connectors and headers"
-    reference_prefix: "J"
-    pins: { min: 2 }
+    description: "Connectors, headers and test points"
+    subcategories:
+      connector: { reference_prefix: "J",  pins: { min: 2 } }
+      testpoint: { reference_prefix: "TP", pins: { min: 1, max: 1 } }
   AharoniLab_MCU:
     description: "Microcontrollers"
     reference_prefix: "U"

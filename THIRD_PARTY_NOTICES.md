@@ -48,13 +48,19 @@ Included material:
   (silkscreen and metadata redrawn)
 - `3dmodels/AharoniLab_Package_SOT.3dshapes/SOT-23-5.step` and `SOT-23-6.step`
   (from `Package_TO_SOT_SMD.3dshapes`)
+- The `TestPoint` symbol in `symbols/AharoniLab_Connector.kicad_sym`
+  (from `Connector`)
+- `3dmodels/AharoniLab_Inductor_SMD.3dshapes/L_Murata_DFE201610P.step`
+  (from `Inductor_SMD.3dshapes`), used as a same-size stand-in model for the
+  TDK `L_TDK_TFM201610ALMA` footprint
 
 Sources: <https://gitlab.com/kicad/libraries/kicad-symbols> (revision `b705e03a`),
 <https://gitlab.com/kicad/libraries/kicad-footprints> (revision `c2593cf2`),
 <https://gitlab.com/kicad/libraries/kicad-packages3D> (revision `e62ed1fc`).
 SHA-256 after line-ending normalization:
 `SOT-23-5.step` `720a6eab0024069bbee68e7cb4c3ff1149468a34611225cdc852662c5d0ec2b7`,
-`SOT-23-6.step` `c9fe686b4d1b56927a41fa84a9bc1efb61d8a45a123a3db43bcaa05c2891d635`.
+`SOT-23-6.step` `c9fe686b4d1b56927a41fa84a9bc1efb61d8a45a123a3db43bcaa05c2891d635`,
+`L_Murata_DFE201610P.step` `0829341686f236e20609ac5135af9e13e03950a3b8eacf3588f502bb45483e97`.
 License: Creative Commons Attribution-ShareAlike 4.0 International, with the
 KiCad Libraries License exception (<https://www.kicad.org/libraries/license/>).
 
@@ -62,7 +68,8 @@ Modifications: flattened the `TLV62569*` symbols, which upstream derives from
 `TLV62568*` via `extends`, into complete symbols; added lab validation and
 provenance properties; repointed footprint and 3D model references to the
 AharoniLab libraries; removed the upstream `KiLib_Generator` property; switched
-datasheet links to HTTPS. STEP geometry is unchanged.
+datasheet links to HTTPS; added lab properties and a default AharoniLab
+footprint to the `TestPoint` symbol. STEP geometry is unchanged.
 
 ## SnapMagic USB4105-GF-A-120 3D Model
 
