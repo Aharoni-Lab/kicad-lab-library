@@ -5,6 +5,7 @@
   (lib (name "AharoniLab_Crystal")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Crystal.pretty")(options "")(descr ""))
   (lib (name "AharoniLab_Inductor_SMD")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Inductor_SMD.pretty")(options "")(descr ""))
   (lib (name "AharoniLab_LED_SMD")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_LED_SMD.pretty")(options "")(descr ""))
+  (lib (name "AharoniLab_OptoDevice")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_OptoDevice.pretty")(options "")(descr ""))
   (lib (name "AharoniLab_Package_BGA")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Package_BGA.pretty")(options "")(descr ""))
   (lib (name "AharoniLab_Package_DFN_QFN")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Package_DFN_QFN.pretty")(options "")(descr ""))
   (lib (name "AharoniLab_Package_QFP")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Package_QFP.pretty")(options "")(descr ""))
