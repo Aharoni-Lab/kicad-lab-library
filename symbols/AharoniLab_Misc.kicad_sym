@@ -2123,7 +2123,7 @@
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
 		(property "Reference" "U"
-			(at 2.54 13.97 0)
+			(at 0 16.51 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2133,7 +2133,7 @@
 			)
 		)
 		(property "Value" "ADS1115IDGSR"
-			(at 7.62 11.43 0)
+			(at 0 14.605 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
