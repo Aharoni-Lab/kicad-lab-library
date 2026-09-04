@@ -3032,7 +3032,7 @@
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
 		(property "Reference" "J"
-			(at -5.08 26.669999999999998 0)
+			(at -5.08 26.67 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3043,7 +3043,7 @@
 			)
 		)
 		(property "Value" "1.0K-FX-15PWBG"
-			(at -5.08 -26.669999999999998 0)
+			(at -5.08 -29.21 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
