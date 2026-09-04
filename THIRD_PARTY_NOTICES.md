@@ -144,7 +144,9 @@ footprint to the `TestPoint` symbol; moved the box-header polarization notch
 to the even-pin row and set 1.1 mm holes per the Wuerth drawing; reused the
 `LM2902`, `Q_NMOS_GSD`, `Q_Dual_NMOS_S1G1D2S2G2D1` and `TMUX4051PW` drawings for
 the pin-compatible parts named above, retyped the MCP4728 `RDY/BSY` pin as
-open-collector and the TMUX1308 pin 7 as a hidden no-connect. STEP geometry
+open-collector, renamed its `VOUTx` pins to `OUTx`, widened its pin-name offset
+to 20 mils (also on the quad op-amp) and retyped the TMUX1308 pin 7 as a hidden
+no-connect. STEP geometry
 is unchanged.
 
 ## SnapMagic USB4105-GF-A-120 3D Model

@@ -445,6 +445,7 @@
 			(pin no_connect line
 				(at -25.4 -5.08 0)
 				(length 5.08)
+				(hide yes)
 				(name "NC"
 					(effects
 						(font
@@ -465,7 +466,7 @@
 	)
 	(symbol "TLV4333IPWR"
 		(pin_names
-			(offset 0.127)
+			(offset 0.508)
 		)
 		(exclude_from_sim no)
 		(in_bom yes)
