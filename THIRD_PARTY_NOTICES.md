@@ -87,6 +87,31 @@ Included material:
   `Sensor_Optical`: `AS7341DLG`) and
   `footprints/AharoniLab_Package_DFN_QFN.pretty/AMS_OLGA-8_2x3.1mm_P0.8mm.kicad_mod`
   (from `Package_LGA`; no upstream STEP model exists)
+- The `MCP4728T-E_UN` symbol in `symbols/AharoniLab_Misc.kicad_sym`
+  (from `Analog_DAC`: `MCP4728`)
+- Symbol graphics and pin layout of `TLV4333IPWR` in
+  `symbols/AharoniLab_OpAmp.kicad_sym` (from `Amplifier_Operational`: `LM2902`,
+  which carries the same quad op-amp pinout)
+- The `DMN2056U-7` and `DMN2004DWK-7` symbols in
+  `symbols/AharoniLab_Transistor.kicad_sym` (from `Transistor_FET`:
+  `Q_NMOS_GSD` and `Q_Dual_NMOS_S1G1D2S2G2D1`)
+- The `SN74LVC2G04DBVR` symbol in `symbols/AharoniLab_Logic.kicad_sym`
+  (from `74xGxx`: `74LVC2G04`)
+- Symbol graphics and pin layout of `TMUX1308PWR` in
+  `symbols/AharoniLab_Misc.kicad_sym` (from `Analog_Switch`: `TMUX4051PW`,
+  which carries the same TSSOP-16 pinout)
+- `footprints/AharoniLab_Package_SO.pretty/MSOP-10_3x3mm_P0.5mm.kicad_mod`,
+  `TSSOP-14_4.4x5mm_P0.65mm.kicad_mod` and `TSSOP-16_4.4x5mm_P0.65mm.kicad_mod`
+  with their STEP models (from `Package_SO`)
+- `footprints/AharoniLab_Package_SOT.pretty/SOT-23.kicad_mod` and its STEP model
+  (from `Package_TO_SOT_SMD`)
+- `footprints/AharoniLab_Resistor_SMD.pretty/R_1206_3216Metric_N.kicad_mod` and
+  `3dmodels/AharoniLab_Resistor_SMD.3dshapes/R_1206_3216Metric.step`
+  (from `Resistor_SMD`)
+- Silkscreen and courtyard geometry of
+  `footprints/AharoniLab_LED_SMD.pretty/LED_PLCC-2_3.5x2.8mm_Nested2214_KA.kicad_mod`
+  (from `LED_SMD`: `LED_PLCC-2_3.4x3.0mm_AK`); its land pattern is lab-drawn
+  from the Wuerth and ams-OSRAM drawings and no upstream STEP model exists
 
 Sources: <https://gitlab.com/kicad/libraries/kicad-symbols> (revision `b705e03a`),
 <https://gitlab.com/kicad/libraries/kicad-footprints> (revision `c2593cf2`),
@@ -101,7 +126,12 @@ SHA-256 after line-ending normalization:
 `JST_PH_B3B-PH-K_1x03_P2.00mm_Vertical.step` `00cbe1522070150893f96728ffaa78070972f025d63c45f899e18b3060a41f2d`,
 `PinHeader_2x06_P1.27mm_Vertical_SMD.step` `dfbdf4cac7fb2444a0fee0da9561e052e641708453d0fad0c510694f3ad40b05`,
 `LED_0805_2012Metric.step` `0aa8b791804f5d72a2fc7d1bf231dd9959207d83df8ad801176fbc459f575b98`,
-`WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm.step` `a159a524ab16d3406353a16f8c20b59f5679eea26e2d41174628288b5b9da702`.
+`WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm.step` `a159a524ab16d3406353a16f8c20b59f5679eea26e2d41174628288b5b9da702`,
+`MSOP-10_3x3mm_P0.5mm.step` `b8f88eac3ce221c2ccb0b5048f9ad49c2ef4af148f8ae50c4e232e357683f547`,
+`TSSOP-14_4.4x5mm_P0.65mm.step` `3ee5786aae56190997aa793ba3cfc003fd616782770e29719b4562f012982245`,
+`TSSOP-16_4.4x5mm_P0.65mm.step` `6ad5e98224d02a427d9a6b929a28dbc158b9925fba5adec12db05079f1016948`,
+`SOT-23.step` `dd5d1711204e1d8d26cd11490923bd84340820baa69538c385a4300ec2539bc0`,
+`R_1206_3216Metric.step` `f5d1ea5c47935091292bd1c6c698e0df88d3d4bbf92bf66b4c97e49df5be9ebc`.
 License: Creative Commons Attribution-ShareAlike 4.0 International, with the
 KiCad Libraries License exception (<https://www.kicad.org/libraries/license/>).
 
@@ -111,7 +141,10 @@ provenance properties; repointed footprint and 3D model references to the
 AharoniLab libraries; removed the upstream `KiLib_Generator` property; switched
 datasheet links to HTTPS; added lab properties and a default AharoniLab
 footprint to the `TestPoint` symbol; moved the box-header polarization notch
-to the even-pin row and set 1.1 mm holes per the Wuerth drawing. STEP geometry
+to the even-pin row and set 1.1 mm holes per the Wuerth drawing; reused the
+`LM2902`, `Q_NMOS_GSD`, `Q_Dual_NMOS_S1G1D2S2G2D1` and `TMUX4051PW` drawings for
+the pin-compatible parts named above, retyped the MCP4728 `RDY/BSY` pin as
+open-collector and the TMUX1308 pin 7 as a hidden no-connect. STEP geometry
 is unchanged.
 
 ## SnapMagic USB4105-GF-A-120 3D Model
