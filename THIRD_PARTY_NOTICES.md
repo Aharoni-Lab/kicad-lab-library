@@ -124,6 +124,15 @@ Included material:
 - The `D_Photo` symbol in `symbols/AharoniLab_Passive.kicad_sym` (from `Device`)
 - `footprints/AharoniLab_Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod`
   and its STEP model (from `Package_SO`)
+- The `DRV8833PWPR` symbol in `symbols/AharoniLab_Power.kicad_sym`
+  (from `Driver_Motor`: `DRV8833PWP`)
+- `footprints/AharoniLab_Package_SO.pretty/HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm_Mask2.46x2.31mm.kicad_mod`
+  (from `Package_SO`), together with the `HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm`
+  STEP model (the mask variant has no separate upstream model)
+- Symbol graphics and contact tabs of `BM07B-SRSS-TB` in
+  `symbols/AharoniLab_Connector.kicad_sym` (from `Connector_Generic`: `Conn_01x07`)
+- `footprints/AharoniLab_Connector.pretty/JST_SH_BM07B-SRSS-TB_1x07-2MP_P1.00mm_Vertical.kicad_mod`
+  and its STEP model (from `Connector_JST`: `JST_SH_BM07B-SRSS-TB_1x07-1MP_P1.00mm_Vertical`)
 
 Sources: <https://gitlab.com/kicad/libraries/kicad-symbols> (revision `b705e03a`),
 <https://gitlab.com/kicad/libraries/kicad-footprints> (revision `c2593cf2`),
@@ -144,7 +153,11 @@ SHA-256 after line-ending normalization:
 `TSSOP-16_4.4x5mm_P0.65mm.step` `6ad5e98224d02a427d9a6b929a28dbc158b9925fba5adec12db05079f1016948`,
 `SOT-23.step` `dd5d1711204e1d8d26cd11490923bd84340820baa69538c385a4300ec2539bc0`,
 `R_1206_3216Metric.step` `f5d1ea5c47935091292bd1c6c698e0df88d3d4bbf92bf66b4c97e49df5be9ebc`,
-`SOIC-8_3.9x4.9mm_P1.27mm.step` `07f46cff378d30e6c27dfd5a03092c795323f86d91c71fc7e743f4f418dc553a`.
+`SOIC-8_3.9x4.9mm_P1.27mm.step` `07f46cff378d30e6c27dfd5a03092c795323f86d91c71fc7e743f4f418dc553a`,
+`HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm_Mask2.46x2.31mm.step`
+`162c198aebee57d60d962a52091321dc07d3f4e6e991d64310c77e10a802cf8f`,
+`JST_SH_BM07B-SRSS-TB_1x07-2MP_P1.00mm_Vertical.step`
+`7df6eb693edebff163e7f953295508a8dc894e09fba0d898788e96be8c7b0dd8`.
 License: Creative Commons Attribution-ShareAlike 4.0 International, with the
 KiCad Libraries License exception (<https://www.kicad.org/libraries/license/>).
 
@@ -163,8 +176,12 @@ no-connect; reused the `OPA2325`, `MCP6561-OT` and `ADS1015IDGS` drawings for
 the pin-compatible parts named above, renamed the comparator's `V-` pin to
 `GND`, retyped the ADS1115 `ALERT/RDY` pin as open-collector, widened both new
 analog symbols' pin-name offsets to 20 mils, and split a retraced polyline in
-the `D_Photo` arrow so it passes the KLC geometry check. STEP geometry
-is unchanged.
+the `D_Photo` arrow so it passes the KLC geometry check; on the DRV8833
+un-hid the PowerPAD pin, moved it off the `GND` pin, renamed it `PPAD` and
+retyped `VINT` as a power output; added two mounting-tab pins (`MP1`, `MP2`) to
+the `Conn_01x07` drawing for the JST header and renumbered that footprint's two
+solder-tab pads from `MP`/`MP` to `MP1`/`MP2`; renamed the two STEP models above
+to match their footprint names. STEP geometry is unchanged.
 
 ## SnapMagic USB4105-GF-A-120 3D Model
 
