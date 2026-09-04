@@ -1383,8 +1383,8 @@
 				)
 			)
 			(pin power_in line
-				(at -2.54 -7.62 90)
-				(length 3.81)
+				(at 0 -7.62 90)
+				(length 5.08)
 				(name "GND"
 					(effects
 						(font
@@ -1401,8 +1401,8 @@
 				)
 			)
 			(pin power_in line
-				(at -2.54 7.62 270)
-				(length 3.81)
+				(at 0 7.62 270)
+				(length 5.08)
 				(name "V+"
 					(effects
 						(font
