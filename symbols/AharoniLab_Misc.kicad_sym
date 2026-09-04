@@ -1282,7 +1282,7 @@
 			)
 		)
 		(property "Value" "TMUX1308PWR"
-			(at 3.81 16.51 0)
+			(at 0 19.05 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects

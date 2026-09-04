@@ -484,7 +484,7 @@
 			)
 		)
 		(property "Value" "TLV4333IPWR"
-			(at 0 -5.08 0)
+			(at 0 -12.7 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects

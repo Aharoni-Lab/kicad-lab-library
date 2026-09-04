@@ -9,7 +9,7 @@
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
 		(property "Reference" "U"
-			(at 0 7.62 0)
+			(at -5.08 7.62 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -19,7 +19,7 @@
 			)
 		)
 		(property "Value" "SN74LVC2G04DBVR"
-			(at 2.54 -7.62 0)
+			(at 0 -11.43 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
