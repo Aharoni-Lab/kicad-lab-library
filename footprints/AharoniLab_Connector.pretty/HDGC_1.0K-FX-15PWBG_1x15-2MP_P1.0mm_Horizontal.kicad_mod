@@ -1,0 +1,292 @@
+(footprint "HDGC_1.0K-FX-15PWBG_1x15-2MP_P1.0mm_Horizontal"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "HDGC 1.0K-FX-15PWBG FFC/FPC connector, 1.0mm pitch, 15 positions, right-angle SMD, bottom contact, flip lock, two mounting tabs (https://www.lcsc.com/product-detail/C2914102.html)")
+	(tags "FFC FPC connector 1.0mm 15 bottom-contact HDGC Pi CSI")
+	(property "Reference" "REF**"
+		(at 0 -7.7 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "HDGC_1.0K-FX-15PWBG_1x15-2MP_P1.0mm_Horizontal"
+		(at 0 7.7 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Validated" "No"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Contributor" "Daniel Aharoni"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Source" "Drawn from HDGC 1.0K-FX-nPWBG drawing A001 (2016-03-12) PC board layout, n=15: pads 0.6x1.5 at 1.0 pitch, tabs 2.3x2.6 at 2.65 outboard of pins 1/15 and 2.75 forward of the pin row"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start -10.1 -6.75)
+		(end 10.1 -1.45)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "a6b87cea-ad10-4794-80c1-0499aaa93b8f")
+	)
+	(fp_line
+		(start -7 -1.45)
+		(end -7 -0.85)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "ee0dc7ec-9dae-4014-b93f-46fd838a1d52")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 -4.1 0)
+		(layer "F.Fab")
+		(uuid "68fb12a2-6640-4078-b4d6-55441e731829")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_line
+		(start -10.21 -6.86)
+		(end 10.21 -6.86)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "0e6a4811-e897-4fc0-9377-327b118500b4")
+	)
+	(fp_line
+		(start -10.21 -6.86)
+		(end -10.21 -4.35)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "6aeb2980-6807-43ab-baed-a03ece32d14c")
+	)
+	(fp_line
+		(start 10.21 -6.86)
+		(end 10.21 -4.35)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "1b94d5e2-83ed-4342-a2f3-3fed2ef66aeb")
+	)
+	(fp_poly
+		(pts
+			(xy -7.2 1.25)
+			(xy -6.8 1.25)
+			(xy -7 0.95)
+		)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.SilkS")
+		(uuid "994c3d9a-16fa-49e4-ace6-e14da4b7c860")
+	)
+	(fp_rect
+		(start -11.05 -7)
+		(end 11.05 1)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "61b67e98-02b0-4f73-b299-3577857840ff")
+	)
+	(pad "1" smd roundrect
+		(at -7 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "7d9fa06f-901c-480f-882b-dbfccaf3a55a")
+	)
+	(pad "2" smd roundrect
+		(at -6 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "00f9d384-4b21-4c98-8815-7b5dda619c81")
+	)
+	(pad "3" smd roundrect
+		(at -5 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "4997f2bd-011d-4d66-90b6-2844d94655aa")
+	)
+	(pad "4" smd roundrect
+		(at -4 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "e1d972e6-bef7-456c-9759-b98f6fec3b3b")
+	)
+	(pad "5" smd roundrect
+		(at -3 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "9fa000c3-435b-4b66-af03-fc1bbfd5162c")
+	)
+	(pad "6" smd roundrect
+		(at -2 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "4e8de597-e1aa-487e-ab09-b0c4e80e878b")
+	)
+	(pad "7" smd roundrect
+		(at -1 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "a7a1f693-c322-4e54-8480-895ac406d327")
+	)
+	(pad "8" smd roundrect
+		(at 0 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "8f23ceea-7930-47e2-b0a4-3cf873cbe3c4")
+	)
+	(pad "9" smd roundrect
+		(at 1 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "1aa78de1-0f0e-4949-a921-0d095dfed933")
+	)
+	(pad "10" smd roundrect
+		(at 2 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "7a634d09-bbc2-4bd4-86b2-76a9fb89cb84")
+	)
+	(pad "11" smd roundrect
+		(at 3 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "850a6f3c-0efd-4d28-9c35-08e1bd689795")
+	)
+	(pad "12" smd roundrect
+		(at 4 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "701bd6e8-517d-4bc5-b8a4-5a81dd7065f1")
+	)
+	(pad "13" smd roundrect
+		(at 5 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "f5909c33-d054-4338-b847-e3864f4e2a49")
+	)
+	(pad "14" smd roundrect
+		(at 6 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "87400176-eef7-4051-a09c-0b79a2b9d257")
+	)
+	(pad "15" smd roundrect
+		(at 7 0)
+		(size 0.6 1.5)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.25)
+		(uuid "3734ed56-4edb-41d9-bea2-95cd1b7d1ff3")
+	)
+	(pad "MP1" smd roundrect
+		(at -9.65 -2.75)
+		(size 2.3 2.6)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.1)
+		(uuid "3523e50a-e9a5-4b77-bbb2-af3bb540f36e")
+	)
+	(pad "MP2" smd roundrect
+		(at 9.65 -2.75)
+		(size 2.3 2.6)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(roundrect_rratio 0.1)
+		(uuid "6cef73e3-d50d-480d-94a6-5adcd7ce5df5")
+	)
+	(embedded_fonts no)
+)
