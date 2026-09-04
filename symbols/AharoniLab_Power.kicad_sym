@@ -5464,7 +5464,7 @@
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
 		(property "Reference" "U"
-			(at -3.81 16.51 0)
+			(at 0 20.32 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5474,7 +5474,7 @@
 			)
 		)
 		(property "Value" "DRV8833PWPR"
-			(at -3.81 13.97 0)
+			(at 0 17.78 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5896,7 +5896,7 @@
 				)
 			)
 			(pin passive line
-				(at 5.08 -15.24 90)
+				(at -2.54 -15.24 90)
 				(length 2.54)
 				(name "PPAD"
 					(effects
