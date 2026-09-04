@@ -112,6 +112,18 @@ Included material:
   `footprints/AharoniLab_LED_SMD.pretty/LED_PLCC-2_3.5x2.8mm_Nested2214_KA.kicad_mod`
   (from `LED_SMD`: `LED_PLCC-2_3.4x3.0mm_AK`); its land pattern is lab-drawn
   from the Wuerth and ams-OSRAM drawings and no upstream STEP model exists
+- Symbol graphics and pin layout of `OPA2320AIDR` in
+  `symbols/AharoniLab_OpAmp.kicad_sym` (from `Amplifier_Operational`: `OPA2325`,
+  which carries the same dual op-amp pinout)
+- Symbol graphics and pin layout of `TLV3201AIDBVR` in
+  `symbols/AharoniLab_OpAmp.kicad_sym` (from `Comparator`: `MCP6561-OT`, which
+  carries the same SOT-23-5 pinout)
+- Symbol graphics and pin layout of `ADS1115IDGSR` in
+  `symbols/AharoniLab_Misc.kicad_sym` (from `Analog_ADC`: `ADS1015IDGS`, which
+  upstream `ADS1115IDGS` extends)
+- The `D_Photo` symbol in `symbols/AharoniLab_Passive.kicad_sym` (from `Device`)
+- `footprints/AharoniLab_Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod`
+  and its STEP model (from `Package_SO`)
 
 Sources: <https://gitlab.com/kicad/libraries/kicad-symbols> (revision `b705e03a`),
 <https://gitlab.com/kicad/libraries/kicad-footprints> (revision `c2593cf2`),
@@ -131,7 +143,8 @@ SHA-256 after line-ending normalization:
 `TSSOP-14_4.4x5mm_P0.65mm.step` `3ee5786aae56190997aa793ba3cfc003fd616782770e29719b4562f012982245`,
 `TSSOP-16_4.4x5mm_P0.65mm.step` `6ad5e98224d02a427d9a6b929a28dbc158b9925fba5adec12db05079f1016948`,
 `SOT-23.step` `dd5d1711204e1d8d26cd11490923bd84340820baa69538c385a4300ec2539bc0`,
-`R_1206_3216Metric.step` `f5d1ea5c47935091292bd1c6c698e0df88d3d4bbf92bf66b4c97e49df5be9ebc`.
+`R_1206_3216Metric.step` `f5d1ea5c47935091292bd1c6c698e0df88d3d4bbf92bf66b4c97e49df5be9ebc`,
+`SOIC-8_3.9x4.9mm_P1.27mm.step` `07f46cff378d30e6c27dfd5a03092c795323f86d91c71fc7e743f4f418dc553a`.
 License: Creative Commons Attribution-ShareAlike 4.0 International, with the
 KiCad Libraries License exception (<https://www.kicad.org/libraries/license/>).
 
@@ -146,7 +159,11 @@ to the even-pin row and set 1.1 mm holes per the Wuerth drawing; reused the
 the pin-compatible parts named above, retyped the MCP4728 `RDY/BSY` pin as
 open-collector, renamed its `VOUTx` pins to `OUTx`, widened its pin-name offset
 to 20 mils (also on the quad op-amp) and retyped the TMUX1308 pin 7 as a hidden
-no-connect. STEP geometry
+no-connect; reused the `OPA2325`, `MCP6561-OT` and `ADS1015IDGS` drawings for
+the pin-compatible parts named above, renamed the comparator's `V-` pin to
+`GND`, retyped the ADS1115 `ALERT/RDY` pin as open-collector, widened both new
+analog symbols' pin-name offsets to 20 mils, and split a retraced polyline in
+the `D_Photo` arrow so it passes the KLC geometry check. STEP geometry
 is unchanged.
 
 ## SnapMagic USB4105-GF-A-120 3D Model
