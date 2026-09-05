@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "W4 radiometric photodiode site, two alternates on one footprint with concentric active areas: Vishay VBPW34S gullwing SMD (pads 1/2 at x = +-3.575mm, 1.75x1.8mm, datasheet land pattern; 3x3mm chip) OR Hamamatsu S1226-5BQ TO-5 can (0.7mm drill / 1.4mm pads at y = +-2.54mm, i.e. the 5.08mm lead pitch turned 90 degrees so the holes sit between the SMD pads; 2.4x2.4mm active area). Pad numbers are shared: 1 = cathode (SMD pad on the silk-bar side, square hole), 2 = anode. Fit one part or the other, never both. Silk: VBPW34S outline trimmed around the holes, TO-5 phi 9.4mm arcs broken around the SMD pads. Courtyard = the TO-5 flange (phi 11mm).")
+	(descr "W4 radiometric photodiode site, two alternates on one footprint with concentric active areas: Vishay VBPW34S gullwing SMD (pads 1/2 at x = +-3.575mm, 1.75x1.8mm, datasheet land pattern; 3x3mm chip) OR Hamamatsu S1226-5BQ TO-5 can (0.7mm drill / 1.4mm pads at y = +-2.54mm, i.e. the 5.08mm lead pitch turned 90 degrees so the holes sit between the SMD pads; 2.4x2.4mm active area). Pad numbers are shared: 1 = cathode (SMD pad on the silk-bar side, square hole), 2 = anode. Fit one part or the other, never both. Silk: VBPW34S outline trimmed around the holes, TO-5 phi 9.4mm arcs broken around the SMD pads. Courtyard = the TO-5 flange (phi 11mm). Datasheets: https://www.vishay.com/docs/81128/vbpw34s.pdf and https://www.hamamatsu.com/content/dam/hamamatsu-photonics/sites/documents/99_SALES_LIBRARY/ssd/s1226_series_kspd1034e.pdf")
 	(tags "photodiode VBPW34S S1226 TO-5 nested alternate opto Vishay Hamamatsu W4")
 	(property "Reference" "REF**"
 		(at 0 -6.2 0)
