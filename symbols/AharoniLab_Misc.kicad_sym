@@ -2902,7 +2902,7 @@
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
 		(property "Reference" "U"
-			(at 0 5.08 0)
+			(at 0 7.62 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2912,7 +2912,7 @@
 			)
 		)
 		(property "Value" "TPD2E009DBZR"
-			(at 0 -5.08 0)
+			(at 0 -10.16 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3033,8 +3033,8 @@
 		)
 		(symbol "TPD2E009DBZR_0_1"
 			(rectangle
-				(start -3.81 -2.54)
-				(end 3.81 2.54)
+				(start -5.08 5.08)
+				(end 5.08 -5.08)
 				(stroke
 					(width 0.254)
 					(type default)
@@ -3046,7 +3046,7 @@
 		)
 		(symbol "TPD2E009DBZR_1_1"
 			(pin passive line
-				(at 0 5.08 270)
+				(at -7.62 2.54 0)
 				(length 2.54)
 				(name "D+"
 					(effects
@@ -3064,7 +3064,7 @@
 				)
 			)
 			(pin passive line
-				(at 0 -5.08 90)
+				(at -7.62 -2.54 0)
 				(length 2.54)
 				(name "D-"
 					(effects
@@ -3082,7 +3082,7 @@
 				)
 			)
 			(pin power_in line
-				(at 6.35 0 180)
+				(at 0 -7.62 90)
 				(length 2.54)
 				(name "GND"
 					(effects
