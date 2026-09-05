@@ -133,6 +133,8 @@ Included material:
   `symbols/AharoniLab_Connector.kicad_sym` (from `Connector_Generic`: `Conn_01x07`)
 - `footprints/AharoniLab_Connector.pretty/JST_SH_BM07B-SRSS-TB_1x07-2MP_P1.00mm_Vertical.kicad_mod`
   and its STEP model (from `Connector_JST`: `JST_SH_BM07B-SRSS-TB_1x07-1MP_P1.00mm_Vertical`)
+- `footprints/AharoniLab_Diode_SMD.pretty/D_SOD-123.kicad_mod` and its STEP
+  model (from `Diode_SMD`)
 
 Sources: <https://gitlab.com/kicad/libraries/kicad-symbols> (revision `b705e03a`),
 <https://gitlab.com/kicad/libraries/kicad-footprints> (revision `c2593cf2`),
@@ -157,7 +159,8 @@ SHA-256 after line-ending normalization:
 `HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm_Mask2.46x2.31mm.step`
 `162c198aebee57d60d962a52091321dc07d3f4e6e991d64310c77e10a802cf8f`,
 `JST_SH_BM07B-SRSS-TB_1x07-2MP_P1.00mm_Vertical.step`
-`7df6eb693edebff163e7f953295508a8dc894e09fba0d898788e96be8c7b0dd8`.
+`7df6eb693edebff163e7f953295508a8dc894e09fba0d898788e96be8c7b0dd8`,
+`D_SOD-123.step` `b3dc4065573abc72e3d5b4cca0e908f72a24205a41b6284b1f75ccacbe99adf8`.
 License: Creative Commons Attribution-ShareAlike 4.0 International, with the
 KiCad Libraries License exception (<https://www.kicad.org/libraries/license/>).
 
