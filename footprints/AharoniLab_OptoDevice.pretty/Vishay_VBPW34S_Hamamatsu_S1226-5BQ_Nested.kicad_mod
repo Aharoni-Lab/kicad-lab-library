@@ -1,0 +1,313 @@
+(footprint "Vishay_VBPW34S_Hamamatsu_S1226-5BQ_Nested"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "W4 radiometric photodiode site, two alternates on one footprint with concentric active areas: Vishay VBPW34S gullwing SMD (pads 1/2 at x = +-3.575mm, 1.75x1.8mm, datasheet land pattern; 3x3mm chip) OR Hamamatsu S1226-5BQ TO-5 can (0.7mm drill / 1.4mm pads at y = +-2.54mm, i.e. the 5.08mm lead pitch turned 90 degrees so the holes sit between the SMD pads; 2.4x2.4mm active area). Pad numbers are shared: 1 = cathode (SMD pad on the silk-bar side, square hole), 2 = anode. Fit one part or the other, never both. Silk: VBPW34S outline trimmed around the holes, TO-5 phi 9.4mm arcs broken around the SMD pads. Courtyard = the TO-5 flange (phi 11mm).")
+	(tags "photodiode VBPW34S S1226 TO-5 nested alternate opto Vishay Hamamatsu W4")
+	(property "Reference" "REF**"
+		(at 0 -6.2 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Vishay_VBPW34S_Hamamatsu_S1226-5BQ_Nested"
+		(at 0 6.2 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Validated" "No"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Contributor" "Daniel Aharoni"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Source" "Nested from the lab Vishay_VBPW34S (datasheet 81128 rev 1.3 land pattern) and Hamamatsu_S1226-5BQ_TO-5_P5.08mm_Vertical (KSPDA0202EB) footprints; TO-5 origin moved from lead 1 to the can axis and the lead line turned onto y so the holes clear the SMD pads by 2.5mm; drawn 2026-09-04 for caracterize-mainboard D63"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_poly
+		(pts
+			(xy -1.6 -1.95)
+			(xy 2.2 -1.95)
+			(xy 2.2 1.95)
+			(xy -2.2 1.95)
+			(xy -2.2 -1.35)
+		)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "55de898d-03a8-4ed1-be1e-224f9a90b72a")
+	)
+	(fp_rect
+		(start -3.2 -0.8)
+		(end -2.2 0.8)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "0054fe93-c5be-4c3a-8fba-20d9a608b152")
+	)
+	(fp_rect
+		(start 2.2 -0.8)
+		(end 3.2 0.8)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "d6c3ce76-382b-4e19-b0ec-396234826738")
+	)
+	(fp_rect
+		(start -1.5 -1.5)
+		(end 1.5 1.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "0517641a-e9d0-47be-bb01-ef4163670450")
+	)
+	(fp_line
+		(start -2.2 -2.06)
+		(end -1.1 -2.06)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "76476728-9d71-4086-8eb9-67e07f5c81d2")
+	)
+	(fp_line
+		(start -2.2 2.06)
+		(end -1.1 2.06)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "594649c5-47d4-4da0-b7de-af979639765c")
+	)
+	(fp_line
+		(start -2.35 -2.06)
+		(end -2.35 2.06)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "d3d9ace4-63b5-4ead-a050-b093f30479f7")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 5.5 0)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "a5c0d63e-0000-4000-8000-000000000010")
+	)
+	(fp_line
+		(start 1.1 -2.06)
+		(end 2.2 -2.06)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "a5c0d63e-0000-4000-8000-000000000001")
+	)
+	(fp_line
+		(start 1.1 2.06)
+		(end 2.2 2.06)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "a5c0d63e-0000-4000-8000-000000000002")
+	)
+	(fp_line
+		(start -0.6 -3.6)
+		(end 0.6 -3.6)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "a5c0d63e-0000-4000-8000-000000000003")
+	)
+	(fp_arc
+		(start 4.26 -1.986)
+		(mid 0 -4.7)
+		(end -4.26 -1.986)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "a5c0d63e-0000-4000-8000-000000000004")
+	)
+	(fp_arc
+		(start -4.26 1.986)
+		(mid -0 4.7)
+		(end 4.26 1.986)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "a5c0d63e-0000-4000-8000-000000000005")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 4.55 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "a5c0d63e-0000-4000-8000-000000000006")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 4.05 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "a5c0d63e-0000-4000-8000-000000000007")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 2.95 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "a5c0d63e-0000-4000-8000-000000000008")
+	)
+	(fp_rect
+		(start -1.2 -1.2)
+		(end 1.2 1.2)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "a5c0d63e-0000-4000-8000-000000000009")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "86e412dc-0df1-4f98-a731-65535f2aa313")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+		)
+	)
+	(pad "1" smd roundrect
+		(at -3.575 0)
+		(size 1.75 1.8)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(roundrect_rratio 0.25)
+		(uuid "7b49614a-621e-434c-8ca1-6f620bafdc3a")
+	)
+	(pad "2" smd roundrect
+		(at 3.575 0)
+		(size 1.75 1.8)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(roundrect_rratio 0.25)
+		(uuid "46b2695d-b8cc-4f20-a83d-a5e4216a2107")
+	)
+	(pad "1" thru_hole rect
+		(at 0 -2.54)
+		(size 1.4 1.4)
+		(drill 0.7)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "a5c0d63e-0000-4000-8000-000000000011")
+	)
+	(pad "2" thru_hole circle
+		(at 0 2.54)
+		(size 1.4 1.4)
+		(drill 0.7)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "a5c0d63e-0000-4000-8000-000000000012")
+	)
+	(embedded_fonts no)
+)

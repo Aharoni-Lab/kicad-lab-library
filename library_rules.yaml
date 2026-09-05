@@ -118,6 +118,7 @@ footprint_layer_rules:
 allow_duplicate_pads:
   - "AharoniLab_Connector"
   - "AharoniLab_Package_DFN_QFN"
+  - "AharoniLab_OptoDevice"   # nested alternate footprints (SMD + TO-5 photodiode on one site) share pad numbers
 
 # Symbol flag defaults
 symbol_flags:
