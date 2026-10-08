@@ -1,0 +1,209 @@
+(footprint "Thorlabs_FDS010_TO-5_P5.08mm_Vertical"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Thorlabs FDS010 silicon PIN photodiode, TO-5 metal can (8.3mm cap, 9.1mm flange 0.7mm thick, 4.6mm cap height, 9.9mm overall with tab), 3 leads 0.5mm (38mm long) on a 5.1mm (5.08mm) diameter circle, 1.0mm active area. Through-hole, 0.9mm drill, 1.6mm pads, origin on pad 1. Pad 1 = anode, pad 2 = case, pad 3 = cathode; tab on the left in this top view. Datasheet: https://www.thorlabs.com/thorproduct.cfm?partnumber=FDS010 (spec sheet 0636-S01 Rev I (2017-03-16))")
+	(tags "photodiode FDS010 TO-5 THT Thorlabs")
+	(property "Reference" "REF**"
+		(at 1.7961 -6.2)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Thorlabs_FDS010_TO-5_P5.08mm_Vertical"
+		(at 1.7961 4.4)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" "https://www.thorlabs.com/thorproduct.cfm?partnumber=FDS010"
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "Thorlabs FDS010 silicon PIN photodiode, TO-5 metal can (8.3mm cap, 9.1mm flange 0.7mm thick, 4.6mm cap height, 9.9mm overall with tab), 3 leads 0.5mm (38mm long) on a 5.1mm (5.08mm) diameter circle, 1.0mm active area. Through-hole, 0.9mm drill, 1.6mm pads, origin on pad 1. Pad 1 = anode, pad 2 = case, pad 3 = cathode; tab on the left in this top view. Datasheet: https://www.thorlabs.com/thorproduct.cfm?partnumber=FDS010 (spec sheet 0636-S01 Rev I (2017-03-16))"
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Validated" "No"
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Contributor" "Daniel Aharoni"
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Source" "Thorlabs FDS010 Product Specification Sheet 0636-S01 Rev I (2017-03-16), page 3 bottom-view drawing: pin 1 lower-right, pin 2 lower-left, pin 3 upper-left, tab at right (bottom view); mirrored here for the top view"
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_circle
+		(center 1.7961 -1.7961)
+		(end 6.3461 -1.7961)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "68c121c7-bef6-468a-946e-de39ed2e46f1")
+	)
+	(fp_circle
+		(center 1.7961 -1.7961)
+		(end 2.2961 -1.7961)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "f989e7a5-e3d9-4810-9dea-319f75027613")
+	)
+	(fp_line
+		(start -2.7539 -2.1961)
+		(end -3.1539 -2.1961)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "1d1c033a-b09a-404a-bba1-0f277d592ebc")
+	)
+	(fp_line
+		(start -2.7539 -1.3961)
+		(end -3.1539 -1.3961)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "89dac29a-b9ae-46a0-ba1a-48a594f13c64")
+	)
+	(fp_line
+		(start -3.1539 -2.1961)
+		(end -3.1539 -1.3961)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "ac26cc83-b8c8-4bd2-8cb2-9a861630a143")
+	)
+	(fp_circle
+		(center 1.7961 -1.7961)
+		(end 5.9461 -1.7961)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "9b80cf0e-529a-4e20-89f4-00930a809f94")
+	)
+	(fp_poly
+		(pts
+			(xy -2.3 -0.4)
+			(xy -2.3 0.4)
+			(xy -1.9 0)
+		)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.SilkS")
+		(uuid "91852c4d-64f1-4d8a-9a57-5b34808877d6")
+	)
+	(fp_circle
+		(center 1.7961 -1.7961)
+		(end 6.9961 -1.7961)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "619b1ef7-7812-4da7-9dcb-f22e34b10801")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 1.7961 0.4039 0)
+		(layer "F.Fab")
+		(uuid "c7be5d77-be02-4ba2-ab29-c0bf1d16a5b5")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole rect
+		(at 0.0000 0.0000)
+		(size 1.6 1.6)
+		(drill 0.9)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "a875d718-e1d4-47e6-8b2c-35e48e3ccd0a")
+	)
+	(pad "2" thru_hole circle
+		(at 3.5922 0.0000)
+		(size 1.6 1.6)
+		(drill 0.9)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "259a255d-9084-4ca5-aeed-6bc7c54df30a")
+	)
+	(pad "3" thru_hole circle
+		(at 3.5922 -3.5922)
+		(size 1.6 1.6)
+		(drill 0.9)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "65dfd114-85ed-4444-961c-d3d6962ff58c")
+	)
+	(embedded_fonts no)
+)
