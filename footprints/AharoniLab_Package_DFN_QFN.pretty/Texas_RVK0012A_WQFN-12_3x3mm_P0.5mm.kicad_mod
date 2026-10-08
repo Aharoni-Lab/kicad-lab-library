@@ -25,7 +25,7 @@
 			)
 		)
 	)
-	(property "Datasheet" "https://www.ti.com/lit/ds/symlink/tlv3605.pdf"
+	(property "Datasheet" ""
 		(at 0 0)
 		(layer "F.Fab")
 		(hide yes)
@@ -36,7 +36,7 @@
 			)
 		)
 	)
-	(property "Description" "PROVISIONAL: generic JEDEC MO-220 dimensions, verify against TI RVK0012A drawing before fabrication. TI TLV3605RVKR 12-pin WQFN 3x3mm 0.5mm pitch (3 pads per side, no exposed pad per datasheet pin diagram), pads 0.25x0.8mm, pad centers 3.0mm apart row to row. TI drawing RVK0012A is not in datasheet SNOSDA2F and TI published no land pattern example. https://www.ti.com/lit/ds/symlink/tlv3605.pdf"
+	(property "Description" ""
 		(at 0 0)
 		(layer "F.Fab")
 		(hide yes)
