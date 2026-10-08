@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
+	(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open, KiCad official geometry https://gitlab.com/kicad/libraries/kicad-footprints")
 	(tags "solder jumper open")
 	(property "Reference" "REF**"
 		(at 0 -1.8 0)
