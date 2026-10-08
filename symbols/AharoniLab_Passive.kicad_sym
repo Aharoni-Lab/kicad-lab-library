@@ -3709,7 +3709,7 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(duplicate_pin_numbers_are_jumpers no)
-		(property "Reference" "TH"
+		(property "Reference" "RT"
 			(at -4.445 0 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3948,7 +3948,7 @@
 					(type default)
 				)
 				(fill
-					(type none)
+					(type background)
 				)
 			)
 		)
@@ -4319,7 +4319,7 @@
 					(type default)
 				)
 				(fill
-					(type none)
+					(type background)
 				)
 			)
 			(polyline

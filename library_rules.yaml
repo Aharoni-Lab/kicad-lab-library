@@ -43,7 +43,7 @@ categories:
       inductor:  { reference_prefix: "L", pins: { min: 2, max: 2 } }
       diode:     { reference_prefix: "D", pins: { min: 2, max: 3 } }
       crystal:   { reference_prefix: "Y", pins: { min: 2, max: 4 } }
-      thermistor: { reference_prefix: "TH", pins: { min: 2, max: 2 } }
+      thermistor: { reference_prefix: "RT", pins: { min: 2, max: 2 } }
       ferrite:   { reference_prefix: "FB", pins: { min: 2, max: 2 } }
       potentiometer: { reference_prefix: "RV", pins: { min: 3, max: 3 } }
   AharoniLab_Connector:
