@@ -357,7 +357,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin input line
 				(at -25.4 -15.24 0)
 				(length 5.08)
 				(name "TEST_SD_GND"
@@ -375,7 +375,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin input line
 				(at -25.4 -10.16 0)
 				(length 5.08)
 				(name "TEST_IN_VS+"
