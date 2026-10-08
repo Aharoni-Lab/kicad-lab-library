@@ -1842,7 +1842,7 @@
 				)
 			)
 		)
-		(property "Footprint" "AharoniLab_Package_DFN_QFN:Texas_RVK0012A_WQFN-12_3x3mm_P0.5mm"
+		(property "Footprint" "AharoniLab_Package_DFN_QFN:Texas_RVK0012A_WQFN-12-1EP_3x3mm_P0.5mm_EP1.75x1.75mm"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1864,7 +1864,7 @@
 				)
 			)
 		)
-		(property "Description" "PROVISIONAL FOOTPRINT: generic JEDEC MO-220 dimensions, verify against TI RVK0012A drawing before fabrication. 800ps high-speed rail-to-rail input comparator with LVDS outputs, 2.4-5.5V, adjustable hysteresis/latch (LE/HYS), shutdown (SHDN), 12-pin WQFN 3x3mm (RVK)"
+		(property "Description" "800ps high-speed rail-to-rail input comparator with LVDS outputs, 2.4-5.5V, adjustable hysteresis/latch (LE/HYS), shutdown (SHDN), 12-pin WQFN 3x3mm with exposed pad (RVK). EP = thermal pad: connect to VEE/ground plane per TI QFN guidance; datasheet gives no RVK-specific instruction"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1919,7 +1919,7 @@
 				)
 			)
 		)
-		(property "Source" "TI SNOSDA2F (June 2024) Table 4-1 Pin Functions, RVK 12-pin QFN; VEE pins 3/5/9/11 as one native stacked pin"
+		(property "Source" "Ultra Librarian (TI product page link), 2026-10-08; pin names/numbers per TI SNOSDA2F (June 2024) Table 4-1; pin 13 exposed pad from the Ultra Librarian RVK package; VEE pins 3/5/9/11 as one native stacked pin"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2121,6 +2121,24 @@
 					)
 				)
 				(number "[3,5,9,11]"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 5.08 -12.7 90)
+				(length 2.54)
+				(name "EP"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "13"
 					(effects
 						(font
 							(size 1.27 1.27)
