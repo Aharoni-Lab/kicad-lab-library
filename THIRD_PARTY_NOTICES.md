@@ -215,3 +215,15 @@ TI design-resource terms permit use in designs built around the TI part):
 - `3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/DPY0002A.stp`: TI model `DPY0002A_ASM` (X1SON-2, Creo, 2018-09-20), from `ul_TPD1E10B06DPYR.zip`; SHA-256 after line-ending normalization `16f57d9cdb3d67d3c0533ba7742feefd12568538ce331a61799e4f38dabc0ea0`.
 - `3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/RUX0012A.stp`: TI model `RUX0012A_ASM` (VQFN-HR-12, Creo, 2018-10-04), from `ul_TPS2121RUXR.zip`; SHA-256 after line-ending normalization `07757e0861b58b27cbcba8e95c9c0f4f5828c1419abbfa2450bebbb7804ad91b`.
 - `3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/RVK0012A.stp`: TI model `RVK0012A_ASM` (WQFN-12 with exposed pad, Creo, 2021-10-11), from `ul_TLV3605RVKR.zip`; SHA-256 after line-ending normalization `52df539e29ec317cc117d5940743e58dec74da85c38eebf6a685fa48472cbc50`.
+
+## KiCad Official Libraries (Button_Switch_SMD)
+
+Included material:
+
+- `footprints/AharoniLab_Switch_SMD.pretty/SW_SPST_PTS810.kicad_mod`
+- `3dmodels/AharoniLab_Switch_SMD.3dshapes/SW_SPST_PTS810.step`
+
+Source: KiCad official footprint library `Button_Switch_SMD` and 3D library `Button_Switch_SMD.3dshapes` (KiCad 10.0).
+License: Creative Commons Attribution-ShareAlike 4.0 International, with the KiCad library design exception.
+
+Modifications: removed UUIDs, added `Validated`, `Contributor` and `Source` properties, repointed the 3D model path to `${AHARONI_LAB_KICAD_LIB}`.

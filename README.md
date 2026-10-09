@@ -33,6 +33,7 @@ The library holds real, growing collections of symbols, footprints, and 3D model
 | `AharoniLab_Memory` | Memory ICs (EEPROM, Flash, SRAM) | U |
 | `AharoniLab_Transistor` | Discrete transistors and MOSFETs | Q |
 | `AharoniLab_Oscillator` | Oscillators and clock generators | U |
+| `AharoniLab_Switch` | Switches (tactile, push-button) | SW |
 | `AharoniLab_Misc` | Miscellaneous ICs (digital potentiometers, etc.) | U |
 
 ## Contributing
