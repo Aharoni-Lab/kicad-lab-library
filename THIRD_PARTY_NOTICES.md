@@ -239,3 +239,19 @@ Source: KiCad official footprint library `Package_SON` and 3D library `Package_S
 License: Creative Commons Attribution-ShareAlike 4.0 International, with the KiCad library design exception.
 
 Modifications: replaced the `KiLib_Generator` property with `Validated`, `Contributor` and `Source` properties, repointed the 3D model path to `${AHARONI_LAB_KICAD_LIB}`.
+
+## KiCad Official Libraries (MountingHole)
+
+Included material:
+
+- `footprints/AharoniLab_Connector.pretty/MountingHole_2.2mm_M2_Pad_Via.kicad_mod`
+- `footprints/AharoniLab_Connector.pretty/MountingHole_2.2mm_M2_Pad.kicad_mod`
+- `footprints/AharoniLab_Connector.pretty/MountingHole_2.2mm_M2.kicad_mod`
+- `footprints/AharoniLab_Connector.pretty/MountingHole_2.7mm_M2.5_Pad_Via.kicad_mod`
+- `footprints/AharoniLab_Connector.pretty/MountingHole_2.7mm_M2.5_Pad.kicad_mod`
+- `footprints/AharoniLab_Connector.pretty/MountingHole_2.7mm_M2.5.kicad_mod`
+
+Source: KiCad official footprint library `MountingHole` (KiCad 10.0.5). The `MountingHole_Pad` and `MountingHole` schematic symbols are redrawn after KiCad's `Mechanical` symbol library.
+License: Creative Commons Attribution-ShareAlike 4.0 International, with the KiCad library design exception.
+
+Modifications: replaced the `KiLib_Generator` property with `Validated`, `Contributor` and `Source` properties.
