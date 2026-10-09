@@ -13,4 +13,5 @@
   (lib (name "AharoniLab_Package_SO")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Package_SO.pretty")(options "")(descr ""))
   (lib (name "AharoniLab_Package_SOT")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Package_SOT.pretty")(options "")(descr ""))
   (lib (name "AharoniLab_Resistor_SMD")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Resistor_SMD.pretty")(options "")(descr ""))
+  (lib (name "AharoniLab_Switch_SMD")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/footprints/AharoniLab_Switch_SMD.pretty")(options "")(descr ""))
 )

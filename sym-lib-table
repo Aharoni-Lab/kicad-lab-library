@@ -11,5 +11,6 @@
   (lib (name "AharoniLab_Passive")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Passive.kicad_sym")(options "")(descr "Passive components (resistors, capacitors, inductors, diodes, crystals)"))
   (lib (name "AharoniLab_Power")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Power.kicad_sym")(options "")(descr "Power management ICs"))
   (lib (name "AharoniLab_Sensor")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Sensor.kicad_sym")(options "")(descr "Sensors and transducers (including image sensors)"))
+  (lib (name "AharoniLab_Switch")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Switch.kicad_sym")(options "")(descr "Switches (tactile, push-button)"))
   (lib (name "AharoniLab_Transistor")(type "KiCad")(uri "${AHARONI_LAB_KICAD_LIB}/symbols/AharoniLab_Transistor.kicad_sym")(options "")(descr "Discrete transistors and MOSFETs"))
 )
