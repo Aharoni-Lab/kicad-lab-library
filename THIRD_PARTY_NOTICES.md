@@ -227,3 +227,15 @@ Source: KiCad official footprint library `Button_Switch_SMD` and 3D library `But
 License: Creative Commons Attribution-ShareAlike 4.0 International, with the KiCad library design exception.
 
 Modifications: removed UUIDs, added `Validated`, `Contributor` and `Source` properties, repointed the 3D model path to `${AHARONI_LAB_KICAD_LIB}`.
+
+## KiCad Official Libraries (Package_SON)
+
+Included material:
+
+- `footprints/AharoniLab_Package_DFN_QFN.pretty/Texas_R-PUSON-N14.kicad_mod`
+- `3dmodels/AharoniLab_Package_DFN_QFN.3dshapes/Texas_R-PUSON-N14.step`
+
+Source: KiCad official footprint library `Package_SON` and 3D library `Package_SON.3dshapes` (KiCad 10.0.5).
+License: Creative Commons Attribution-ShareAlike 4.0 International, with the KiCad library design exception.
+
+Modifications: replaced the `KiLib_Generator` property with `Validated`, `Contributor` and `Source` properties, repointed the 3D model path to `${AHARONI_LAB_KICAD_LIB}`.

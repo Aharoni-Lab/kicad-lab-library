@@ -3131,7 +3131,7 @@
 				)
 			)
 		)
-		(property "Footprint" "AharoniLab_Package_DFN_QFN:Texas_RVZ0014A_USON-14_1.35x3.5mm_P0.5mm"
+		(property "Footprint" "AharoniLab_Package_DFN_QFN:Texas_R-PUSON-N14"
 			(at 0 -22.86 0)
 			(show_name no)
 			(do_not_autoplace no)
