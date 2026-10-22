@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "Hamamatsu S12023-02/-05/-10/-10A Si APD, TO-18 metal can with borosilicate window (5.4 mm flange, 4.7 mm cap, 3.7 mm overall height), 3 leads 0.45 mm on a 2.54 mm diameter circle; through-hole, 0.7 mm drill, 1.2 mm pads, origin on pad 1. Pad 1 = cathode, pad 2 = case, pad 3 = anode; tab at upper left in this top view. Datasheet: https://www.hamamatsu.com/resources/pdf/ssd/s12023-02_etc_kapd1007e.pdf (KAPD1007E19, outline KAPDA0136EC)")
+	(descr "Hamamatsu S12023-02/-05/-10/-10A Si APD, TO-18 metal can with borosilicate window (5.4 mm flange, 4.7 mm cap, 3.7 mm overall height), 3 leads 0.45 mm on a 2.54 mm diameter circle; through-hole, 0.7 mm drill, 1.2 mm pads, origin on pad 1. Pad 1 = anode, pad 2 = case, pad 3 = cathode (KAPDA0136EC pin diagram, corrected 2026-10-22); tab at upper left in this top view. Datasheet: https://www.hamamatsu.com/resources/pdf/ssd/s12023-02_etc_kapd1007e.pdf (KAPD1007E19, outline KAPDA0136EC)")
 	(tags "APD photodiode S12023 TO-18 THT Hamamatsu")
 	(property "Reference" "REF**"
 		(at 1.27 -4.2)
@@ -75,7 +75,7 @@
 			)
 		)
 	)
-	(property "Source" "Hamamatsu Si APD S12023 series datasheet KAPD1007E19 (Jul. 2026) page 4, outline KAPDA0136EC: bottom view pin 1 right, pin 3 left, pin 2 below, tab upper right; mirrored here for the top view. Tab size and active-area marker (1.0 mm, largest variant) drawn from the nominal drawing"
+	(property "Source" "Hamamatsu Si APD S12023 series datasheet KAPD1007E19 (Jul. 2026) page 4, outline KAPDA0136EC: bottom view pin 1 right, pin 3 left, pin 2 below, tab upper right; mirrored here for the top view. Pin 1 is the anode and pin 3 the cathode (diode symbol in the same drawing); the earlier description had them swapped. Tab size and active-area marker (1.0 mm, largest variant) drawn from the nominal drawing"
 		(at 0 0)
 		(layer "F.Fab")
 		(hide yes)
