@@ -3037,7 +3037,7 @@
 				)
 			)
 		)
-		(property "Source" "Hamamatsu Si APD S12023 series datasheet KAPD1007E19 (Jul. 2026) page 4, outline KAPDA0136EC: pin 1 cathode, pin 2 case, pin 3 anode"
+		(property "Source" "Hamamatsu Si APD S12023 series datasheet KAPD1007E19 (Jul. 2026) page 4, outline KAPDA0136EC pin diagram (bottom view, diode symbol between terminals 3 and 1): pin 1 anode, pin 2 case, pin 3 cathode. Corrected 2026-10-22; the earlier text had K and A swapped"
 			(at 0 0 0)
 			(hide yes)
 			(effects
@@ -3161,7 +3161,7 @@
 						)
 					)
 				)
-				(number "1"
+				(number "3"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -3179,7 +3179,7 @@
 						)
 					)
 				)
-				(number "3"
+				(number "1"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -3305,7 +3305,7 @@
 				)
 			)
 		)
-		(property "Source" "Hamamatsu Si APD S12023 series datasheet KAPD1007E19 (Jul. 2026) page 4, outline KAPDA0136EC: pin 1 cathode, pin 2 case, pin 3 anode"
+		(property "Source" "Hamamatsu Si APD S12023 series datasheet KAPD1007E19 (Jul. 2026) page 4, outline KAPDA0136EC pin diagram (bottom view, diode symbol between terminals 3 and 1): pin 1 anode, pin 2 case, pin 3 cathode. Corrected 2026-10-22; the earlier text had K and A swapped"
 			(at 0 0 0)
 			(hide yes)
 			(effects
@@ -3429,7 +3429,7 @@
 						)
 					)
 				)
-				(number "1"
+				(number "3"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -3447,7 +3447,7 @@
 						)
 					)
 				)
-				(number "3"
+				(number "1"
 					(effects
 						(font
 							(size 1.27 1.27)
