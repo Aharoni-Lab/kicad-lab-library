@@ -3197,7 +3197,7 @@
 				)
 			)
 		)
-		(property "Source" "Pins checked against TPDxE05U06 SLVSBO7O (Aug 2024) Table 4-3, RVZ package; symbol drawn to lab conventions"
+		(property "Source" "Pins checked against TPDxE05U06 SLVSBO7O (Aug 2024) Table 4-3, RVZ package; symbol drawn to lab conventions. NC pins 1-4, 6, 7 are native pin stacks on 14-11, 9, 8 (SLVSBO7O Table 4-3: each NC pad is internally tied to the opposite I/O pad) for straight-through routing"
 			(at 0 -38.1 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3254,7 +3254,7 @@
 						)
 					)
 				)
-				(number "14"
+				(number "[1,14]"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -3272,7 +3272,7 @@
 						)
 					)
 				)
-				(number "13"
+				(number "[2,13]"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -3290,7 +3290,7 @@
 						)
 					)
 				)
-				(number "12"
+				(number "[3,12]"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -3308,7 +3308,7 @@
 						)
 					)
 				)
-				(number "11"
+				(number "[4,11]"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -3326,7 +3326,7 @@
 						)
 					)
 				)
-				(number "9"
+				(number "[6,9]"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -3344,7 +3344,7 @@
 						)
 					)
 				)
-				(number "8"
+				(number "[7,8]"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -3381,120 +3381,6 @@
 					)
 				)
 				(number "10"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at -10.16 7.62 0)
-				(length 5.08)
-				(hide yes)
-				(name "D1+"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "1"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at -10.16 5.08 0)
-				(length 5.08)
-				(hide yes)
-				(name "D1-"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "2"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at -10.16 2.54 0)
-				(length 5.08)
-				(hide yes)
-				(name "D2+"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "3"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at -10.16 0.0 0)
-				(length 5.08)
-				(hide yes)
-				(name "D2-"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "4"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at -10.16 -2.54 0)
-				(length 5.08)
-				(hide yes)
-				(name "D3+"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "6"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at -10.16 -5.08 0)
-				(length 5.08)
-				(hide yes)
-				(name "D3-"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "7"
 					(effects
 						(font
 							(size 1.27 1.27)
