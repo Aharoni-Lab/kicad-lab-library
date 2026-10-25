@@ -134,6 +134,7 @@ Included material:
 - `footprints/AharoniLab_Connector.pretty/JST_SH_BM07B-SRSS-TB_1x07-2MP_P1.00mm_Vertical.kicad_mod`
   and its STEP model (from `Connector_JST`: `JST_SH_BM07B-SRSS-TB_1x07-1MP_P1.00mm_Vertical`)
 - `footprints/AharoniLab_Diode_SMD.pretty/D_SOD-123.kicad_mod` and its STEP
+- `footprints/AharoniLab_Diode_SMD.pretty/D_SOD-123F.kicad_mod` and `3dmodels/AharoniLab_Diode_SMD.3dshapes/D_SOD-123F.step` (from `Diode_SMD.pretty` / `Diode_SMD.3dshapes`; metadata properties added, description and tags reworded)
   model (from `Diode_SMD`)
 
 Sources: <https://gitlab.com/kicad/libraries/kicad-symbols> (revision `b705e03a`),
